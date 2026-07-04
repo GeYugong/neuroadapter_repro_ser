@@ -1,0 +1,33 @@
+# Large datasets and weights
+data/
+checkpoints/
+outputs/
+decoded_stimuli/
+model_weights/
+wandb/
+logs/
+runs/
+
+# Large file types
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pickle
+
+# Python/cache
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Local env
+.env
+.env.*
+*.log
