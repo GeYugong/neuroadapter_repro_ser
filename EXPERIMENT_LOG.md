@@ -409,3 +409,43 @@ checkpoint-step-2250.pt
 是否 OOM/报错：无。
 
 结论：从 `step 500` 继续训练到 `step 2250` 成功，说明 checkpoint resume 链路可用。该训练仍远少于论文完整训练，但已经比 500 step 更接近可观察 decode 效果的阶段。
+
+## 2026-07-05 Decode Smoke Test 2
+
+脚本：`scripts/decode_limited.py`
+
+目的：使用续训到 `step 2250` 的 checkpoint 再做一次 decode，对比 `step 500` 的小样本生成效果。
+
+配置：
+
+- checkpoint: `/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume500-add1750/checkpoint-step-2250.pt`
+- checkpoint step: `2250`
+- subject: `1`
+- topk: `100`
+- test samples: `4`
+- start index: `0`
+- denoising steps: `20`
+- noise factor: `4.0`
+- num predictions: `1`
+- mixed precision: `fp16`
+- GPU: `CUDA_VISIBLE_DEVICES=0`
+
+运行结果：
+
+```text
+run name: 20260705-steps2250-decode4
+耗时: 30.92 秒
+输出 grid: /public/home/mty/GeYugong/outputs/neuroadapter_decode/20260705-steps2250-decode4/grid_gt_pred.png
+```
+
+![Decode smoke test step 2250: ground truth left, prediction right](assets/20260705-steps2250-decode4-grid_gt_pred.png)
+
+输出目录：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter_decode/20260705-steps2250-decode4
+```
+
+结果观察：decode 链路继续可用，但生成图仍没有形成稳定的 brain-to-image 对应。右列大多是低细节背景或随机视觉元素，不能视为有效复现结果。相比 step 500，step 2250 的输出仍未显示可靠语义对齐。
+
+结论：训练和 decode 已经可以持续跑，但当前训练步数和简化 decode 流程仍不足以得到论文效果。下一步应考虑更长训练、使用更多 denoising steps/候选图，并补齐作者的 brain encoder candidate selection 评估流程。
