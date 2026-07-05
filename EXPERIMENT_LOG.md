@@ -193,3 +193,63 @@ checkpoint：
 是否 OOM/报错：无。
 
 结论：`topk=100`、`batch_size=1` 的真实训练可以跑通；显存约 8.3GB，速度约 1 step/s。50 step 只是链路和稳定性验证，不代表论文指标。
+
+## 2026-07-05 Limited Train Run 2
+
+脚本：`scripts/train_limited.py`
+
+配置：
+
+- subject: `1`
+- topk: `100`
+- batch size: `1`
+- max steps: `500`
+- mixed precision: `no`
+- GPU: `CUDA_VISIBLE_DEVICES=0`
+- save every: `100`
+
+运行结果：
+
+```text
+run name: 20260705-topk100-bs1-steps500
+dataset_len: 9000
+num_parcels: 200
+max_voxels: 626
+device: cuda
+torch: 2.4.1+cu121
+耗时: 422.43 秒
+first_loss: 0.049765344709157944
+last_loss: 0.08804396539926529
+min_loss: 0.00226954510435462
+max_loss: 0.4880872070789337
+显存: 约 8.5GB
+``` 
+
+输出目录：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs1-steps500
+```
+
+生成文件：
+
+```text
+config.json
+losses.csv
+summary.json
+checkpoint-step-0100.pt
+checkpoint-step-0200.pt
+checkpoint-step-0300.pt
+checkpoint-step-0400.pt
+checkpoint-step-0500.pt
+```
+
+最终 checkpoint：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs1-steps500/checkpoint-step-0500.pt
+```
+
+是否 OOM/报错：无。
+
+结论：`topk=100`、`batch_size=1` 训练 500 steps 稳定完成，速度约 `1.18 step/s`。loss 有波动，500 steps 仍然只是小规模稳定性验证，不代表论文复现效果。
