@@ -150,12 +150,46 @@ device cuda
 - GPU: `CUDA_VISIBLE_DEVICES=0`
 - 输出目录：`/public/home/mty/GeYugong/outputs/neuroadapter/<run-name>`
 
-状态：准备启动。
+状态：已完成。
 
-待记录：
+运行结果：
 
-- run name
-- 训练耗时
-- first/last/min/max loss
-- checkpoint 路径
-- 是否 OOM 或报错
+```text
+run name: 20260705-topk100-bs1-steps50
+dataset_len: 9000
+num_parcels: 200
+max_voxels: 626
+device: cuda
+torch: 2.4.1+cu121
+耗时: 58.41 秒
+first_loss: 0.049765344709157944
+last_loss: 0.0046898601576685905
+min_loss: 0.0026548015885055065
+max_loss: 0.4162288308143616
+```
+
+输出目录：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs1-steps50
+```
+
+生成文件：
+
+```text
+config.json
+losses.csv
+summary.json
+checkpoint-step-0025.pt
+checkpoint-step-0050.pt
+```
+
+checkpoint：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs1-steps50/checkpoint-step-0050.pt
+```
+
+是否 OOM/报错：无。
+
+结论：`topk=100`、`batch_size=1` 的真实训练可以跑通；显存约 8.3GB，速度约 1 step/s。50 step 只是链路和稳定性验证，不代表论文指标。
