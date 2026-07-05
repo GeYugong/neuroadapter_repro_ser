@@ -449,3 +449,76 @@ run name: 20260705-steps2250-decode4
 结果观察：decode 链路继续可用，但生成图仍没有形成稳定的 brain-to-image 对应。右列大多是低细节背景或随机视觉元素，不能视为有效复现结果。相比 step 500，step 2250 的输出仍未显示可靠语义对齐。
 
 结论：训练和 decode 已经可以持续跑，但当前训练步数和简化 decode 流程仍不足以得到论文效果。下一步应考虑更长训练、使用更多 denoising steps/候选图，并补齐作者的 brain encoder candidate selection 评估流程。
+
+## 2026-07-05 Alignment and Decode Diagnosis
+
+目的：排查“训练和 decode 都能跑，但生成图不对”的主要原因。
+
+### 数据和 trial 顺序检查
+
+检查脚本：临时脚本 `/public/home/mty/GeYugong/tmp/check_alignment.py`
+
+结果：
+
+```text
+metadata img_presentation_order == nsd_expdesign.mat 推导结果: True
+first10 meta:     [46002, 61882, 828, 67573, 16020, 40422, 51517, 62325, 50610, 55065]
+first10 expected: [46002, 61882, 828, 67573, 16020, 40422, 51517, 62325, 50610, 55065]
+train/test/val: 9000 / 1000 / 0
+presented unique images: 10000
+trials: 30000
+test images in subject image set: 1000 / 1000
+train-test overlap: 0
+lh_betas shape: (30000, 163842), dtype float32, no NaN in checked block
+rh_betas shape: (30000, 163842), dtype float32, no NaN in checked block
+```
+
+结论：目前没有发现图像 trial 顺序错位或 train/test 划分错误。
+
+### Parcel 一致性检查
+
+检查脚本：临时脚本 `/public/home/mty/GeYugong/tmp/check_checkpoint_dataset.py`
+
+结果：
+
+```text
+train split top-k parcel 与 checkpoint 保存的 selected_parcel_idx 一致: True
+test split top-k parcel 与 checkpoint 保存的 selected_parcel_idx 一致: True
+num_parcels: 200
+max_voxels: 626
+```
+
+结论：训练和 decode 使用的是同一套 top-k parcel，不是 parcel 选择不一致导致的问题。
+
+### Decode 参数检查：50 denoising steps
+
+脚本：`scripts/decode_limited.py`
+
+配置：
+
+- checkpoint: `/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume500-add1750/checkpoint-step-2250.pt`
+- checkpoint step: `2250`
+- test samples: `4`
+- denoising steps: `50`
+- noise factor: `4.0`
+- num predictions: `1`
+
+运行结果：
+
+```text
+run name: 20260705-steps2250-decode4-denoise50
+耗时: 30.24 秒
+```
+
+![Decode step 2250 with 50 denoising steps](assets/20260705-steps2250-decode4-denoise50-grid_gt_pred.png)
+
+观察：50 denoising steps 的图片更像正常 Stable Diffusion 输出，但仍没有和 ground truth 建立对应关系。说明主要问题不是 20 steps 采样过少。
+
+### 当前判断
+
+目前更可能的原因：
+
+1. 训练量仍远不足。当前约 2250 optimizer steps，batch size 4，相当于约 1 个 epoch；作者 README 示例是 100 epochs，论文实验更长。
+2. 当前 decode 是简化版，每个样本只生成 1 张，没有接入作者的 brain encoder candidate selection。
+3. 当前训练没有完全复用作者 Accelerate checkpoint 流程，但核心模型、loss、dataset、IP-Adapter 注入路径一致。
+4. 若继续追求效果，应优先跑更长训练，并补齐作者 brain encoder 评估/筛选流程，而不是只看单张随机 decode。
