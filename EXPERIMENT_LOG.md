@@ -345,3 +345,67 @@ max_loss: 0.31141236424446106
 ```
 
 结论：`batch_size=4` 不会 OOM，单步约 3 秒，样本吞吐略高于 `batch_size=1`。后续长训练可以使用 `batch_size=4`，但需要支持从已有 checkpoint 继续训练，避免重复从零开始。
+
+## 2026-07-05 Resume Train Run 3
+
+脚本：`scripts/train_limited.py`
+
+目的：从已有 `step 500` checkpoint 继续训练，而不是从随机初始化重新开始。
+
+配置：
+
+- init checkpoint: `/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs1-steps500/checkpoint-step-0500.pt`
+- initial step: `500`
+- additional steps: `1750`
+- final step: `2250`
+- subject: `1`
+- topk: `100`
+- batch size: `4`
+- mixed precision: `no`
+- GPU: `CUDA_VISIBLE_DEVICES=0`
+- save every: `500` additional steps
+
+运行结果：
+
+```text
+run name: 20260705-topk100-bs4-resume500-add1750
+dataset_len: 9000
+num_parcels: 200
+max_voxels: 626
+device: cuda
+torch: 2.4.1+cu121
+耗时: 2798.44 秒
+first_loss: 0.14795000851154327
+last_loss: 0.041569337248802185
+min_loss: 0.007006385363638401
+max_loss: 0.3056139349937439
+显存: 约 16.5GB
+```
+
+输出目录：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume500-add1750
+```
+
+生成文件：
+
+```text
+config.json
+losses.csv
+summary.json
+checkpoint-step-1000.pt
+checkpoint-step-1500.pt
+checkpoint-step-2000.pt
+checkpoint-step-2250.pt
+```
+
+最终 checkpoint：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume500-add1750/checkpoint-step-2250.pt
+```
+
+是否 OOM/报错：无。
+
+结论：从 `step 500` 继续训练到 `step 2250` 成功，说明 checkpoint resume 链路可用。该训练仍远少于论文完整训练，但已经比 500 step 更接近可观察 decode 效果的阶段。
