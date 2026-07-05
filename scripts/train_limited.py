@@ -40,7 +40,8 @@ def unwrap(model):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-name", default=None)
-    parser.add_argument("--max-steps", type=int, default=50)
+    parser.add_argument("--max-steps", type=int, default=50, help="Number of additional optimizer steps to run.")
+    parser.add_argument("--init-checkpoint", type=Path, default=None, help="Optional checkpoint-step-*.pt to resume model weights from.")
     parser.add_argument("--topk", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -105,6 +106,8 @@ def main() -> None:
         parcel_dir="/public/home/mty/GeYugong/data/neuroadapter/parcels/schaefer",
         hemi=None,
         gen_size=512,
+        init_checkpoint=str(cli.init_checkpoint) if cli.init_checkpoint else None,
+        initial_step=0,
     )
 
     accelerator = Accelerator(mixed_precision=train_args.mixed_precision)
@@ -139,6 +142,20 @@ def main() -> None:
         train_args, accelerator, train_dataset, image_proj_model, adapter_modules, unet
     )
 
+    if cli.init_checkpoint is not None:
+        init_ckpt = torch.load(cli.init_checkpoint, map_location="cpu")
+        ckpt_num_parcels = int(init_ckpt["num_parcels"])
+        ckpt_max_voxels = int(init_ckpt["max_voxels"])
+        if ckpt_num_parcels != train_dataset.num_parcels:
+            raise ValueError(f"Checkpoint num_parcels {ckpt_num_parcels} != dataset {train_dataset.num_parcels}")
+        if ckpt_max_voxels != train_dataset.max_voxels:
+            raise ValueError(f"Checkpoint max_voxels {ckpt_max_voxels} != dataset {train_dataset.max_voxels}")
+        unwrap(neuro_adapter).image_proj_model.load_state_dict(init_ckpt["image_proj"], strict=True)
+        unwrap(neuro_adapter).adapter_modules.load_state_dict(init_ckpt["ip_adapter"], strict=True)
+        unwrap(guidance_generator).load_state_dict(init_ckpt["guidance_generator"], strict=True)
+        train_args.initial_step = int(init_ckpt["step"])
+        print(f"[resume] loaded {cli.init_checkpoint} at step {train_args.initial_step}")
+
     weight_dtype = setup_weight_dtype(accelerator)
     vae.to(accelerator.device, dtype=weight_dtype)
     text_encoder.to(accelerator.device, dtype=weight_dtype)
@@ -169,7 +186,8 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=["step", "loss", "elapsed_sec"])
         writer.writeheader()
         progress = tqdm(range(1, cli.max_steps + 1), desc="limited train")
-        for step in progress:
+        for local_step in progress:
+            step = train_args.initial_step + local_step
             try:
                 batch = next(data_iter)
             except StopIteration:
@@ -205,16 +223,20 @@ def main() -> None:
             losses.append(row)
             progress.set_postfix(loss=f"{loss_value:.5f}")
 
-            if cli.save_every > 0 and step % cli.save_every == 0:
+            if cli.save_every > 0 and local_step % cli.save_every == 0:
                 ckpt_path = save_checkpoint(output_root, step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
                 print(f"[checkpoint] {ckpt_path}")
 
-    final_ckpt = save_checkpoint(output_root, cli.max_steps, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
+    final_step = train_args.initial_step + cli.max_steps
+    final_ckpt = save_checkpoint(output_root, final_step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
     finished_at = datetime.now().isoformat(timespec="seconds")
     summary = {
         **config,
         "finished_at": finished_at,
         "elapsed_sec": time.perf_counter() - start,
+        "initial_step": train_args.initial_step,
+        "additional_steps": cli.max_steps,
+        "final_step": final_step,
         "final_checkpoint": str(final_ckpt),
         "first_loss": losses[0]["loss"] if losses else None,
         "last_loss": losses[-1]["loss"] if losses else None,
