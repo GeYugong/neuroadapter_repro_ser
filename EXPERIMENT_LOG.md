@@ -554,3 +554,40 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/decode_brain_encoder
 - 注意：这只是最小 brain encoder selection smoke，不是作者完整设置。作者完整评估通常会用更多 encoder layers/runs、更多候选图、更充分训练的 NeuroAdapter checkpoint。当前分数仍然整体偏低，说明 2250 step 小训练还远不足以复现论文效果。
 
 ![brain encoder candidate selection](assets/20260705-steps2250-be-select4-cand4-denoise20-grid.png)
+
+## 2026-07-05 Resume Training To 10000 Started
+
+目的：从 `checkpoint-step-2250.pt` 继续训练到全局 `10000 step`，作为下一轮 decode 和 brain encoder candidate selection 的输入。
+
+输出目录：
+
+`/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume2250-to10000`
+
+启动命令等价于：
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 DIFFUSERS_OFFLINE=1 \
+PYTHONPATH=/public/home/mty/GeYugong/code/NeuroAdapter:$PYTHONPATH \
+python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
+  --run-name 20260705-topk100-bs4-resume2250-to10000 \
+  --init-checkpoint /public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume500-add1750/checkpoint-step-2250.pt \
+  --max-steps 7750 \
+  --topk 100 \
+  --batch-size 4 \
+  --mixed-precision no \
+  --save-every 1000
+```
+
+启动排查记录：
+- 第一次后台启动失败：没有设置 `PYTHONPATH`，`train_limited.py` 找不到 `brain_adapter`。失败日志保存在 `train.failed-import.log`。
+- 第二次后台启动失败：使用 `--mixed-precision fp16` 时，Accelerate 在梯度裁剪阶段报 `Attempting to unscale FP16 gradients`。失败日志保存在 `train.failed-fp16.log`。
+- 第三次使用 `--mixed-precision no` 正常开始训练。PID：`55159`。
+
+当前已确认：
+- 从 step 2250 checkpoint 成功 resume。
+- GPU0 显存占用约 16.5GB。
+- `losses.csv` 已写入 step 2251 起的 loss。
+- 目标 final checkpoint 应为 `checkpoint-step-10000.pt`。
+
+后续动作：等训练完成后，检查 `summary.json`、`losses.csv` 和 `checkpoint-step-10000.pt`，然后用 brain encoder candidate selection 对 10000 step checkpoint 解码。
