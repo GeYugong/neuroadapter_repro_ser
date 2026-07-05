@@ -304,3 +304,44 @@ summary.json
 ![Decode smoke test: ground truth left, prediction right](assets/20260705-steps500-decode4-grid_gt_pred.png)
 
 结论：checkpoint 加载、test fMRI 输入、Stable Diffusion 生成、图片保存链路已经跑通。
+
+## 2026-07-05 Batch Size 4 Stability Test
+
+脚本：`scripts/train_limited.py`
+
+目的：测试 `batch_size=4` 是否能在单张 A40 上稳定训练，为后续更长训练选择 batch size。
+
+配置：
+
+- subject: `1`
+- topk: `100`
+- batch size: `4`
+- max steps: `50`
+- mixed precision: `no`
+- GPU: `CUDA_VISIBLE_DEVICES=0`
+- save every: `50`
+
+运行结果：
+
+```text
+run name: 20260705-topk100-bs4-steps50
+dataset_len: 9000
+num_parcels: 200
+max_voxels: 626
+device: cuda
+torch: 2.4.1+cu121
+耗时: 150.67 秒
+first_loss: 0.15584427118301392
+last_loss: 0.16647395491600037
+min_loss: 0.015826208516955376
+max_loss: 0.31141236424446106
+显存: 约 16.5GB
+```
+
+输出目录：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-steps50
+```
+
+结论：`batch_size=4` 不会 OOM，单步约 3 秒，样本吞吐略高于 `batch_size=1`。后续长训练可以使用 `batch_size=4`，但需要支持从已有 checkpoint 继续训练，避免重复从零开始。
