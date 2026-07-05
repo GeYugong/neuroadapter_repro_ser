@@ -253,3 +253,52 @@ checkpoint-step-0500.pt
 是否 OOM/报错：无。
 
 结论：`topk=100`、`batch_size=1` 训练 500 steps 稳定完成，速度约 `1.18 step/s`。loss 有波动，500 steps 仍然只是小规模稳定性验证，不代表论文复现效果。
+
+## 2026-07-05 Decode Smoke Test 1
+
+脚本：`scripts/decode_limited.py`
+
+目的：验证训练出的 checkpoint 能否加载，并从 test fMRI 生成图片。此实验不做 brain encoder 候选排序，也不代表论文指标。
+
+配置：
+
+- checkpoint: `/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs1-steps500/checkpoint-step-0500.pt`
+- checkpoint step: `500`
+- subject: `1`
+- topk: `100`
+- test samples: `4`
+- start index: `0`
+- denoising steps: `20`
+- noise factor: `4.0`
+- num predictions: `1`
+- mixed precision: `fp16`
+- GPU: `CUDA_VISIBLE_DEVICES=0`
+
+运行结果：
+
+```text
+run name: 20260705-steps500-decode4
+耗时: 27.42 秒
+输出 grid: /public/home/mty/GeYugong/outputs/neuroadapter_decode/20260705-steps500-decode4/grid_gt_pred.png
+```
+
+输出目录：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter_decode/20260705-steps500-decode4
+```
+
+生成文件：
+
+```text
+sample_0000_gt.png / sample_0000_pred.png / sample_0000_gt_pred.png
+sample_0001_gt.png / sample_0001_pred.png / sample_0001_gt_pred.png
+sample_0002_gt.png / sample_0002_pred.png / sample_0002_gt_pred.png
+sample_0003_gt.png / sample_0003_pred.png / sample_0003_gt_pred.png
+grid_gt_pred.png
+summary.json
+```
+
+结果观察：生成流程成功，图片文件非空，拼图尺寸为 `512x1024`。右列预测图目前与左列 ground truth 没有明显语义对应，这符合预期，因为模型只训练了 500 steps，当前目标是打通 decode 链路而非得到论文级效果。
+
+结论：checkpoint 加载、test fMRI 输入、Stable Diffusion 生成、图片保存链路已经跑通。
