@@ -914,3 +914,53 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 - 从 brain encoder selection score 看，20000 step 的小规模扩大评估比 8 sample smoke test 更稳定，50 个样本里只有 1 个 best score 略小于 0。
 - 但该指标不是最终论文指标，也不是人眼语义正确率；它只是用外部 brain encoder 从 8 个候选里选一个更像目标脑响应的候选。
 - 从预览图看，模型仍然经常生成和 GT 不同的物体或场景，只是在一些大类上会出现相关性，例如冲浪/运动、飞机、鸟、室内/卫浴等。当前结果可以作为“代码链路已跑通、能训练并解码、能做小规模评估”的复现实验记录，但还不能宣称达到论文效果。
+
+## 2026-07-06 Resume Training To 50000 Completed
+
+用户确认 6 张 A40 都空闲后，决定使用 4 张 A40 继续训练。为了不直接占满全部 GPU，本次只使用 GPU0-3。
+
+训练命令核心配置：
+
+```text
+run: 20260706-topk100-bs4-ddp4-resume20000-to50000
+launcher: accelerate launch --multi_gpu --num_processes 4
+CUDA_VISIBLE_DEVICES: 0,1,2,3
+init checkpoint: /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000/checkpoint-step-20000.pt
+max additional steps: 30000
+initial step: 20000
+final step: 50000
+batch size: 4 per process
+topk: 100
+learning rate: 1e-4
+weight decay: 1e-6
+mixed precision: no
+save every: 5000
+```
+
+输出目录：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp4-resume20000-to50000`
+
+关键结果：
+- started at：2026-07-06T06:52:30
+- finished at：2026-07-06T16:10:21
+- elapsed：33465.75 秒，约 9.30 小时
+- dataset len：9000
+- first loss：0.1583611369
+- last loss：0.1411519349
+- min loss：0.0046233190
+- max loss：0.3168275356
+- final checkpoint：`checkpoint-step-50000.pt`
+
+保存的 checkpoint：
+- `checkpoint-step-25000.pt`
+- `checkpoint-step-30000.pt`
+- `checkpoint-step-35000.pt`
+- `checkpoint-step-40000.pt`
+- `checkpoint-step-45000.pt`
+- `checkpoint-step-50000.pt`
+
+训练完成后确认：
+- `summary.json` 已生成。
+- 4 张 GPU 已释放，`nvidia-smi` 显示 GPU0-5 显存占用均为 0。
+- 本次只完成继续训练，没有额外启动解码；下一步应使用 `checkpoint-step-50000.pt` 跑同一套 50 sample brain encoder selection，与 20000 step 结果对比。

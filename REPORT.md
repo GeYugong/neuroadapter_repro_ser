@@ -38,7 +38,20 @@
 
 ## 已完成训练
 
-当前最重要的训练结果：
+当前最重要的训练结果已经更新为 50000 step：
+
+```text
+run: 20260706-topk100-bs4-ddp4-resume20000-to50000
+initial step: 20000
+final step: 50000
+GPU: 4 卡 DDP
+elapsed: 33465.75 秒，约 9.30 小时
+last loss: 0.1411519349
+final checkpoint:
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp4-resume20000-to50000/checkpoint-step-50000.pt
+```
+
+上一阶段 20000 step 训练结果：
 
 ```text
 run: 20260706-topk100-bs4-ddp2-resume10000-to20000
@@ -51,7 +64,7 @@ final checkpoint:
 /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000/checkpoint-step-20000.pt
 ```
 
-已经保留的 checkpoint 覆盖从早期 smoke test 到 20000 step。当前共有 32 个 `checkpoint-step-*.pt` 文件，没有丢失历史权重。
+已经保留的 checkpoint 覆盖从早期 smoke test 到 50000 step，没有丢失历史权重。50000 step 训练新增保存了 `checkpoint-step-25000.pt`、`checkpoint-step-30000.pt`、`checkpoint-step-35000.pt`、`checkpoint-step-40000.pt`、`checkpoint-step-45000.pt` 和 `checkpoint-step-50000.pt`。
 
 ## 已完成解码评估
 
@@ -98,7 +111,7 @@ max best score: 0.4880
 
 因此更准确的表述是：
 
-> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的小规模结果在 brain encoder 分数上有正相关趋势，但视觉效果还没有达到论文级复现，需要继续核对配置、补官方 metric 或做更长训练。
+> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的小规模结果在 brain encoder 分数上有正相关趋势，随后又用 4 张 A40 继续训练到了 50000 step。50000 step 的解码评估还没跑，视觉效果是否改善需要下一步验证。
 
 ## 为什么现在不优先继续盲目训练
 
@@ -142,7 +155,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 优先级最高的是写清楚阶段性结果，并向师兄确认下一阶段目标：
 
 1. 如果目标是“证明代码能跑”：现在已经基本完成。
-2. 如果目标是“拿到更像论文的图”：下一步应继续训练到更高 step，例如 50000 或完整 epoch，但要接受 GPU 时间成本。
+2. 如果目标是“拿到更像论文的图”：下一步应先用 `checkpoint-step-50000.pt` 跑和 20000 step 相同的解码评估，再判断是否继续训练到完整 epoch。
 3. 如果目标是“严谨复现论文指标”：下一步应补官方 full evaluation / metric，而不是只看小样本图。
 
 我的建议路线：
@@ -155,17 +168,17 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 补一个更正式的 evaluation/metric，确认当前结果在数字指标上处于什么水平。
 
 长期：
-如果配置确认没问题，再从 20000 step 继续训练到 50000 或更长。
+先用 50000 step checkpoint 跑同设置解码评估，再决定是否继续训练到更长。
 ```
 
 ## 如果师兄问“跑通了吗”
 
 可以回答：
 
-> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 20000 step，并做了 50 个测试样本、每个 8 个候选图的评估，49/50 的 best candidate brain encoder score 为正。不过目前视觉重建还没有达到论文效果，我下一步准备补更正式的 metric 或继续长训。
+> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 50000 step；20000 step 已做了 50 个测试样本、每个 8 个候选图的评估，49/50 的 best candidate brain encoder score 为正。50000 step 的解码还没做，下一步要用同样设置对比 20000 和 50000。
 
 ## 如果师兄问“下一步打算干什么”
 
 可以回答：
 
-> 我觉得下一步不应该只盲目加训练步数。先把当前简化复现流程和作者默认流程差异核对一下，然后补一个更正式的评价。如果确认配置没问题，再用 1-2 张 5090/A40 继续从 20000 step 训练到更高 step。
+> 我觉得下一步不应该继续盲目加训练步数。现在已经到 50000 step，应先用 50000 checkpoint 跑同样的 50 sample 解码，和 20000 step 的结果做对比。如果 50000 视觉效果明显改善，再考虑继续；如果没有改善，就要优先查配置和评价流程。
