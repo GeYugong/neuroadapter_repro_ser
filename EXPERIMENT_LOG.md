@@ -591,3 +591,34 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 - 目标 final checkpoint 应为 `checkpoint-step-10000.pt`。
 
 后续动作：等训练完成后，检查 `summary.json`、`losses.csv` 和 `checkpoint-step-10000.pt`，然后用 brain encoder candidate selection 对 10000 step checkpoint 解码。
+
+## 2026-07-05 Resume Training To 10000 Completed
+
+训练已完成。
+
+输出目录：
+
+`/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume2250-to10000`
+
+关键结果：
+- initial step：2250
+- additional steps：7750
+- final step：10000
+- final checkpoint：`/public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume2250-to10000/checkpoint-step-10000.pt`
+- elapsed：8884.94 秒，约 2.47 小时
+- first loss：0.1460009813
+- last loss：0.1143550575
+- min loss：0.0045559588
+- max loss：0.3352905512
+
+保存的中间 checkpoint：
+- `checkpoint-step-3250.pt`
+- `checkpoint-step-4250.pt`
+- `checkpoint-step-5250.pt`
+- `checkpoint-step-6250.pt`
+- `checkpoint-step-7250.pt`
+- `checkpoint-step-8250.pt`
+- `checkpoint-step-9250.pt`
+- `checkpoint-step-10000.pt`
+
+结论：10000 step 训练产物完整，下一步使用 `checkpoint-step-10000.pt` 进行 decode 和 brain encoder candidate selection。
