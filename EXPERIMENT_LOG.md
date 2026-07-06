@@ -778,3 +778,34 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 - 训练还在使用旧绝对路径，训练结束前不要移动真实目录。
 - 后续更推荐 VS Code 打开：`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro` 或直接打开项目入口目录。
 - 如果训练结束后要做彻底整理，可以把真实目录迁移进 `projects/neuroadapter-iclr2026/`，并在旧路径保留 symlink 兼容已有脚本。
+
+## 2026-07-06 Resume Training To 20000 Completed
+
+训练已完成。
+
+输出目录：
+
+`/public/home/mty/GeYugong/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000`
+
+关键结果：
+- initial step：10000
+- additional steps：10000
+- final step：20000
+- final checkpoint：`/public/home/mty/GeYugong/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000/checkpoint-step-20000.pt`
+- elapsed：10973.29 秒，约 3.05 小时
+- last loss：0.1865352988
+- 训练进程已结束，GPU 已释放。
+
+保存的中间 checkpoint：
+- `checkpoint-step-11000.pt`
+- `checkpoint-step-12000.pt`
+- `checkpoint-step-13000.pt`
+- `checkpoint-step-14000.pt`
+- `checkpoint-step-15000.pt`
+- `checkpoint-step-16000.pt`
+- `checkpoint-step-17000.pt`
+- `checkpoint-step-18000.pt`
+- `checkpoint-step-19000.pt`
+- `checkpoint-step-20000.pt`
+
+结论：20000 step 训练产物完整。下一步使用 `checkpoint-step-20000.pt` 跑同一套 `8 samples x 8 candidates x 50 denoising steps` 解码，与 10000 step 结果对比。
