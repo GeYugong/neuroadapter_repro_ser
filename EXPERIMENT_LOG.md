@@ -874,3 +874,43 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 - 8 个样本中 7 个 best score 为正。
 
 和 10000 step 的同设置结果相比，20000 step 的 brain encoder 选择分数更稳定：10000 step 是 8 个样本中 5 个 best score 为正，20000 step 是 7 个为正。不过这仍然不是论文级复现，当前只是小样本 smoke / sanity check：重建图像依然明显受 Stable Diffusion 先验影响，部分样本语义与 GT 偏差很大，例如市场图像生成成室内/建筑，冲浪图像生成成鸟或运动人物。
+
+## 2026-07-06 Decode 20000 On 50 Samples
+
+为了避免只看 8 个样本带来的偶然性，继续使用同一个 20000 step checkpoint 跑了 50 个 test samples 的扩大版解码。
+
+```text
+checkpoint: /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000/checkpoint-step-20000.pt
+run: 20260706-steps20000-be-select50-cand8-denoise50
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
+```
+
+输出目录：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260706-steps20000-be-select50-cand8-denoise50`
+
+完整总览图：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260706-steps20000-be-select50-cand8-denoise50/grid_brain_encoder_selection.png`
+
+日志中只放前 12 个样本的预览图，避免把 38MB 完整大图直接塞进 Git：
+
+![20000 step 50 sample preview](assets/20260706-steps20000-be-select50-cand8-denoise50-preview12.png)
+
+结果摘要：
+- elapsed：898.29 秒，约 14.97 分钟
+- positive best score：49 / 50
+- positive rate：0.98
+- mean best score：0.2534
+- min best score：-0.0015
+- max best score：0.4880
+- first 10 best scores：`[0.2937, 0.0885, 0.0644, 0.2351, 0.3787, 0.4796, 0.3729, 0.2162, 0.2945, 0.2245]`
+
+结论：
+- 从 brain encoder selection score 看，20000 step 的小规模扩大评估比 8 sample smoke test 更稳定，50 个样本里只有 1 个 best score 略小于 0。
+- 但该指标不是最终论文指标，也不是人眼语义正确率；它只是用外部 brain encoder 从 8 个候选里选一个更像目标脑响应的候选。
+- 从预览图看，模型仍然经常生成和 GT 不同的物体或场景，只是在一些大类上会出现相关性，例如冲浪/运动、飞机、鸟、室内/卫浴等。当前结果可以作为“代码链路已跑通、能训练并解码、能做小规模评估”的复现实验记录，但还不能宣称达到论文效果。
