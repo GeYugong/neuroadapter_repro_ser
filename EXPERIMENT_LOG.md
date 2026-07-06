@@ -622,3 +622,35 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 - `checkpoint-step-10000.pt`
 
 结论：10000 step 训练产物完整，下一步使用 `checkpoint-step-10000.pt` 进行 decode 和 brain encoder candidate selection。
+
+## 2026-07-06 Decode 10000 With Brain Encoder Selection
+
+目的：用 `checkpoint-step-10000.pt` 跑与 2250 step 相同设置的候选图解码，比较训练更久之后的图像变化。
+
+命令：
+
+```bash
+python /public/home/mty/GeYugong/neuroadapter-repro/scripts/decode_brain_encoder_select.py \
+  --checkpoint /public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume2250-to10000/checkpoint-step-10000.pt \
+  --run-name 20260706-steps10000-be-select4-cand4-denoise20 \
+  --num-samples 4 \
+  --num-predictions 4 \
+  --denoising-steps 20 \
+  --topk 100
+```
+
+结果：
+- 输出目录：`/public/home/mty/GeYugong/outputs/neuroadapter_decode/20260706-steps10000-be-select4-cand4-denoise20`
+- checkpoint step：10000
+- num samples：4
+- candidates per sample：4
+- denoising steps：20
+- elapsed：37.30 秒
+- best candidate：sample 0 -> cand 3；sample 1 -> cand 2；sample 2 -> cand 1；sample 3 -> cand 1。
+
+观察：
+- 相比 2250 step，小规模 10000 step 输出更常出现完整自然图像，而不是大面积灰图或模糊块。
+- 但图像内容仍没有稳定对应 ground truth，brain encoder score 多数仍为负。
+- 结论：训练到 10000 step 后生成质量有改善迹象，但目前仍只是小规模复现流程验证，不是论文级复现效果。下一步若继续追求结果，应扩大训练步数、候选图数量，并补齐更多 brain encoder layers/runs。
+
+![10000 step brain encoder selection](assets/20260706-steps10000-be-select4-cand4-denoise20-grid.png)
