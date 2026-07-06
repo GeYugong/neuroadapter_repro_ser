@@ -654,3 +654,41 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/decode_brain_encoder
 - 结论：训练到 10000 step 后生成质量有改善迹象，但目前仍只是小规模复现流程验证，不是论文级复现效果。下一步若继续追求结果，应扩大训练步数、候选图数量，并补齐更多 brain encoder layers/runs。
 
 ![10000 step brain encoder selection](assets/20260706-steps10000-be-select4-cand4-denoise20-grid.png)
+
+## 2026-07-06 Decode 10000 With Larger Candidate Set
+
+目的：用 `checkpoint-step-10000.pt` 跑更可靠的小规模解码检查。相比上一版 `4 samples x 4 candidates x 20 denoising steps`，这次扩大为 `8 samples x 8 candidates x 50 denoising steps`。
+
+命令：
+
+```bash
+python /public/home/mty/GeYugong/neuroadapter-repro/scripts/decode_brain_encoder_select.py \
+  --checkpoint /public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume2250-to10000/checkpoint-step-10000.pt \
+  --run-name 20260706-steps10000-be-select8-cand8-denoise50 \
+  --num-samples 8 \
+  --num-predictions 8 \
+  --denoising-steps 50 \
+  --topk 100
+```
+
+结果：
+- 输出目录：`/public/home/mty/GeYugong/outputs/neuroadapter_decode/20260706-steps10000-be-select8-cand8-denoise50`
+- checkpoint step：10000
+- num samples：8
+- candidates per sample：8
+- denoising steps：50
+- elapsed：145.62 秒
+- best candidate index：`[0, 5, 6, 5, 0, 2, 0, 6]`
+- best candidate mean scores：`[0.0439, -0.0591, -0.0385, -0.0988, 0.2535, 0.1851, 0.1446, 0.1361]`
+
+观察：
+- 8 个样本中有 5 个 best score 为正，比上一版 `4x4x20` 更能说明 brain encoder selection 在候选集里确实能挑出相对更匹配的图。
+- 图像自然性明显比 2250 step 好，也比 20 denoising steps 更完整。
+- 但大多数样本的语义仍没有稳定对应 GT。例如菜市场、厨房、食物、运动场景等还经常被选成室内、海边、人物、文字牌等无关内容。
+- 结论：`10000 step + 8 candidates + 50 denoising steps` 是当前最可靠的小规模流程验证；它证明生成和筛选链路已经可用，但还不足以复现论文级 brain-to-image 效果。
+
+下一步判断：
+- 如果目标是“给师兄证明我跑通了”，当前已经足够作为阶段性结果。
+- 如果目标是“继续追论文效果”，优先继续训练到 20000/30000 step，再用同一套 `8x8x50` 对比。
+
+![10000 step larger candidate selection](assets/20260706-steps10000-be-select8-cand8-denoise50-grid.png)
