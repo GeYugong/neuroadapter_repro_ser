@@ -844,3 +844,33 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 说明：
 - 没有迁移通用 Codex 工具目录，例如 `tools/codex*`，它们不是本论文项目内容。
 - 推荐 VS Code 打开 `/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro`。
+
+## 2026-07-06 Decode 20000 With Larger Candidate Set
+
+使用 20000 step checkpoint 跑同一套较大的候选解码：
+
+```text
+checkpoint: /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000/checkpoint-step-20000.pt
+run: 20260706-steps20000-be-select8-cand8-denoise50
+samples: 8
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
+```
+
+输出目录：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260706-steps20000-be-select8-cand8-denoise50`
+
+已保存总览图：
+
+![20000 step brain encoder selection](assets/20260706-steps20000-be-select8-cand8-denoise50-grid.png)
+
+结果摘要：
+- elapsed：162.23 秒
+- best candidate indices：`[2, 1, 2, 2, 3, 6, 6, 0]`
+- best candidate mean scores：`[0.3461, 0.1617, -0.1100, 0.1910, 0.4118, 0.5151, 0.4691, 0.1915]`
+- 8 个样本中 7 个 best score 为正。
+
+和 10000 step 的同设置结果相比，20000 step 的 brain encoder 选择分数更稳定：10000 step 是 8 个样本中 5 个 best score 为正，20000 step 是 7 个为正。不过这仍然不是论文级复现，当前只是小样本 smoke / sanity check：重建图像依然明显受 Stable Diffusion 先验影响，部分样本语义与 GT 偏差很大，例如市场图像生成成室内/建筑，冲浪图像生成成鸟或运动人物。
