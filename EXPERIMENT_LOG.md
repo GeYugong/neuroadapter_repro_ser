@@ -752,3 +752,29 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 注意：
 - 当前 DDP 每张卡 batch size 4，因此有效 global batch size 是 8，和之前单卡 batch size 4 不完全等价。
 - 学习率暂时保持 `1e-4`，这是为了减少变量，只先观察继续训练是否改善 decode。
+
+## 2026-07-06 Project Directory Layout
+
+发现问题：`/public/home/mty/GeYugong` 是个人工作区根目录，不应该长期把某个论文项目的 `code/data/outputs/tools/repro` 全部平铺在这里。后续如果继续做别的论文或实验，会混乱。
+
+处理：
+- 新建统一项目入口：`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026`
+- 当前为了不打断正在运行的 20000 step 训练，先使用 symlink 指向已有真实目录，不移动真实文件。
+
+当前统一入口结构：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026
+├── code        -> ../../code/NeuroAdapter
+├── repro       -> ../../neuroadapter-repro
+├── data        -> ../../data
+├── outputs     -> ../../outputs
+├── checkpoints -> ../../checkpoints
+├── tools       -> ../../tools
+└── logs        -> ../../logs
+```
+
+注意：
+- 训练还在使用旧绝对路径，训练结束前不要移动真实目录。
+- 后续更推荐 VS Code 打开：`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro` 或直接打开项目入口目录。
+- 如果训练结束后要做彻底整理，可以把真实目录迁移进 `projects/neuroadapter-iclr2026/`，并在旧路径保留 symlink 兼容已有脚本。
