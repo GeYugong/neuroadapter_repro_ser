@@ -692,3 +692,32 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/decode_brain_encoder
 - 如果目标是“继续追论文效果”，优先继续训练到 20000/30000 step，再用同一套 `8x8x50` 对比。
 
 ![10000 step larger candidate selection](assets/20260706-steps10000-be-select8-cand8-denoise50-grid.png)
+
+## 2026-07-06 Resume Training To 20000 Started
+
+目的：继续追踪训练步数是否带来更好的 brain-to-image 解码效果。从 `checkpoint-step-10000.pt` 续训到全局 `20000 step`。
+
+输出目录：
+
+`/public/home/mty/GeYugong/outputs/neuroadapter/20260706-topk100-bs4-resume10000-to20000`
+
+启动命令等价于：
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 DIFFUSERS_OFFLINE=1 \
+PYTHONPATH=/public/home/mty/GeYugong/code/NeuroAdapter:$PYTHONPATH \
+python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
+  --run-name 20260706-topk100-bs4-resume10000-to20000 \
+  --init-checkpoint /public/home/mty/GeYugong/outputs/neuroadapter/20260705-topk100-bs4-resume2250-to10000/checkpoint-step-10000.pt \
+  --max-steps 10000 \
+  --topk 100 \
+  --batch-size 4 \
+  --mixed-precision no \
+  --save-every 1000
+```
+
+启动状态：
+- PID：`59767`
+- 从 step 10000 继续，目标 final checkpoint 为 `checkpoint-step-20000.pt`。
+- 运行完成后继续使用同一套 `8 samples x 8 candidates x 50 denoising steps` 解码对比。
