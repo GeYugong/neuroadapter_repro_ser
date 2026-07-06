@@ -809,3 +809,38 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 - `checkpoint-step-20000.pt`
 
 结论：20000 step 训练产物完整。下一步使用 `checkpoint-step-20000.pt` 跑同一套 `8 samples x 8 candidates x 50 denoising steps` 解码，与 10000 step 结果对比。
+
+## 2026-07-06 Project Directory Migration Completed
+
+训练结束后，已完成真实目录迁移。此前 `projects/neuroadapter-iclr2026` 只是 symlink 统一入口；现在 NeuroAdapter 项目相关真实目录已经收进项目容器。
+
+当前真实项目目录：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026
+├── code/NeuroAdapter
+├── repro
+├── data
+├── outputs
+├── checkpoints
+├── tools/whole_brain_encoder
+├── tools/torch_hub
+└── logs
+```
+
+为了兼容历史脚本中的绝对路径，旧路径保留为 symlink：
+
+```text
+/public/home/mty/GeYugong/code/NeuroAdapter
+/public/home/mty/GeYugong/neuroadapter-repro
+/public/home/mty/GeYugong/data
+/public/home/mty/GeYugong/outputs
+/public/home/mty/GeYugong/checkpoints
+/public/home/mty/GeYugong/logs
+/public/home/mty/GeYugong/tools/whole_brain_encoder
+/public/home/mty/GeYugong/tools/torch_hub
+```
+
+说明：
+- 没有迁移通用 Codex 工具目录，例如 `tools/codex*`，它们不是本论文项目内容。
+- 推荐 VS Code 打开 `/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro`。
