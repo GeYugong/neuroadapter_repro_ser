@@ -721,3 +721,34 @@ python /public/home/mty/GeYugong/neuroadapter-repro/scripts/train_limited.py \
 - PID：`59767`
 - 从 step 10000 继续，目标 final checkpoint 为 `checkpoint-step-20000.pt`。
 - 运行完成后继续使用同一套 `8 samples x 8 candidates x 50 denoising steps` 解码对比。
+
+## 2026-07-06 Switch 20000 Training To 2-GPU DDP
+
+目的：用户希望直接用多卡加速 10000 -> 20000 的续训。
+
+处理过程：
+- 检查发现原 `train_limited.py` 虽然模型和 optimizer 使用了 `accelerator.prepare`，但 dataloader 没有进入 `accelerator.prepare`，且日志/checkpoint 没有主进程保护。
+- 已修改 `scripts/train_limited.py`：
+  - `train_dataloader = accelerator.prepare(train_dataloader)`
+  - 仅 `accelerator.is_main_process` 写 `config.json`、`losses.csv`、checkpoint、`summary.json`
+  - checkpoint 前后使用 `accelerator.wait_for_everyone()`
+  - loss 使用 `accelerator.reduce(..., reduction="mean")` 记录跨进程平均值
+- 先在 GPU1/2 上跑 `20260706-ddp-smoke-2gpu-2steps`，2 step smoke test 成功，能保存 checkpoint 和 summary。
+- 第一次正式启动只加了 `--num_processes 2`，没有真正多卡；已停止，日志保存在 `train.fake-ddp.log` / `losses.fake-ddp.csv`。
+- 当前正式使用：
+  `accelerate launch --multi_gpu --num_processes 2`
+
+当前正式 run：
+
+`/public/home/mty/GeYugong/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000`
+
+状态确认：
+- launcher PID：`61860`
+- worker：2 个 `train_limited.py` 进程
+- GPU0/GPU1 各占约 16.5GB，利用率 100%
+- `losses.csv` 已正常写入，从 step 10001 开始
+- 目标 checkpoint：`checkpoint-step-20000.pt`
+
+注意：
+- 当前 DDP 每张卡 batch size 4，因此有效 global batch size 是 8，和之前单卡 batch size 4 不完全等价。
+- 学习率暂时保持 `1e-4`，这是为了减少变量，只先观察继续训练是否改善 decode。

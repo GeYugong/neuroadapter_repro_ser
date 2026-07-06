@@ -175,17 +175,21 @@ def main() -> None:
         "device": str(accelerator.device),
         "torch_version": torch.__version__,
     }
-    (output_root / "config.json").write_text(json.dumps(config, indent=2))
+    if accelerator.is_main_process:
+        (output_root / "config.json").write_text(json.dumps(config, indent=2))
 
     csv_path = output_root / "losses.csv"
     losses = []
     start = time.perf_counter()
+    train_dataloader = accelerator.prepare(train_dataloader)
     data_iter = iter(train_dataloader)
 
-    with csv_path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["step", "loss", "elapsed_sec"])
-        writer.writeheader()
-        progress = tqdm(range(1, cli.max_steps + 1), desc="limited train")
+    csv_file = csv_path.open("w", newline="") if accelerator.is_main_process else None
+    try:
+        writer = csv.DictWriter(csv_file, fieldnames=["step", "loss", "elapsed_sec"]) if accelerator.is_main_process else None
+        if accelerator.is_main_process:
+            writer.writeheader()
+        progress = tqdm(range(1, cli.max_steps + 1), desc="limited train", disable=not accelerator.is_main_process)
         for local_step in progress:
             step = train_args.initial_step + local_step
             try:
@@ -215,20 +219,31 @@ def main() -> None:
             )
             optimizer.step()
 
-            loss_value = float(loss.detach().cpu())
+            reduced_loss = accelerator.reduce(loss.detach(), reduction="mean")
+            loss_value = float(reduced_loss.cpu())
             elapsed = time.perf_counter() - start
             row = {"step": step, "loss": loss_value, "elapsed_sec": elapsed}
-            writer.writerow(row)
-            f.flush()
-            losses.append(row)
-            progress.set_postfix(loss=f"{loss_value:.5f}")
+            if accelerator.is_main_process:
+                writer.writerow(row)
+                csv_file.flush()
+                losses.append(row)
+                progress.set_postfix(loss=f"{loss_value:.5f}")
 
             if cli.save_every > 0 and local_step % cli.save_every == 0:
-                ckpt_path = save_checkpoint(output_root, step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
-                print(f"[checkpoint] {ckpt_path}")
+                accelerator.wait_for_everyone()
+                if accelerator.is_main_process:
+                    ckpt_path = save_checkpoint(output_root, step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
+                    print(f"[checkpoint] {ckpt_path}")
+                accelerator.wait_for_everyone()
+    finally:
+        if csv_file is not None:
+            csv_file.close()
 
     final_step = train_args.initial_step + cli.max_steps
-    final_ckpt = save_checkpoint(output_root, final_step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
+    accelerator.wait_for_everyone()
+    final_ckpt = None
+    if accelerator.is_main_process:
+        final_ckpt = save_checkpoint(output_root, final_step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
     finished_at = datetime.now().isoformat(timespec="seconds")
     summary = {
         **config,
@@ -237,14 +252,16 @@ def main() -> None:
         "initial_step": train_args.initial_step,
         "additional_steps": cli.max_steps,
         "final_step": final_step,
-        "final_checkpoint": str(final_ckpt),
+        "final_checkpoint": str(final_ckpt) if final_ckpt is not None else str(output_root / f"checkpoint-step-{final_step:04d}.pt"),
         "first_loss": losses[0]["loss"] if losses else None,
         "last_loss": losses[-1]["loss"] if losses else None,
         "min_loss": min((x["loss"] for x in losses), default=None),
         "max_loss": max((x["loss"] for x in losses), default=None),
     }
-    (output_root / "summary.json").write_text(json.dumps(summary, indent=2))
-    print(json.dumps(summary, indent=2))
+    if accelerator.is_main_process:
+        (output_root / "summary.json").write_text(json.dumps(summary, indent=2))
+        print(json.dumps(summary, indent=2))
+    accelerator.wait_for_everyone()
 
 
 if __name__ == "__main__":
