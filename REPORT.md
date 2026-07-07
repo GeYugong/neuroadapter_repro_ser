@@ -163,6 +163,20 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 - 能用 whole_brain_encoder 预测候选图对应脑响应，并和真实 fMRI 做相关，选出 best candidate。
 - 这是有用的 sanity check，但还不是完整官方 `metric_brain_adapter.py` 指标。
 
+## 当前诊断结论
+
+已新增 `DIAGNOSIS.md`，专门记录为什么 20000 step 的 brain encoder selection 指标反而高于 50000 / 100000 step。
+
+核心结论：
+- 20000 step：49/50 positive，mean best score 0.2534
+- 50000 step：39/50 positive，mean best score 0.1664
+- 100000 step：41/50 positive，mean best score 0.2172
+- 轻量图像指标 pixel/SSIM 与 brain encoder 指标趋势不一致，说明不能只看单一指标。
+- 当前没有发现 saved GT 与 test dataset index 错位，前 10 个样本检查 mismatch count 均为 0。
+- 最可疑的问题是 resume 没有恢复 optimizer state、4 卡阶段 global batch size 变化但学习率不变，以及当前评价不是论文正式 metric。
+
+因此当前技术建议是：先补官方 metric / 固定 seed 对照 / 配置排查，不要继续盲目长训。
+
 ## 我对下一步的判断
 
 优先级最高的是写清楚阶段性结果，并向师兄确认下一阶段目标：

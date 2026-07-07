@@ -1,0 +1,1094 @@
+[
+  {
+    "run_name": "20260706-steps20000-be-select50-cand8-denoise50",
+    "checkpoint_step": 20000,
+    "summary_path": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260706-steps20000-be-select50-cand8-denoise50/summary.json",
+    "num_samples": 50,
+    "brain_encoder_mean": 0.25343449830815906,
+    "brain_encoder_positive": 49,
+    "pixel_corr_mean": 0.0016009527978988994,
+    "pixel_corr_std": 0.11695804799368394,
+    "ssim_mean": 0.22765891253948212,
+    "ssim_std": 0.1092998100716176,
+    "per_sample": [
+      {
+        "dataset_idx": 0,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.2937033625675199,
+        "pixel_corr": -0.027898744246079646,
+        "ssim": 0.13969533145427704
+      },
+      {
+        "dataset_idx": 1,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.0885185252336464,
+        "pixel_corr": -0.024147745041120963,
+        "ssim": 0.1558428853750229
+      },
+      {
+        "dataset_idx": 2,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.06435005160700509,
+        "pixel_corr": 0.025182859200769642,
+        "ssim": 0.22004801034927368
+      },
+      {
+        "dataset_idx": 3,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.2350755250711534,
+        "pixel_corr": -0.027662274452311366,
+        "ssim": 0.08753758668899536
+      },
+      {
+        "dataset_idx": 4,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.3787448187699776,
+        "pixel_corr": -0.12169481190175492,
+        "ssim": 0.25015172362327576
+      },
+      {
+        "dataset_idx": 5,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.4796115995734992,
+        "pixel_corr": -0.24369968149825147,
+        "ssim": 0.16328275203704834
+      },
+      {
+        "dataset_idx": 6,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.37294067457042485,
+        "pixel_corr": 0.11669304226540646,
+        "ssim": 0.14098100364208221
+      },
+      {
+        "dataset_idx": 7,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.2161738331905424,
+        "pixel_corr": -0.1230615559081582,
+        "ssim": 0.07680941373109818
+      },
+      {
+        "dataset_idx": 8,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.2944527845683403,
+        "pixel_corr": 0.0435039636652784,
+        "ssim": 0.23551762104034424
+      },
+      {
+        "dataset_idx": 9,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.22446316586099554,
+        "pixel_corr": -0.030828465623753194,
+        "ssim": 0.2561717927455902
+      },
+      {
+        "dataset_idx": 10,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.14722045488429528,
+        "pixel_corr": 0.27259122661688134,
+        "ssim": 0.7016133666038513
+      },
+      {
+        "dataset_idx": 11,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.07050565752036234,
+        "pixel_corr": -0.1431831435789303,
+        "ssim": 0.3042651414871216
+      },
+      {
+        "dataset_idx": 12,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.049935420467124035,
+        "pixel_corr": 0.005812281753831427,
+        "ssim": 0.20938031375408173
+      },
+      {
+        "dataset_idx": 13,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.07180341983407143,
+        "pixel_corr": -0.21070249691296067,
+        "ssim": 0.18934066593647003
+      },
+      {
+        "dataset_idx": 14,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.31734589192599294,
+        "pixel_corr": 0.04039169901549603,
+        "ssim": 0.24591432511806488
+      },
+      {
+        "dataset_idx": 15,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.3730121275481421,
+        "pixel_corr": 0.09254877792813496,
+        "ssim": 0.29070910811424255
+      },
+      {
+        "dataset_idx": 16,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.28991132093533906,
+        "pixel_corr": 0.002924038435308888,
+        "ssim": 0.1125883236527443
+      },
+      {
+        "dataset_idx": 17,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.13197055453685125,
+        "pixel_corr": 0.03827487519698451,
+        "ssim": 0.13641642034053802
+      },
+      {
+        "dataset_idx": 18,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.1285877530220695,
+        "pixel_corr": -0.01036567882077881,
+        "ssim": 0.10138019174337387
+      },
+      {
+        "dataset_idx": 19,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.31215779281253087,
+        "pixel_corr": -0.14890459596073105,
+        "ssim": 0.2747994363307953
+      },
+      {
+        "dataset_idx": 20,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.28726130116037396,
+        "pixel_corr": 0.039077341201775896,
+        "ssim": 0.21746981143951416
+      },
+      {
+        "dataset_idx": 21,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.25227862928124045,
+        "pixel_corr": 0.0966540271887999,
+        "ssim": 0.13165536522865295
+      },
+      {
+        "dataset_idx": 22,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.327491634912366,
+        "pixel_corr": -0.2094956452403885,
+        "ssim": 0.18279141187667847
+      },
+      {
+        "dataset_idx": 23,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.38637228063402224,
+        "pixel_corr": -0.19055055151589176,
+        "ssim": 0.09190080314874649
+      },
+      {
+        "dataset_idx": 24,
+        "best_candidate_index": 4,
+        "brain_encoder_score": -0.001539702619392396,
+        "pixel_corr": 0.12179926351807692,
+        "ssim": 0.2338278889656067
+      },
+      {
+        "dataset_idx": 25,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.23864809358346492,
+        "pixel_corr": 0.046212613215698126,
+        "ssim": 0.23824244737625122
+      },
+      {
+        "dataset_idx": 26,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.4843103090874438,
+        "pixel_corr": 0.019187859151291013,
+        "ssim": 0.252880334854126
+      },
+      {
+        "dataset_idx": 27,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.09160824537116612,
+        "pixel_corr": 0.23371345871659752,
+        "ssim": 0.4532283842563629
+      },
+      {
+        "dataset_idx": 28,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.08960796175320487,
+        "pixel_corr": 0.15230054119118303,
+        "ssim": 0.3821004629135132
+      },
+      {
+        "dataset_idx": 29,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.23406880584628353,
+        "pixel_corr": 0.09675272473266852,
+        "ssim": 0.20707714557647705
+      },
+      {
+        "dataset_idx": 30,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.4422549183434506,
+        "pixel_corr": -0.0327025723092429,
+        "ssim": 0.31355568766593933
+      },
+      {
+        "dataset_idx": 31,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.3989278790118079,
+        "pixel_corr": 0.0575809332734414,
+        "ssim": 0.27719318866729736
+      },
+      {
+        "dataset_idx": 32,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.29530609310572525,
+        "pixel_corr": -0.09651214348205359,
+        "ssim": 0.2139860987663269
+      },
+      {
+        "dataset_idx": 33,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.32999863307464405,
+        "pixel_corr": 0.16575470812575913,
+        "ssim": 0.26968300342559814
+      },
+      {
+        "dataset_idx": 34,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.179468527074544,
+        "pixel_corr": -0.19642483722815557,
+        "ssim": 0.18869899213314056
+      },
+      {
+        "dataset_idx": 35,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.278656740410648,
+        "pixel_corr": 0.05698374640149517,
+        "ssim": 0.22854244709014893
+      },
+      {
+        "dataset_idx": 36,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.40007960921607666,
+        "pixel_corr": 0.08904677546541226,
+        "ssim": 0.15284393727779388
+      },
+      {
+        "dataset_idx": 37,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.48798558451700424,
+        "pixel_corr": 0.24948840851665458,
+        "ssim": 0.26496511697769165
+      },
+      {
+        "dataset_idx": 38,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.06510005934111242,
+        "pixel_corr": -0.1387289924975995,
+        "ssim": 0.14459668099880219
+      },
+      {
+        "dataset_idx": 39,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.3632839371230254,
+        "pixel_corr": 0.049485857204348546,
+        "ssim": 0.19953735172748566
+      },
+      {
+        "dataset_idx": 40,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.19501471772067128,
+        "pixel_corr": 0.08815053949303746,
+        "ssim": 0.33352017402648926
+      },
+      {
+        "dataset_idx": 41,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.33278733210044026,
+        "pixel_corr": 0.010328901367197652,
+        "ssim": 0.10257428884506226
+      },
+      {
+        "dataset_idx": 42,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.21423703702460034,
+        "pixel_corr": 0.015433247837639412,
+        "ssim": 0.14571404457092285
+      },
+      {
+        "dataset_idx": 43,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.2554776112264177,
+        "pixel_corr": -0.05520280436763753,
+        "ssim": 0.3385789692401886
+      },
+      {
+        "dataset_idx": 44,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.38488047444515056,
+        "pixel_corr": 0.054396485960408754,
+        "ssim": 0.2732740342617035
+      },
+      {
+        "dataset_idx": 45,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.10169574189235749,
+        "pixel_corr": -0.03309720745386787,
+        "ssim": 0.42970097064971924
+      },
+      {
+        "dataset_idx": 46,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.2716516083764067,
+        "pixel_corr": 0.04605798142558034,
+        "ssim": 0.34733283519744873
+      },
+      {
+        "dataset_idx": 47,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.3044874350603102,
+        "pixel_corr": -0.07161246205650912,
+        "ssim": 0.1651526689529419
+      },
+      {
+        "dataset_idx": 48,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.3082915476319398,
+        "pixel_corr": -0.09603516397623547,
+        "ssim": 0.18068690598011017
+      },
+      {
+        "dataset_idx": 49,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.1315471352015632,
+        "pixel_corr": -0.013768964097799902,
+        "ssim": 0.12918876111507416
+      }
+    ]
+  },
+  {
+    "run_name": "20260707-steps50000-be-select50-cand8-denoise50",
+    "checkpoint_step": 50000,
+    "summary_path": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260707-steps50000-be-select50-cand8-denoise50/summary.json",
+    "num_samples": 50,
+    "brain_encoder_mean": 0.16638559044789938,
+    "brain_encoder_positive": 39,
+    "pixel_corr_mean": 0.06784101588122436,
+    "pixel_corr_std": 0.17262199027898037,
+    "ssim_mean": 0.29451634392142295,
+    "ssim_std": 0.12737361234437025,
+    "per_sample": [
+      {
+        "dataset_idx": 0,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.4121296660206699,
+        "pixel_corr": -0.040935332978288025,
+        "ssim": 0.14204052090644836
+      },
+      {
+        "dataset_idx": 1,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.04135607221547325,
+        "pixel_corr": -0.03613539001917995,
+        "ssim": 0.19659505784511566
+      },
+      {
+        "dataset_idx": 2,
+        "best_candidate_index": 7,
+        "brain_encoder_score": -0.1881691837792209,
+        "pixel_corr": 0.3271834618969392,
+        "ssim": 0.2619648277759552
+      },
+      {
+        "dataset_idx": 3,
+        "best_candidate_index": 2,
+        "brain_encoder_score": -0.08852028489342748,
+        "pixel_corr": -0.07503740908212539,
+        "ssim": 0.2572191655635834
+      },
+      {
+        "dataset_idx": 4,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.43327870049872036,
+        "pixel_corr": 0.062356232242778115,
+        "ssim": 0.28906604647636414
+      },
+      {
+        "dataset_idx": 5,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.5138951738375935,
+        "pixel_corr": 0.3393642903948152,
+        "ssim": 0.20510900020599365
+      },
+      {
+        "dataset_idx": 6,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.2965928999942579,
+        "pixel_corr": -0.03478910019536922,
+        "ssim": 0.10999635607004166
+      },
+      {
+        "dataset_idx": 7,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.10035807525555712,
+        "pixel_corr": 0.1499728050951808,
+        "ssim": 0.16035951673984528
+      },
+      {
+        "dataset_idx": 8,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.006987068572827642,
+        "pixel_corr": 0.09540132739420043,
+        "ssim": 0.29496335983276367
+      },
+      {
+        "dataset_idx": 9,
+        "best_candidate_index": 5,
+        "brain_encoder_score": -0.07193635189094374,
+        "pixel_corr": 0.041769897589612616,
+        "ssim": 0.2791943848133087
+      },
+      {
+        "dataset_idx": 10,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.158238455601957,
+        "pixel_corr": 0.4253054643143274,
+        "ssim": 0.6976359486579895
+      },
+      {
+        "dataset_idx": 11,
+        "best_candidate_index": 5,
+        "brain_encoder_score": -0.06082881656201974,
+        "pixel_corr": 0.16183771771136704,
+        "ssim": 0.4003535211086273
+      },
+      {
+        "dataset_idx": 12,
+        "best_candidate_index": 0,
+        "brain_encoder_score": -0.0039940280396857635,
+        "pixel_corr": 0.14768250644251177,
+        "ssim": 0.22676807641983032
+      },
+      {
+        "dataset_idx": 13,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.11058676496235519,
+        "pixel_corr": 0.09876328016824258,
+        "ssim": 0.2194327563047409
+      },
+      {
+        "dataset_idx": 14,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.029327308537297314,
+        "pixel_corr": 0.7046155505037967,
+        "ssim": 0.5639312267303467
+      },
+      {
+        "dataset_idx": 15,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.3802459222680786,
+        "pixel_corr": -0.016186439273879562,
+        "ssim": 0.344417005777359
+      },
+      {
+        "dataset_idx": 16,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.04689075755159593,
+        "pixel_corr": 0.014761873651971427,
+        "ssim": 0.24837397038936615
+      },
+      {
+        "dataset_idx": 17,
+        "best_candidate_index": 1,
+        "brain_encoder_score": -0.220157001364375,
+        "pixel_corr": 0.25218765866448084,
+        "ssim": 0.33018386363983154
+      },
+      {
+        "dataset_idx": 18,
+        "best_candidate_index": 1,
+        "brain_encoder_score": -0.10017051375600834,
+        "pixel_corr": -0.05346168960891318,
+        "ssim": 0.21213805675506592
+      },
+      {
+        "dataset_idx": 19,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.3433434949760026,
+        "pixel_corr": 0.051458532276502,
+        "ssim": 0.4724275767803192
+      },
+      {
+        "dataset_idx": 20,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.29743820789284,
+        "pixel_corr": -0.05173364645045613,
+        "ssim": 0.2856849431991577
+      },
+      {
+        "dataset_idx": 21,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.28797754848774526,
+        "pixel_corr": 0.01609497851200664,
+        "ssim": 0.16670584678649902
+      },
+      {
+        "dataset_idx": 22,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.3225307705101636,
+        "pixel_corr": -0.1798640581689607,
+        "ssim": 0.18077169358730316
+      },
+      {
+        "dataset_idx": 23,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.15006094900807532,
+        "pixel_corr": -0.06260838522318196,
+        "ssim": 0.11452430486679077
+      },
+      {
+        "dataset_idx": 24,
+        "best_candidate_index": 4,
+        "brain_encoder_score": -0.12344271169982644,
+        "pixel_corr": -0.07066206354254827,
+        "ssim": 0.2506241798400879
+      },
+      {
+        "dataset_idx": 25,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.38571689259633835,
+        "pixel_corr": 0.1125311145772164,
+        "ssim": 0.15681855380535126
+      },
+      {
+        "dataset_idx": 26,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.3473074200026874,
+        "pixel_corr": 0.11127023597214282,
+        "ssim": 0.37795212864875793
+      },
+      {
+        "dataset_idx": 27,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.15731152412686875,
+        "pixel_corr": 0.26609077346975785,
+        "ssim": 0.5218859910964966
+      },
+      {
+        "dataset_idx": 28,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.041235555322856866,
+        "pixel_corr": 0.09150605789696478,
+        "ssim": 0.37341782450675964
+      },
+      {
+        "dataset_idx": 29,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.04477646220181897,
+        "pixel_corr": -0.1633839961843223,
+        "ssim": 0.22193630039691925
+      },
+      {
+        "dataset_idx": 30,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.36183111213171176,
+        "pixel_corr": 0.06543779028395992,
+        "ssim": 0.4017592668533325
+      },
+      {
+        "dataset_idx": 31,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.40510760780064287,
+        "pixel_corr": -0.07216739420734901,
+        "ssim": 0.3013615906238556
+      },
+      {
+        "dataset_idx": 32,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.2831243620669804,
+        "pixel_corr": 0.017117274793780245,
+        "ssim": 0.28799185156822205
+      },
+      {
+        "dataset_idx": 33,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.181492050636756,
+        "pixel_corr": -0.049158484549844554,
+        "ssim": 0.3849821090698242
+      },
+      {
+        "dataset_idx": 34,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.31053648110870846,
+        "pixel_corr": 0.06651578867475803,
+        "ssim": 0.20619668066501617
+      },
+      {
+        "dataset_idx": 35,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.19789022829408692,
+        "pixel_corr": 0.3732382556323703,
+        "ssim": 0.20769691467285156
+      },
+      {
+        "dataset_idx": 36,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.44897645081519705,
+        "pixel_corr": 0.004509971232652688,
+        "ssim": 0.1946960836648941
+      },
+      {
+        "dataset_idx": 37,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.481968147037129,
+        "pixel_corr": 0.19783444351123028,
+        "ssim": 0.3448062837123871
+      },
+      {
+        "dataset_idx": 38,
+        "best_candidate_index": 1,
+        "brain_encoder_score": -0.01301533911331128,
+        "pixel_corr": 0.07886674730073596,
+        "ssim": 0.2250274419784546
+      },
+      {
+        "dataset_idx": 39,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.28808279208389315,
+        "pixel_corr": 0.259249754604072,
+        "ssim": 0.30543598532676697
+      },
+      {
+        "dataset_idx": 40,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.043533776621922406,
+        "pixel_corr": -0.01907401663744182,
+        "ssim": 0.513188362121582
+      },
+      {
+        "dataset_idx": 41,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.17054177765939402,
+        "pixel_corr": 0.13715067677152165,
+        "ssim": 0.1661052256822586
+      },
+      {
+        "dataset_idx": 42,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.29082235130285977,
+        "pixel_corr": 0.21987892709364526,
+        "ssim": 0.28947556018829346
+      },
+      {
+        "dataset_idx": 43,
+        "best_candidate_index": 7,
+        "brain_encoder_score": -0.15332278161989696,
+        "pixel_corr": -0.03269902837719382,
+        "ssim": 0.3963265120983124
+      },
+      {
+        "dataset_idx": 44,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.3099430089834441,
+        "pixel_corr": 0.0794890251912807,
+        "ssim": 0.4754217863082886
+      },
+      {
+        "dataset_idx": 45,
+        "best_candidate_index": 1,
+        "brain_encoder_score": -0.04874272284522037,
+        "pixel_corr": -0.02967646166426834,
+        "ssim": 0.5566816329956055
+      },
+      {
+        "dataset_idx": 46,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.3032327838874527,
+        "pixel_corr": -0.008308483647743324,
+        "ssim": 0.2465813308954239
+      },
+      {
+        "dataset_idx": 47,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.07738277332838152,
+        "pixel_corr": -0.15505551426577546,
+        "ssim": 0.3118923008441925
+      },
+      {
+        "dataset_idx": 48,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.26272837972125557,
+        "pixel_corr": -0.13708441067792948,
+        "ssim": 0.20163510739803314
+      },
+      {
+        "dataset_idx": 49,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.06679948403730726,
+        "pixel_corr": -0.289370315048833,
+        "ssim": 0.1460631638765335
+      }
+    ]
+  },
+  {
+    "run_name": "20260708-steps100000-be-select50-cand8-denoise50",
+    "checkpoint_step": 100000,
+    "summary_path": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260708-steps100000-be-select50-cand8-denoise50/summary.json",
+    "num_samples": 50,
+    "brain_encoder_mean": 0.2171750813713957,
+    "brain_encoder_positive": 41,
+    "pixel_corr_mean": 0.07582890584615964,
+    "pixel_corr_std": 0.20552563194388712,
+    "ssim_mean": 0.2827283862233162,
+    "ssim_std": 0.142676144973147,
+    "per_sample": [
+      {
+        "dataset_idx": 0,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.413128706190344,
+        "pixel_corr": -0.015076472692475067,
+        "ssim": 0.15559956431388855
+      },
+      {
+        "dataset_idx": 1,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.18078318310991806,
+        "pixel_corr": 0.12204704877201039,
+        "ssim": 0.21026742458343506
+      },
+      {
+        "dataset_idx": 2,
+        "best_candidate_index": 3,
+        "brain_encoder_score": -0.21309139602754934,
+        "pixel_corr": 0.24641768230111974,
+        "ssim": 0.2411687821149826
+      },
+      {
+        "dataset_idx": 3,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.045404699398490005,
+        "pixel_corr": -0.2246424767315687,
+        "ssim": 0.24839091300964355
+      },
+      {
+        "dataset_idx": 4,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.4165771054222985,
+        "pixel_corr": 0.08532616115808253,
+        "ssim": 0.20655827224254608
+      },
+      {
+        "dataset_idx": 5,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.5293931304418933,
+        "pixel_corr": 0.24171257570110716,
+        "ssim": 0.18259203433990479
+      },
+      {
+        "dataset_idx": 6,
+        "best_candidate_index": 3,
+        "brain_encoder_score": 0.4153012143567341,
+        "pixel_corr": 0.18514872290369194,
+        "ssim": 0.15493817627429962
+      },
+      {
+        "dataset_idx": 7,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.13659811157164373,
+        "pixel_corr": -0.09876150175423443,
+        "ssim": 0.13121770322322845
+      },
+      {
+        "dataset_idx": 8,
+        "best_candidate_index": 5,
+        "brain_encoder_score": -0.002519287851584849,
+        "pixel_corr": 0.06992908669283818,
+        "ssim": 0.3543146550655365
+      },
+      {
+        "dataset_idx": 9,
+        "best_candidate_index": 1,
+        "brain_encoder_score": -0.04870587137743405,
+        "pixel_corr": -0.08091627232685172,
+        "ssim": 0.21492928266525269
+      },
+      {
+        "dataset_idx": 10,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.10371957513327525,
+        "pixel_corr": 0.18420949626877092,
+        "ssim": 0.7236903309822083
+      },
+      {
+        "dataset_idx": 11,
+        "best_candidate_index": 3,
+        "brain_encoder_score": -0.10897608272954831,
+        "pixel_corr": 0.05976489388065157,
+        "ssim": 0.3985547721385956
+      },
+      {
+        "dataset_idx": 12,
+        "best_candidate_index": 5,
+        "brain_encoder_score": -0.15884127836889975,
+        "pixel_corr": -0.6009615141780966,
+        "ssim": 0.23358500003814697
+      },
+      {
+        "dataset_idx": 13,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.057561329166703264,
+        "pixel_corr": 0.2244751778020964,
+        "ssim": 0.24440263211727142
+      },
+      {
+        "dataset_idx": 14,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.2676667046637158,
+        "pixel_corr": 0.6034659626077001,
+        "ssim": 0.5395132899284363
+      },
+      {
+        "dataset_idx": 15,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.48675549745348606,
+        "pixel_corr": -0.01736844401283565,
+        "ssim": 0.28786617517471313
+      },
+      {
+        "dataset_idx": 16,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.09214567975091603,
+        "pixel_corr": -0.11758289140291495,
+        "ssim": 0.16447068750858307
+      },
+      {
+        "dataset_idx": 17,
+        "best_candidate_index": 2,
+        "brain_encoder_score": -0.16671779709896514,
+        "pixel_corr": 0.13362179078946632,
+        "ssim": 0.33362051844596863
+      },
+      {
+        "dataset_idx": 18,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.044892960763824,
+        "pixel_corr": -0.006728442723917627,
+        "ssim": 0.16017282009124756
+      },
+      {
+        "dataset_idx": 19,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.3616743667546602,
+        "pixel_corr": -0.1835249080027354,
+        "ssim": 0.5898777842521667
+      },
+      {
+        "dataset_idx": 20,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.32331546514979204,
+        "pixel_corr": -0.1507988128395346,
+        "ssim": 0.23099742829799652
+      },
+      {
+        "dataset_idx": 21,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.3367275970680364,
+        "pixel_corr": 0.08483703862197646,
+        "ssim": 0.2877208888530731
+      },
+      {
+        "dataset_idx": 22,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.3926496379460161,
+        "pixel_corr": 0.206744317100552,
+        "ssim": 0.20622901618480682
+      },
+      {
+        "dataset_idx": 23,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.22470781063712525,
+        "pixel_corr": -0.07793115877434946,
+        "ssim": 0.0832422524690628
+      },
+      {
+        "dataset_idx": 24,
+        "best_candidate_index": 4,
+        "brain_encoder_score": -0.06423325724120794,
+        "pixel_corr": 0.18806632377002638,
+        "ssim": 0.17097806930541992
+      },
+      {
+        "dataset_idx": 25,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.439019958236197,
+        "pixel_corr": 0.018180837303884374,
+        "ssim": 0.21251606941223145
+      },
+      {
+        "dataset_idx": 26,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.5263855214823039,
+        "pixel_corr": -0.2216280434542874,
+        "ssim": 0.24560672044754028
+      },
+      {
+        "dataset_idx": 27,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.12042548102253824,
+        "pixel_corr": 0.1959833081328944,
+        "ssim": 0.5862492322921753
+      },
+      {
+        "dataset_idx": 28,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.11095423594646935,
+        "pixel_corr": -0.15225678895623315,
+        "ssim": 0.36249300837516785
+      },
+      {
+        "dataset_idx": 29,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.08743159728775005,
+        "pixel_corr": 0.3231652539202326,
+        "ssim": 0.25370046496391296
+      },
+      {
+        "dataset_idx": 30,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.46885031467669724,
+        "pixel_corr": 0.1723911377535383,
+        "ssim": 0.37826916575431824
+      },
+      {
+        "dataset_idx": 31,
+        "best_candidate_index": 7,
+        "brain_encoder_score": 0.4178432369707905,
+        "pixel_corr": 0.135802018657209,
+        "ssim": 0.3017001450061798
+      },
+      {
+        "dataset_idx": 32,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.23942583780719023,
+        "pixel_corr": 0.19475524122976226,
+        "ssim": 0.2590961158275604
+      },
+      {
+        "dataset_idx": 33,
+        "best_candidate_index": 4,
+        "brain_encoder_score": 0.25406819672157244,
+        "pixel_corr": 0.03848678482363083,
+        "ssim": 0.3338327407836914
+      },
+      {
+        "dataset_idx": 34,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.41438338101702493,
+        "pixel_corr": -6.799582426667007e-05,
+        "ssim": 0.16303159296512604
+      },
+      {
+        "dataset_idx": 35,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.44212231988539075,
+        "pixel_corr": 0.20174978848443323,
+        "ssim": 0.1341438889503479
+      },
+      {
+        "dataset_idx": 36,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.38927256609414385,
+        "pixel_corr": 0.24457385925071384,
+        "ssim": 0.1988486498594284
+      },
+      {
+        "dataset_idx": 37,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.5105617673922495,
+        "pixel_corr": 0.3346922577924252,
+        "ssim": 0.28335902094841003
+      },
+      {
+        "dataset_idx": 38,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.05735317283748218,
+        "pixel_corr": 0.17000003417894277,
+        "ssim": 0.16497771441936493
+      },
+      {
+        "dataset_idx": 39,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.23238534526027177,
+        "pixel_corr": -0.32825807595387946,
+        "ssim": 0.26335906982421875
+      },
+      {
+        "dataset_idx": 40,
+        "best_candidate_index": 6,
+        "brain_encoder_score": -0.007510600333130039,
+        "pixel_corr": 0.008827087208203244,
+        "ssim": 0.46930399537086487
+      },
+      {
+        "dataset_idx": 41,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.3736873440634813,
+        "pixel_corr": 0.011195012607117782,
+        "ssim": 0.1316245049238205
+      },
+      {
+        "dataset_idx": 42,
+        "best_candidate_index": 0,
+        "brain_encoder_score": 0.4291294296362394,
+        "pixel_corr": 0.44912244053408057,
+        "ssim": 0.23495714366436005
+      },
+      {
+        "dataset_idx": 43,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.06830339204836265,
+        "pixel_corr": -0.053482003711094565,
+        "ssim": 0.3628353774547577
+      },
+      {
+        "dataset_idx": 44,
+        "best_candidate_index": 1,
+        "brain_encoder_score": 0.3770251561342543,
+        "pixel_corr": 0.14235070708892422,
+        "ssim": 0.31737616658210754
+      },
+      {
+        "dataset_idx": 45,
+        "best_candidate_index": 2,
+        "brain_encoder_score": -0.05223897168092108,
+        "pixel_corr": 0.4289878848593056,
+        "ssim": 0.732429027557373
+      },
+      {
+        "dataset_idx": 46,
+        "best_candidate_index": 2,
+        "brain_encoder_score": 0.46651574887401237,
+        "pixel_corr": 0.09123663776597889,
+        "ssim": 0.31616437435150146
+      },
+      {
+        "dataset_idx": 47,
+        "best_candidate_index": 6,
+        "brain_encoder_score": 0.10437160285162946,
+        "pixel_corr": 0.012642711928437553,
+        "ssim": 0.29524487257003784
+      },
+      {
+        "dataset_idx": 48,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.31245771606893746,
+        "pixel_corr": 0.013130426820288163,
+        "ssim": 0.1858372688293457
+      },
+      {
+        "dataset_idx": 49,
+        "best_candidate_index": 5,
+        "brain_encoder_score": 0.010612513985165802,
+        "pixel_corr": 0.29839138693716494,
+        "ssim": 0.19456450641155243
+      }
+    ]
+  }
+]

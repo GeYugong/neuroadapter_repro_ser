@@ -1,0 +1,68 @@
+{
+  "summary": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260707-steps50000-be-select50-cand8-denoise50/summary.json",
+  "checkpoint": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp4-resume20000-to50000/checkpoint-step-50000.pt",
+  "checked_count": 10,
+  "mismatch_count": 0,
+  "checked": [
+    {
+      "dataset_idx": 0,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 1,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 2,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 3,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 4,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 5,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 6,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 7,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 8,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    },
+    {
+      "dataset_idx": 9,
+      "same_shape": true,
+      "max_abs_diff": 0,
+      "ok": true
+    }
+  ]
+}
