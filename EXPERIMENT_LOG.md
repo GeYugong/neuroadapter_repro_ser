@@ -964,3 +964,59 @@ save every: 5000
 - `summary.json` 已生成。
 - 4 张 GPU 已释放，`nvidia-smi` 显示 GPU0-5 显存占用均为 0。
 - 本次只完成继续训练，没有额外启动解码；下一步应使用 `checkpoint-step-50000.pt` 跑同一套 50 sample brain encoder selection，与 20000 step 结果对比。
+
+## 2026-07-07 Decode 50000 On 50 Samples
+
+使用 50000 step checkpoint 跑和 20000 step 完全相同设置的 50 sample 解码评估。
+
+```text
+checkpoint: /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp4-resume20000-to50000/checkpoint-step-50000.pt
+run: 20260707-steps50000-be-select50-cand8-denoise50
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
+```
+
+输出目录：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260707-steps50000-be-select50-cand8-denoise50`
+
+完整总览图：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260707-steps50000-be-select50-cand8-denoise50/grid_brain_encoder_selection.png`
+
+日志中只放前 12 个样本的预览图，避免把 38MB 完整大图直接塞进 Git：
+
+![50000 step 50 sample preview](assets/20260707-steps50000-be-select50-cand8-denoise50-preview12.png)
+
+结果摘要：
+- elapsed：918.37 秒，约 15.31 分钟
+- positive best score：39 / 50
+- positive rate：0.78
+- mean best score：0.1664
+- min best score：-0.2202
+- max best score：0.5139
+- first 10 best scores：`[0.4121, 0.0414, -0.1882, -0.0885, 0.4333, 0.5139, 0.2966, 0.1004, 0.0070, -0.0719]`
+
+和 20000 step 的同设置结果对比：
+
+```text
+20000 positive best score: 49 / 50
+20000 mean best score: 0.2534
+20000 min / max: -0.0015 / 0.4880
+
+50000 positive best score: 39 / 50
+50000 mean best score: 0.1664
+50000 min / max: -0.2202 / 0.5139
+
+delta mean best score: -0.0870
+delta positive count: -10
+```
+
+结论：
+- 按当前 brain encoder selection 指标，50000 step 不如 20000 step；继续训练并没有带来稳定的指标提升。
+- 从预览图肉眼看，部分大类样本更像，例如冲浪、食物、猫、飞机等，但也有不少样本仍然偏离 GT，且指标下降说明不能简单宣称 50000 更好。
+- 这提示当前训练/评价链路可能存在更深层问题：继续加 step 不一定单调改善，后续应重点核对训练配置、global batch size、学习率、数据对应关系和评价指标。
+- 用户要求在完成当前生图、分析和记录后继续下一次训练，因此下一步仍将从 50000 step 继续训练；但从技术判断看，这属于探索性长训，不应把它视为已经验证有效的改进方向。

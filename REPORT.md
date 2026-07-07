@@ -111,7 +111,7 @@ max best score: 0.4880
 
 因此更准确的表述是：
 
-> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的小规模结果在 brain encoder 分数上有正相关趋势，随后又用 4 张 A40 继续训练到了 50000 step。50000 step 的解码评估还没跑，视觉效果是否改善需要下一步验证。
+> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的 50 sample 结果是 49/50 positive、mean best score 0.2534。随后用 4 张 A40 继续训练到 50000 step，但同设置 50 sample 解码下降到 39/50 positive、mean best score 0.1664。因此 50000 step 不能简单说更好，下一步继续训练属于探索性长训，需要后续再验证。
 
 ## 为什么现在不优先继续盲目训练
 
@@ -155,7 +155,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 优先级最高的是写清楚阶段性结果，并向师兄确认下一阶段目标：
 
 1. 如果目标是“证明代码能跑”：现在已经基本完成。
-2. 如果目标是“拿到更像论文的图”：下一步应先用 `checkpoint-step-50000.pt` 跑和 20000 step 相同的解码评估，再判断是否继续训练到完整 epoch。
+2. 如果目标是“拿到更像论文的图”：50000 step 的同设置解码指标低于 20000 step，继续训练是否有效并不确定；如果继续训练，应把它视为探索，并同步核对配置。
 3. 如果目标是“严谨复现论文指标”：下一步应补官方 full evaluation / metric，而不是只看小样本图。
 
 我的建议路线：
@@ -168,17 +168,17 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 补一个更正式的 evaluation/metric，确认当前结果在数字指标上处于什么水平。
 
 长期：
-先用 50000 step checkpoint 跑同设置解码评估，再决定是否继续训练到更长。
+50000 step 的同设置解码已经完成，指标低于 20000 step。后续如果继续长训，应在训练完成后立即做同设置解码，并重点排查 global batch size、学习率、数据对应和评价指标。
 ```
 
 ## 如果师兄问“跑通了吗”
 
 可以回答：
 
-> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 50000 step；20000 step 已做了 50 个测试样本、每个 8 个候选图的评估，49/50 的 best candidate brain encoder score 为正。50000 step 的解码还没做，下一步要用同样设置对比 20000 和 50000。
+> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 50000 step；20000 step 的 50 sample 评估是 49/50 positive、mean best score 0.2534，50000 step 同设置评估是 39/50 positive、mean best score 0.1664。也就是说继续到 50000 后指标没有提升，后面需要谨慎判断训练配置和评价流程。
 
 ## 如果师兄问“下一步打算干什么”
 
 可以回答：
 
-> 我觉得下一步不应该继续盲目加训练步数。现在已经到 50000 step，应先用 50000 checkpoint 跑同样的 50 sample 解码，和 20000 step 的结果做对比。如果 50000 视觉效果明显改善，再考虑继续；如果没有改善，就要优先查配置和评价流程。
+> 我觉得下一步技术上不应该只盲目加训练步数，因为 50000 step 的同设置指标低于 20000 step。如果继续训练，也应当同时说明这是探索性实验；训练完成后要立刻做同设置解码，并排查配置和评价流程。
