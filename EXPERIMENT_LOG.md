@@ -1070,3 +1070,69 @@ save every: 10000
 - `train_limited.py` 训练进程已结束。
 - GPU0、GPU2、GPU3 已释放；GPU1 仍有一个非本次训练主进程的残留/外部进程 PID `1218426` 占用约 21GB，`nvidia-smi` 显示进程名为 `[Not Found]`。这不影响 `checkpoint-step-100000.pt` 已生成这一结论。
 - 下一步应使用 `checkpoint-step-100000.pt` 跑和 20000/50000 相同的 50 sample brain encoder selection，对比长训是否恢复或改善指标。
+
+## 2026-07-08 Decode 100000 On 50 Samples
+
+使用 100000 step checkpoint 跑和 20000 / 50000 step 完全相同设置的 50 sample 解码评估。由于 GPU1 仍有外部/残留进程占用约 21GB，本次解码显式设置 `CUDA_VISIBLE_DEVICES=0`，只使用 GPU0。
+
+```text
+checkpoint: /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt
+run: 20260708-steps100000-be-select50-cand8-denoise50
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
+```
+
+输出目录：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260708-steps100000-be-select50-cand8-denoise50`
+
+完整总览图：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260708-steps100000-be-select50-cand8-denoise50/grid_brain_encoder_selection.png`
+
+日志中只放前 12 个样本的预览图，避免把 41MB 完整大图直接塞进 Git：
+
+![100000 step 50 sample preview](assets/20260708-steps100000-be-select50-cand8-denoise50-preview12.png)
+
+结果摘要：
+- elapsed：1036.80 秒，约 17.28 分钟
+- positive best score：41 / 50
+- positive rate：0.82
+- mean best score：0.2172
+- min best score：-0.2131
+- max best score：0.5294
+- first 10 best scores：`[0.4131, 0.1808, -0.2131, 0.0454, 0.4166, 0.5294, 0.4153, 0.1366, -0.0025, -0.0487]`
+
+三组同设置对比：
+
+```text
+20000 positive best score: 49 / 50
+20000 mean best score: 0.2534
+20000 min / max: -0.0015 / 0.4880
+
+50000 positive best score: 39 / 50
+50000 mean best score: 0.1664
+50000 min / max: -0.2202 / 0.5139
+
+100000 positive best score: 41 / 50
+100000 mean best score: 0.2172
+100000 min / max: -0.2131 / 0.5294
+```
+
+差值：
+
+```text
+100000 vs 20000 mean best score: -0.0363
+100000 vs 50000 mean best score: +0.0508
+100000 vs 20000 positive count: -8
+100000 vs 50000 positive count: +2
+```
+
+结论：
+- 100000 step 相比 50000 step 有恢复：mean best score 从 0.1664 升到 0.2172，positive count 从 39/50 升到 41/50。
+- 但 100000 step 仍低于 20000 step：mean best score 低 0.0363，positive count 少 8 个。
+- 从预览图看，部分类别感更稳定，例如冲浪、食物、猫、飞机等，但仍大量不是精确重建。
+- 当前证据不支持继续盲目加训练步数。更合理的下一步是核对训练设置与评价流程，尤其是 global batch size、学习率、resume 后训练动态、数据/图像对应关系，以及 brain encoder selection 是否足以代表论文指标。

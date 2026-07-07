@@ -124,7 +124,7 @@ max best score: 0.4880
 
 因此更准确的表述是：
 
-> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的 50 sample 结果是 49/50 positive、mean best score 0.2534。随后用 4 张 A40 继续训练到 50000 step，但同设置 50 sample 解码下降到 39/50 positive、mean best score 0.1664。现在又继续训练到了 100000 step，100000 的解码还没跑，需要下一步验证长训是否恢复或改善指标。
+> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的 50 sample 结果是 49/50 positive、mean best score 0.2534。随后用 4 张 A40 继续训练到 50000 step，但同设置 50 sample 解码下降到 39/50 positive、mean best score 0.1664。继续训练到 100000 step 后，同设置解码恢复到 41/50 positive、mean best score 0.2172，但仍低于 20000 step。
 
 ## 为什么现在不优先继续盲目训练
 
@@ -188,10 +188,10 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 
 可以回答：
 
-> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 100000 step；20000 step 的 50 sample 评估是 49/50 positive、mean best score 0.2534，50000 step 同设置评估是 39/50 positive、mean best score 0.1664。100000 step 的解码还没跑，下一步要用同样设置验证它是否改善。
+> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 100000 step；20000 step 的 50 sample 评估是 49/50 positive、mean best score 0.2534，50000 step 是 39/50 positive、mean best score 0.1664，100000 step 是 41/50 positive、mean best score 0.2172。也就是说 100000 比 50000 有恢复，但仍低于 20000。
 
 ## 如果师兄问“下一步打算干什么”
 
 可以回答：
 
-> 我觉得下一步技术上不应该只盲目加训练步数，因为 50000 step 的同设置指标低于 20000 step。如果继续训练，也应当同时说明这是探索性实验；训练完成后要立刻做同设置解码，并排查配置和评价流程。
+> 我觉得下一步技术上不应该继续盲目加训练步数，因为 100000 step 仍然没有超过 20000 step。应该先排查配置和评价流程，尤其是 global batch size、学习率、resume 训练动态、数据/图像对应关系，以及当前 brain encoder selection 和论文正式指标之间的差异。
