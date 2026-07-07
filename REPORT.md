@@ -38,7 +38,20 @@
 
 ## 已完成训练
 
-当前最重要的训练结果已经更新为 50000 step：
+当前最重要的训练结果已经更新为 100000 step：
+
+```text
+run: 20260707-topk100-bs4-ddp4-resume50000-to100000
+initial step: 50000
+final step: 100000
+GPU: 4 卡 DDP，CUDA_VISIBLE_DEVICES=0,1,2,3
+elapsed: 58091.15 秒，约 16.14 小时
+last loss: 0.0454588011
+final checkpoint:
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt
+```
+
+上一阶段 50000 step 训练结果：
 
 ```text
 run: 20260706-topk100-bs4-ddp4-resume20000-to50000
@@ -64,7 +77,7 @@ final checkpoint:
 /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp2-resume10000-to20000/checkpoint-step-20000.pt
 ```
 
-已经保留的 checkpoint 覆盖从早期 smoke test 到 50000 step，没有丢失历史权重。50000 step 训练新增保存了 `checkpoint-step-25000.pt`、`checkpoint-step-30000.pt`、`checkpoint-step-35000.pt`、`checkpoint-step-40000.pt`、`checkpoint-step-45000.pt` 和 `checkpoint-step-50000.pt`。
+已经保留的 checkpoint 覆盖从早期 smoke test 到 100000 step，没有丢失历史权重。100000 step 训练新增保存了 `checkpoint-step-60000.pt`、`checkpoint-step-70000.pt`、`checkpoint-step-80000.pt`、`checkpoint-step-90000.pt` 和 `checkpoint-step-100000.pt`。
 
 ## 已完成解码评估
 
@@ -111,7 +124,7 @@ max best score: 0.4880
 
 因此更准确的表述是：
 
-> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的 50 sample 结果是 49/50 positive、mean best score 0.2534。随后用 4 张 A40 继续训练到 50000 step，但同设置 50 sample 解码下降到 39/50 positive、mean best score 0.1664。因此 50000 step 不能简单说更好，下一步继续训练属于探索性长训，需要后续再验证。
+> 我已经把 subject 1 的训练、解码和候选选择评估流程跑通了；目前 20000 step 的 50 sample 结果是 49/50 positive、mean best score 0.2534。随后用 4 张 A40 继续训练到 50000 step，但同设置 50 sample 解码下降到 39/50 positive、mean best score 0.1664。现在又继续训练到了 100000 step，100000 的解码还没跑，需要下一步验证长训是否恢复或改善指标。
 
 ## 为什么现在不优先继续盲目训练
 
@@ -175,7 +188,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 
 可以回答：
 
-> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 50000 step；20000 step 的 50 sample 评估是 49/50 positive、mean best score 0.2534，50000 step 同设置评估是 39/50 positive、mean best score 0.1664。也就是说继续到 50000 后指标没有提升，后面需要谨慎判断训练配置和评价流程。
+> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 100000 step；20000 step 的 50 sample 评估是 49/50 positive、mean best score 0.2534，50000 step 同设置评估是 39/50 positive、mean best score 0.1664。100000 step 的解码还没跑，下一步要用同样设置验证它是否改善。
 
 ## 如果师兄问“下一步打算干什么”
 

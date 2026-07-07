@@ -1020,3 +1020,53 @@ delta positive count: -10
 - 从预览图肉眼看，部分大类样本更像，例如冲浪、食物、猫、飞机等，但也有不少样本仍然偏离 GT，且指标下降说明不能简单宣称 50000 更好。
 - 这提示当前训练/评价链路可能存在更深层问题：继续加 step 不一定单调改善，后续应重点核对训练配置、global batch size、学习率、数据对应关系和评价指标。
 - 用户要求在完成当前生图、分析和记录后继续下一次训练，因此下一步仍将从 50000 step 继续训练；但从技术判断看，这属于探索性长训，不应把它视为已经验证有效的改进方向。
+
+## 2026-07-07 Resume Training To 100000 Completed
+
+按照用户要求，在完成 50000 step 解码、生图、分析和记录后，继续启动下一次训练。训练仍然只使用 GPU0-3 四张 A40。
+
+训练命令核心配置：
+
+```text
+run: 20260707-topk100-bs4-ddp4-resume50000-to100000
+launcher: accelerate launch --multi_gpu --num_processes 4
+CUDA_VISIBLE_DEVICES: 0,1,2,3
+init checkpoint: /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260706-topk100-bs4-ddp4-resume20000-to50000/checkpoint-step-50000.pt
+max additional steps: 50000
+initial step: 50000
+final step: 100000
+batch size: 4 per process
+topk: 100
+learning rate: 1e-4
+weight decay: 1e-6
+mixed precision: no
+save every: 10000
+```
+
+输出目录：
+
+`/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000`
+
+关键结果：
+- started at：2026-07-07T00:04:16
+- finished at：2026-07-07T16:12:32
+- elapsed：58091.15 秒，约 16.14 小时
+- dataset len：9000
+- first loss：0.1577550769
+- last loss：0.0454588011
+- min loss：0.0045259017
+- max loss：0.3158906698
+- final checkpoint：`checkpoint-step-100000.pt`
+
+保存的 checkpoint：
+- `checkpoint-step-60000.pt`
+- `checkpoint-step-70000.pt`
+- `checkpoint-step-80000.pt`
+- `checkpoint-step-90000.pt`
+- `checkpoint-step-100000.pt`
+
+训练完成后确认：
+- `summary.json` 已生成。
+- `train_limited.py` 训练进程已结束。
+- GPU0、GPU2、GPU3 已释放；GPU1 仍有一个非本次训练主进程的残留/外部进程 PID `1218426` 占用约 21GB，`nvidia-smi` 显示进程名为 `[Not Found]`。这不影响 `checkpoint-step-100000.pt` 已生成这一结论。
+- 下一步应使用 `checkpoint-step-100000.pt` 跑和 20000/50000 相同的 50 sample brain encoder selection，对比长训是否恢复或改善指标。
