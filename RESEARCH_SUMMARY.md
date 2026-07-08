@@ -6,7 +6,6 @@
 
 目前已经完成 NeuroAdapter 在服务器上的第一轮复现工作：项目目录、代码、数据、训练、checkpoint、解码、候选图生成、brain encoder 选择、轻量指标诊断、实验记录和 GitHub 同步都已经建立起来。
 
-但当前结果还不能表述为“复现出论文效果”。更准确的说法是：
 
 > 已经跑通 subject 1 的主要工程链路，并完成到 100000 step 的探索性训练；当前生成图能看到一定类别相关性，但仍不是稳定、精确的 brain-to-image 重建。不同评价指标之间也不一致，因此下一步应优先补官方 metric 和训练配置对照，而不是继续盲目长训。
 
@@ -25,18 +24,6 @@
 └── logs                    # 日志
 ```
 
-VS Code 推荐打开：
-
-```text
-/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro
-```
-
-复现仓库 GitHub remote：
-
-```text
-git@github.com:GeYugong/neuroadapter-repro.git
-```
-
 ## 3. 已完成工作
 
 ### 3.1 资料与仓库准备
@@ -49,7 +36,7 @@ git@github.com:GeYugong/neuroadapter-repro.git
 - NSD 数据集、AWS Open Data、Deep Image Reconstruction 等背景数据链接。
 - IP-Adapter、Stable Diffusion v1.5 等相关背景材料。
 
-已建立私有复现仓库，用来保存：
+已建立复现仓库，用来保存：
 
 - 实验脚本。
 - 配置说明。
@@ -93,7 +80,6 @@ brain_rh_f:    (100, 626)
 - `scripts/evaluate_decode_outputs.py`：对 PNG 输出计算 pixel correlation 和 SSIM。
 - `scripts/check_data_alignment.py`：检查 saved GT 和 dataset index 是否一致。
 
-这些脚本的目的不是替代论文作者完整流程，而是先让复现可以落地、可记录、可诊断。
 
 ### 3.4 训练链路
 
@@ -184,7 +170,6 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 - 按 SSIM：`50000 > 100000 > 20000`
 - 按肉眼观感：100000 可能更自然、更像正常图像
 
-所以不能简单说“100000 一定更差”。更严谨的表述是：
 
 > 100000 step 的视觉自然性可能更好，但当前 brain encoder selection 指标没有超过 20000 step。评价标准之间存在分歧，需要进一步跑官方完整 metric。
 
@@ -204,7 +189,6 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 - brain encoder 分数较高不一定代表人眼语义最像。
 - 人眼觉得更自然的图，也不一定 brain encoder 分数最高。
 
-因此当前结果可以作为“链路跑通和阶段性探索结果”，不能作为“论文效果已经复现”的证据。
 
 ## 7. 已完成诊断
 
