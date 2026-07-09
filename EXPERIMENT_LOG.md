@@ -1392,9 +1392,9 @@ steps: 5
 result: completed
 ```
 
-### 正式配置对照启动
+### 5k accumulation 配置中止
 
-正式启动单卡 accumulation 配置：
+随后尝试正式启动单卡 accumulation 配置到 25k：
 
 ```text
 run: 20260709-lr1e-5-bs4-accum2-resume20000-to25000
@@ -1408,22 +1408,46 @@ learning rate: 1e-5
 save every: 1000
 ```
 
-该实验的目的不是追求更长训练，而是排查：在保持 effective global batch size 8 且降低学习率到 `1e-5` 后，继续训练得到的 25k checkpoint 是否比原来的 20k / 50k / 100k 更符合 brain encoder selection 或官方图像指标。
+该 run 启动后能正常写入 loss，但速度约 15 秒 / optimizer step。按 5000 step 估算接近一天，不适合作为当前阶段的配置排查。因此中止该 run，并将 partial output 标记为：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to25000.aborted-replaced-by-21000
+```
+
+### 正式配置对照启动
+
+为保证当天能完成训练和后续评估，正式配置对照改为 1000 step：
+
+```text
+run: 20260709-lr1e-5-bs4-accum2-resume20000-to21000
+checkpoint: checkpoint-step-20000.pt
+target: 20000 -> 21000
+GPU: 3
+batch size: 4
+gradient accumulation steps: 2
+effective global batch size: 8
+learning rate: 1e-5
+save every: 500
+```
+
+该实验的目的不是追求更长训练，而是排查：在保持 effective global batch size 8 且降低学习率到 `1e-5` 后，短续训得到的 21k checkpoint 是否比原来的 20k / 50k / 100k 更符合 brain encoder selection 或官方图像指标。
 
 启动后确认：
 
 ```text
 output:
-/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to25000
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to21000
 
 log:
-/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/logs/20260709-lr1e-5-bs4-accum2-resume20000-to25000.log
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/logs/20260709-lr1e-5-bs4-accum2-resume20000-to21000.log
 ```
+
+启动后前 8 step 正常写入 `losses.csv`，速度约 7-8 秒 / optimizer step，预计约 2 小时完成 1000 step。
 
 后续动作：
 
-1. 等 `checkpoint-step-25000.pt` 生成。
+1. 等 `checkpoint-step-21000.pt` 生成。
 2. 使用固定 seed `12345`、50 samples、8 candidates、50 denoising steps 解码。
 3. 跑 brain encoder selection 汇总。
 4. 转换为官方 metric 输入并跑 `metric_brain_adapter.py`。
-5. 将 25k 结果与 20k / 50k / 100k 固定 seed 结果对比。
+5. 将 21k 结果与 20k / 50k / 100k 固定 seed 结果对比。
