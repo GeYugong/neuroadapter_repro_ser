@@ -207,6 +207,43 @@ metric_comparison_grid.png
 - 这与 brain encoder selection 指标不同：brain encoder selection 最高的是 20000 step。
 - 当前更准确的结论是：100000 step 的图像语义/视觉特征更好，但未在当前 brain encoder selection 指标上超过 20000 step。
 
+### 5.4 固定 Seed 对照
+
+为排除扩散随机性对 20k / 50k / 100k 对比的影响，已补充固定 seed 解码。设置如下：
+
+```text
+seed: 12345
+seed strategy: seed + dataset_idx
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+```
+
+固定 seed 的 brain encoder selection 结果：
+
+| checkpoint | positive best score | mean best score | min | max |
+|---:|---:|---:|---:|---:|
+| 20000 | 47 / 50 | 0.2357 | -0.0067 | 0.5282 |
+| 50000 | 39 / 50 | 0.1678 | -0.2086 | 0.5113 |
+| 100000 | 40 / 50 | 0.2041 | -0.2172 | 0.5331 |
+
+固定 seed 的官方 metric 结果：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0360 | 0.2242 | 59.39 | 70.41 | 58.57 | 62.86 | 0.9363 | 0.6328 |
+| 50000 | 0.0715 | 0.3167 | 71.14 | 84.08 | 74.33 | 85.27 | 0.8473 | 0.5112 |
+| 100000 | 0.0893 | 0.3038 | 80.04 | 90.98 | 85.14 | 89.22 | 0.7864 | 0.4620 |
+
+固定 seed 后，结论仍然一致：
+
+- brain encoder selection：20000 最高，100000 次之，50000 最低。
+- 官方深度特征指标：100000 最好。
+- SSIM：50000 略高于 100000。
+
+因此，20k 与 100k 的分歧不是单纯由 diffusion 随机 seed 导致，而是评价指标本身衡量对象不同。
+
 ## 6. 目前对图像效果的判断
 
 从预览图看，模型已经不是纯随机输出。部分样本会出现与 GT 大类相关的内容，例如：
@@ -294,8 +331,10 @@ metric_comparison_grid.png
 
 ```text
 diagnostics/decode_brain_encoder_summary.json
+diagnostics/decode_brain_encoder_summary_seed12345.json
 diagnostics/decode_lightweight_image_metrics.json
 diagnostics/official_metric_summary.json
+diagnostics/official_metric_summary_seed12345.json
 diagnostics/data_alignment_20000_first10.json
 diagnostics/data_alignment_50000_first10.json
 diagnostics/data_alignment_100000_first10.json
@@ -310,6 +349,9 @@ assets/20260708-steps100000-be-select50-cand8-denoise50-preview12.png
 assets/20260709-steps20000-official-metric-comparison-grid.png
 assets/20260709-steps50000-official-metric-comparison-grid.png
 assets/20260709-steps100000-official-metric-comparison-grid.png
+assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png
+assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png
+assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 ```
 
 完整大图保存在服务器 `outputs/neuroadapter_decode` 下，不进入 Git。
@@ -463,6 +505,21 @@ assets/20260709-steps100000-official-metric-comparison-grid.png
 - 仍然不是精确重建，存在菜市场转成餐厅、咖啡转成水果/室内、运动图转成其他运动等问题。
 - 结论：官方视觉指标和肉眼观察更支持 100000 step 是当前图像质量最好的 checkpoint。
 
+### 9.14 固定 seed 官方 metric comparison grid
+
+![fixed seed 20000 step official metric grid](assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png)
+
+![fixed seed 50000 step official metric grid](assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png)
+
+![fixed seed 100000 step official metric grid](assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png)
+
+观察：
+
+- 固定 seed 后，20k 仍有较多预测偏向室内、交通、人像和随机物体。
+- 50k 的图像自然性明显优于 20k，冲浪、猫、飞机、食物等类别感更强。
+- 100k 整体最成型，类别语义更稳定，但依旧不是精确重建。
+- 结论：固定 seed 视觉检查仍支持 100k 图像质量最好。
+
 ## 10. 目前还没有完成的事
 
 以下内容还没完成，不能在汇报中说已经完成：
@@ -471,20 +528,17 @@ assets/20260709-steps100000-official-metric-comparison-grid.png
 2. 没有完成所有 subject 的训练与评估。
 3. 没有下载或处理完整 NSD 全量配置。
 4. 没有证明结果达到论文表格或论文图示水平。
-5. 没有做固定 seed 的公平解码对照。
-6. 没有做 2 卡 vs 4 卡、global batch 8 vs 16 的严格消融。
+5. 没有做 2 卡 vs 4 卡、global batch 8 vs 16 的严格消融。
+6. 没有做学习率、optimizer state 恢复方式的训练配置消融。
 
 ## 11. 后续工作计划
 
-下一阶段不宜直接继续长训。主要原因是 brain encoder selection 与官方图像指标给出的趋势不一致，且 20k 之后改变了 GPU 数量和 global batch size。后续工作应优先围绕公平对照和训练配置排查展开。
+下一阶段不宜直接继续长训。固定 seed 对照已经证明，brain encoder selection 与官方图像指标的分歧不是简单随机性造成的。后续工作应优先围绕训练配置排查展开。
 
-1. **做固定 seed 解码**
-   对 20k、50k、100k 使用相同样本、相同候选数、相同 denoising steps、可复现 seed，减少扩散随机性的干扰。
-
-2. **做训练配置小对照**
+1. **做训练配置小对照**
    从 20k checkpoint 出发，保持 global batch size 不变，或降低学习率到 `1e-5`，只训练 5000-10000 step，再看指标是否改善。
 
-3. **再决定是否继续长训**
+2. **再决定是否继续长训**
    如果官方 metric 和固定 seed 对照显示 100k 确实更好，再考虑继续训练。否则继续长训可能只是消耗 GPU 时间。
 
 ## 12. 阶段性汇报摘要
@@ -501,4 +555,4 @@ assets/20260709-steps100000-official-metric-comparison-grid.png
 
 从视觉结果和官方 metric 看，100000 step 的生成图自然性较好，厨房/室内、冲浪、食物、猫、飞机等类别更成型；AlexNet、Inception、CLIP 等官方深度特征指标也以 100000 step 最高。但从 brain encoder selection 指标看，100000 step 仍未超过 20000 step。当前结果说明复现链路已经跑通，但还不能证明达到论文效果。
 
-后续重点应放在两个方面：做固定 seed 的公平解码对照，排查 2 卡到 4 卡后 global batch size 改变以及 optimizer state 未恢复对训练结果的影响。
+后续重点应放在训练配置排查上，尤其是 2 卡到 4 卡后 global batch size 改变以及 optimizer state 未恢复对训练结果的影响。

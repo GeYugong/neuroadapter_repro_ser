@@ -4,7 +4,7 @@
 
 ## 当前问题
 
-继续训练并没有让 brain encoder selection 指标稳定提升。
+继续训练并没有让 brain encoder selection 指标稳定提升；固定 seed 对照后，这个现象仍然存在。
 
 同一组设置：
 
@@ -25,6 +25,25 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 | 100000 | 41 / 50 | 0.2172 | -0.2131 | 0.5294 |
 
 结论：100000 比 50000 有恢复，但仍低于 20000。因此不能继续用“训练更久就会更好”作为默认假设。
+
+固定 seed 对照结果：
+
+```text
+seed: 12345
+seed strategy: seed + dataset_idx
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+```
+
+| checkpoint | positive best score | mean best score | min | max |
+|---:|---:|---:|---:|---:|
+| 20000 | 47 / 50 | 0.2357 | -0.0067 | 0.5282 |
+| 50000 | 39 / 50 | 0.1678 | -0.2086 | 0.5113 |
+| 100000 | 40 / 50 | 0.2041 | -0.2172 | 0.5331 |
+
+固定 seed 后仍是 20000 > 100000 > 50000，说明该分歧不是简单由扩散采样随机性造成的。
 
 ## 已完成的非训练排查
 
@@ -105,6 +124,14 @@ optimizer state: 未恢复，只恢复模型权重
 
 说明：`PixCorr`、`SSIM`、AlexNet、Inception、CLIP 越高越好。作者脚本中的 `Eff` 和 `SwAV` 实际使用 correlation distance，越低越好。
 
+固定 seed 官方 metric 结果：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0360 | 0.2242 | 59.39 | 70.41 | 58.57 | 62.86 | 0.9363 | 0.6328 |
+| 50000 | 0.0715 | 0.3167 | 71.14 | 84.08 | 74.33 | 85.27 | 0.8473 | 0.5112 |
+| 100000 | 0.0893 | 0.3038 | 80.04 | 90.98 | 85.14 | 89.22 | 0.7864 | 0.4620 |
+
 轻量图像指标结果：
 
 | checkpoint | brain mean | pixel corr mean | SSIM mean |
@@ -118,7 +145,7 @@ optimizer state: 未恢复，只恢复模型权重
 - pixel correlation / SSIM 认为 50000 或 100000 更好。
 - 官方 AlexNet / Inception / CLIP 深度特征指标认为 100000 最好。
 
-所以当前不能只靠一个指标下结论。
+所以当前不能只靠一个指标下结论。固定 seed 后仍然是同样结论：brain encoder selection 和官方图像指标衡量的对象不同，随机 seed 不是主要解释。
 
 ### 3. 数据和索引对应关系检查
 
@@ -168,9 +195,10 @@ optimizer state: 未恢复，只恢复模型权重
    - 官方 metric 是图像质量/识别指标。
    - 当前已经观察到 brain score 与官方图像指标趋势不一致。
 
-4. **候选生成随机性未严格固定**
-   - 当前三次 decode 使用相同样本数和候选数，但没有严格记录固定 diffusion seed。
-   - 多候选扩散生成存在随机性，可能影响小样本比较。
+4. **候选生成随机性已排查，不能解释主要分歧**
+   - 已补固定 seed 对照。
+   - 固定 seed 后 brain encoder selection 仍支持 20000，官方图像指标仍支持 100000。
+   - 因此随机性会影响个别样本，但不是当前指标分歧的主因。
 
 5. **作者原版训练流程和当前 `train_limited.py` 仍有差异**
    - 原版按 epoch 保存 `accelerator.save_state(...)`。
@@ -252,8 +280,10 @@ python scripts/summarize_official_metrics.py \
 
 ```text
 diagnostics/decode_brain_encoder_summary.json
+diagnostics/decode_brain_encoder_summary_seed12345.json
 diagnostics/decode_lightweight_image_metrics.json
 diagnostics/official_metric_summary.json
+diagnostics/official_metric_summary_seed12345.json
 diagnostics/data_alignment_20000_first10.json
 diagnostics/data_alignment_50000_first10.json
 diagnostics/data_alignment_100000_first10.json
@@ -265,12 +295,13 @@ diagnostics/data_alignment_100000_first10.json
 
 更合理的下一步：
 
-1. 做固定 seed 的 decode 对照，减少扩散随机性的影响。
-2. 如果必须继续训练，先做小规模对照：
+1. 做训练配置小对照，重点排查 global batch size、学习率和 optimizer state：
    - 从 20000 checkpoint 开始
-   - 学习率降到 `1e-5`
-   - 使用和 20000 阶段一致的 global batch size，或明确记录 batch 改动
+   - 使用和 20000 阶段一致的 global batch size，或单独比较 global batch 8 与 16
+   - 学习率降到 `1e-5` 或单独比较 `1e-4` 与 `1e-5`
+   - 若继续 resume，应保存/恢复 optimizer state，或明确把实验标记为只加载模型权重的探索性训练
    - 只训练 5000-10000 step
    - 立刻跑同设置 50 sample decode
+   - 同时跑 brain encoder selection 和官方 metric
 
 当前最应该避免的是：继续用 `lr=1e-4`、4 卡、长 step 盲训，然后只看单一指标。官方图像指标支持 100000 step 更好，但 brain encoder selection 仍支持 20000 step，因此下一步应先做公平对照。

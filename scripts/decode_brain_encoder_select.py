@@ -173,6 +173,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-predictions", type=int, default=4)
     parser.add_argument("--mixed-precision", default="fp16", choices=["no", "fp16"])
     parser.add_argument("--brain-encoder-gpus", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=None, help="Base seed. Each sample uses seed + dataset_idx.")
     return parser.parse_args()
 
 
@@ -185,10 +186,16 @@ def main() -> None:
     start_time = time.perf_counter()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     weight_dtype = torch.float16 if args.mixed_precision == "fp16" and device.type == "cuda" else torch.float32
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        if device.type == "cuda":
+            torch.cuda.manual_seed_all(args.seed)
 
     print(f"[run] {run_name}")
     print(f"[out] {out_dir}")
     print(f"[checkpoint] {args.checkpoint}")
+    print(f"[seed] {args.seed}")
     print("[brain_encoder] loading enc_1/run_1 minimal wrapper")
     brain_encoder = build_local_brain_encoder_wrapper(num_gpus=args.brain_encoder_gpus)
 
@@ -238,7 +245,19 @@ def main() -> None:
             rh = batch["brain_rh_f"].to(device, dtype=weight_dtype)
             brain_embeds, _ = guidance_generator(torch.cat([lh, rh], dim=1))
             img_init = torch.zeros_like(batch["img_ipadapter"].to(device, dtype=weight_dtype))
-            pred_images = run_diffusion(brain_embeds, img_init, models_dict, num_predictions=args.num_predictions, noise_factor=args.noise_factor, denoising_steps=args.denoising_steps)
+            generator = None
+            if args.seed is not None:
+                generator = torch.Generator(device=device)
+                generator.manual_seed(args.seed + dataset_idx)
+            pred_images = run_diffusion(
+                brain_embeds,
+                img_init,
+                models_dict,
+                num_predictions=args.num_predictions,
+                noise_factor=args.noise_factor,
+                denoising_steps=args.denoising_steps,
+                generator=generator,
+            )
             pred_fmri = brain_encoder.forward(pred_images, use_dataloader=True)
             scores = score_candidates(pred_fmri, batch, test_dataset)
             best_idx = int(np.argmax([s["mean"] if np.isfinite(s["mean"]) else -np.inf for s in scores]))
@@ -270,7 +289,7 @@ def main() -> None:
             y += g.height
         combined.save(combined_grid_path)
 
-    summary = {"run_name": run_name, "started_at": started, "finished_at": datetime.now().isoformat(timespec="seconds"), "elapsed_sec": time.perf_counter() - start_time, "checkpoint": str(args.checkpoint), "checkpoint_step": ckpt["step"], "topk": args.topk, "num_samples": args.num_samples, "start_idx": args.start_idx, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "num_predictions": args.num_predictions, "brain_encoder": "whole_brain_encoder dinov2_q enc_1 run_1 lh/rh", "device": str(device), "dtype": str(weight_dtype), "records": records, "grid": str(combined_grid_path)}
+    summary = {"run_name": run_name, "started_at": started, "finished_at": datetime.now().isoformat(timespec="seconds"), "elapsed_sec": time.perf_counter() - start_time, "checkpoint": str(args.checkpoint), "checkpoint_step": ckpt["step"], "topk": args.topk, "num_samples": args.num_samples, "start_idx": args.start_idx, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "num_predictions": args.num_predictions, "seed": args.seed, "seed_strategy": "seed + dataset_idx" if args.seed is not None else None, "brain_encoder": "whole_brain_encoder dinov2_q enc_1 run_1 lh/rh", "device": str(device), "dtype": str(weight_dtype), "records": records, "grid": str(combined_grid_path)}
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
 

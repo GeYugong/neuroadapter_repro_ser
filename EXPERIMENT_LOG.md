@@ -1213,3 +1213,115 @@ assets/20260709-steps20000-official-metric-comparison-grid.png
 assets/20260709-steps50000-official-metric-comparison-grid.png
 assets/20260709-steps100000-official-metric-comparison-grid.png
 ```
+
+## 2026-07-09 Fixed Seed Decode and Metric Evaluation
+
+目的：排除扩散采样随机性对 20000 / 50000 / 100000 checkpoint 对比的影响。之前三组解码的样本数、候选数和 denoising steps 相同，但没有固定每个 test sample 的 diffusion seed；这可能影响小样本候选选择结果。因此补做固定 seed 对照。
+
+脚本改动：
+- `scripts/decode_limited.py` 的 `run_diffusion(...)` 新增 `generator` 参数，并让 VAE latent sampling 与 diffusion noise 都使用同一个 generator。
+- `scripts/decode_brain_encoder_select.py` 新增 `--seed` 参数。
+- 固定 seed 策略为 `seed + dataset_idx`，即同一个 test sample 在不同 checkpoint 下使用相同候选随机源。
+- `summary.json` 新增记录 `seed` 和 `seed_strategy`。
+
+固定设置：
+
+```text
+seed: 12345
+seed strategy: seed + dataset_idx
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
+```
+
+先运行 smoke test：
+
+```text
+run: 20260709-seed12345-smoke-steps20000-select1-cand2
+result: completed
+```
+
+随后完成三组正式固定 seed 解码：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260709-seed12345-steps20000-be-select50-cand8-denoise50
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260709-seed12345-steps50000-be-select50-cand8-denoise50
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_decode/20260709-seed12345-steps100000-be-select50-cand8-denoise50
+```
+
+固定 seed brain encoder selection 结果：
+
+| checkpoint | positive best score | mean best score | min | max | elapsed |
+|---:|---:|---:|---:|---:|---:|
+| 20000 | 47 / 50 | 0.2357 | -0.0067 | 0.5282 | 17.76 min |
+| 50000 | 39 / 50 | 0.1678 | -0.2086 | 0.5113 | 16.50 min |
+| 100000 | 40 / 50 | 0.2041 | -0.2172 | 0.5331 | 16.11 min |
+
+结论：固定 seed 后，brain encoder selection 仍是 20000 > 100000 > 50000。扩散随机性不是该指标下 20000 更高的主因。
+
+随后将三组固定 seed 解码输出转换为作者 `metric_brain_adapter.py` 所需格式：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs/20260709-seed12345-steps20000-be-select50-cand8-denoise50
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs/20260709-seed12345-steps50000-be-select50-cand8-denoise50
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs/20260709-seed12345-steps100000-be-select50-cand8-denoise50
+```
+
+三组均成功生成：
+
+```text
+metric_subset.json
+metric_comparison_grid.png
+```
+
+固定 seed 官方 metric 结果：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0360 | 0.2242 | 59.39 | 70.41 | 58.57 | 62.86 | 0.9363 | 0.6328 |
+| 50000 | 0.0715 | 0.3167 | 71.14 | 84.08 | 74.33 | 85.27 | 0.8473 | 0.5112 |
+| 100000 | 0.0893 | 0.3038 | 80.04 | 90.98 | 85.14 | 89.22 | 0.7864 | 0.4620 |
+
+说明：
+- `PixCorr`、`SSIM`、`Alex(2)`、`Alex(5)`、`Incep`、`CLIP` 越高越好。
+- `Eff` 和 `SwAV` 是相关距离，越低越好。
+
+固定 seed 官方 metric 结论：
+- 100000 step 在 PixCorr、AlexNet、Inception、CLIP、Eff、SwAV 上最好。
+- 50000 step 的 SSIM 略高于 100000 step。
+- 20000 step 仍是官方图像指标中最弱的一组。
+
+视觉检查：
+
+![fixed seed 20000 official metric grid](assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png)
+
+![fixed seed 50000 official metric grid](assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png)
+
+![fixed seed 100000 official metric grid](assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png)
+
+观察：
+- 20000 step 的预测仍较多偏向室内、交通、人像和随机物体，整体图像语义不稳定。
+- 50000 step 比 20000 step 更自然，冲浪、猫、飞机、食物等类别感更明显。
+- 100000 step 整体最成型，类别语义更稳定，但仍不是精确重建。
+
+最终判断：
+- 固定 seed 后，brain encoder selection 与官方图像指标的分歧仍然存在。
+- 该分歧不是简单由扩散随机性造成的。
+- 当前更合理的下一步不是继续盲目长训，而是做训练配置排查：global batch size、learning rate、optimizer state，以及作者原版训练状态恢复方式与当前 `train_limited.py` 的差异。
+
+新增诊断文件：
+
+```text
+diagnostics/decode_brain_encoder_summary_seed12345.json
+diagnostics/official_metric_summary_seed12345.json
+```
+
+新增图片：
+
+```text
+assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png
+assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png
+assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
+```

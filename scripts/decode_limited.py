@@ -96,7 +96,7 @@ def setup_ip_adapter_modules(args, unet, num_tokens=200):
     return image_proj_model, torch.nn.ModuleList(unet.attn_processors.values())
 
 
-def run_diffusion(brain_embeds, img_ip, models_dict, num_predictions=1, noise_factor=4.0, denoising_steps=20):
+def run_diffusion(brain_embeds, img_ip, models_dict, num_predictions=1, noise_factor=4.0, denoising_steps=20, generator=None):
     tokenizer = models_dict["tokenizer"]
     text_encoder = models_dict["text_encoder"]
     vae = models_dict["vae"]
@@ -110,10 +110,13 @@ def run_diffusion(brain_embeds, img_ip, models_dict, num_predictions=1, noise_fa
     noise_scheduler.set_timesteps(denoising_steps)
     timesteps = noise_scheduler.timesteps
 
-    init_latents = vae.encode(img_ip).latent_dist.sample() * vae.config.scaling_factor
+    try:
+        init_latents = vae.encode(img_ip).latent_dist.sample(generator=generator) * vae.config.scaling_factor
+    except TypeError:
+        init_latents = vae.encode(img_ip).latent_dist.sample() * vae.config.scaling_factor
     latents = []
     for _ in range(num_predictions):
-        noise = torch.randn(init_latents.shape, device=device, dtype=weight_dtype)
+        noise = torch.randn(init_latents.shape, device=device, dtype=weight_dtype, generator=generator)
         latents.append(noise_scheduler.add_noise(init_latents, noise, timesteps[:1]))
     latents = torch.cat(latents, dim=0)
 
