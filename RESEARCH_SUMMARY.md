@@ -537,14 +537,14 @@ assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 3. 没有下载或处理完整 NSD 全量配置。
 4. 没有证明结果达到论文表格或论文图示水平。
 5. 没有做 2 卡 vs 4 卡、global batch 8 vs 16 的严格消融。
-6. 没有做 optimizer state 恢复方式的训练配置消融。
+6. 没有做 optimizer state 恢复方式的正式 A/B 训练消融；目前只完成了保存/恢复能力改造和 smoke test。
 
 ## 11. 后续工作计划
 
 下一阶段不宜直接继续长训。固定 seed 对照已经证明，brain encoder selection 与官方图像指标的分歧不是简单随机性造成的。后续工作应优先围绕训练配置排查展开。
 
 1. **继续训练配置小对照**
-   已完成一组从 20k 出发的 `lr=1e-5`、effective global batch size 8、1000 step 短续训。结果没有超过 20k 的 brain encoder selection，也没有超过 50k/100k 的官方图像指标。下一步若继续排查，应优先比较 optimizer state 恢复方式，而不是单纯继续加 step。
+   已完成一组从 20k 出发的 `lr=1e-5`、effective global batch size 8、1000 step 短续训。结果没有超过 20k 的 brain encoder selection，也没有超过 50k/100k 的官方图像指标。`train_limited.py` 已支持保存/恢复 optimizer state，并通过 smoke test。下一步若继续排查，应从同一个含 optimizer state 的起点做 model-only resume vs model+optimizer resume 对照，而不是单纯继续加 step。
 
 2. **再决定是否继续长训**
    如果官方 metric 和固定 seed 对照显示 100k 确实更好，再考虑继续训练。否则继续长训可能只是消耗 GPU 时间。

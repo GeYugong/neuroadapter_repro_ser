@@ -1541,3 +1541,81 @@ diagnostics/official_metric_summary_seed12345_with21000.json
 ```text
 assets/20260709-seed12345-steps21000-lr1e-5-accum2-official-metric-comparison-grid.png
 ```
+
+## 2026-07-09 Optimizer State Checkpoint Support
+
+目的：继续排查 resume 训练动态。此前 `scripts/train_limited.py` 只保存和恢复模型权重，没有保存 AdamW optimizer state。这样每次从 checkpoint 继续训练时，AdamW 的动量、一阶/二阶矩等状态都会重新初始化，和真正连续训练不同。
+
+脚本改动：
+
+- `scripts/train_limited.py` 的 checkpoint 现在保存：
+  - `image_proj`
+  - `ip_adapter`
+  - `guidance_generator`
+  - `optimizer`
+  - parcel / shape metadata
+  - losses
+- 新增参数：
+
+```text
+--resume-optimizer-state
+```
+
+如果加该参数，脚本会从 `--init-checkpoint` 里恢复 optimizer state。若 checkpoint 不含 `optimizer` 字段，则直接报错，避免误以为已经恢复 optimizer。
+
+### Smoke 1: 保存 optimizer state
+
+从 21000 checkpoint 出发，训练 2 step，生成新的 checkpoint：
+
+```text
+run: 20260709-optimizer-state-save-smoke-2steps
+init checkpoint: checkpoint-step-21000.pt
+max steps: 2
+batch size: 1
+learning rate: 1e-5
+final checkpoint: checkpoint-step-21002.pt
+result: completed
+```
+
+检查 checkpoint 内容：
+
+```text
+has_optimizer: True
+optimizer keys: param_groups, state
+state_count: 38
+param_groups: 1
+```
+
+说明：新 checkpoint 已经包含 AdamW optimizer state。
+
+### Smoke 2: 恢复 optimizer state
+
+从 Smoke 1 的 `checkpoint-step-21002.pt` 出发，显式加 `--resume-optimizer-state` 再训练 2 step：
+
+```text
+run: 20260709-optimizer-state-resume-smoke-2steps
+init checkpoint: checkpoint-step-21002.pt
+resume optimizer state: true
+max steps: 2
+batch size: 1
+learning rate: 1e-5
+final checkpoint: checkpoint-step-21004.pt
+result: completed
+```
+
+日志确认：
+
+```text
+[resume] loaded ... checkpoint-step-21002.pt at step 21002
+[resume] optimizer state loaded
+```
+
+结论：
+
+- `train_limited.py` 现在具备保存和恢复 optimizer state 的能力。
+- 该能力已通过最小 smoke test。
+- 历史 checkpoint，例如 20k / 50k / 100k / 21k 正式 checkpoint，是在 optimizer-state 支持加入前保存的，不含 optimizer state。因此不能直接用它们测试“恢复 optimizer state 是否改善指标”。
+- 若要真正做 optimizer state 消融，下一步应先用新版脚本生成一个含 optimizer state 的起点 checkpoint，然后从同一个起点分别做：
+  - model-only resume
+  - model + optimizer resume
+  再比较两条分支的解码和官方 metric。

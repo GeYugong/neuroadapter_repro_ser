@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-name", default=None)
     parser.add_argument("--max-steps", type=int, default=50, help="Number of additional optimizer steps to run.")
     parser.add_argument("--init-checkpoint", type=Path, default=None, help="Optional checkpoint-step-*.pt to resume model weights from.")
+    parser.add_argument("--resume-optimizer-state", action="store_true", help="Also restore optimizer state from --init-checkpoint. Requires a checkpoint saved by this script after optimizer-state support was added.")
     parser.add_argument("--topk", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
@@ -54,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def save_checkpoint(out_dir: Path, step: int, args_obj, neuro_adapter, guidance_generator, train_dataset, losses) -> Path:
+def save_checkpoint(out_dir: Path, step: int, args_obj, neuro_adapter, guidance_generator, optimizer, train_dataset, losses) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     ip_adapter = unwrap(neuro_adapter)
     guidance = unwrap(guidance_generator)
@@ -66,6 +67,7 @@ def save_checkpoint(out_dir: Path, step: int, args_obj, neuro_adapter, guidance_
             "image_proj": ip_adapter.image_proj_model.state_dict(),
             "ip_adapter": ip_adapter.adapter_modules.state_dict(),
             "guidance_generator": guidance.state_dict(),
+            "optimizer": optimizer.state_dict(),
             "selected_parcel_idx": {
                 hemi: train_dataset.selected_parcel_idx[hemi].tolist()
                 for hemi in ["lh", "rh"]
@@ -108,6 +110,7 @@ def main() -> None:
         hemi=None,
         gen_size=512,
         init_checkpoint=str(cli.init_checkpoint) if cli.init_checkpoint else None,
+        resume_optimizer_state=cli.resume_optimizer_state,
         initial_step=0,
     )
 
@@ -154,8 +157,17 @@ def main() -> None:
         unwrap(neuro_adapter).image_proj_model.load_state_dict(init_ckpt["image_proj"], strict=True)
         unwrap(neuro_adapter).adapter_modules.load_state_dict(init_ckpt["ip_adapter"], strict=True)
         unwrap(guidance_generator).load_state_dict(init_ckpt["guidance_generator"], strict=True)
+        if cli.resume_optimizer_state:
+            if "optimizer" not in init_ckpt:
+                raise ValueError(
+                    "--resume-optimizer-state was requested, but the checkpoint does not contain an optimizer state. "
+                    "Use a checkpoint created after optimizer-state support was added, or omit the flag."
+                )
+            optimizer.load_state_dict(init_ckpt["optimizer"])
         train_args.initial_step = int(init_ckpt["step"])
         print(f"[resume] loaded {cli.init_checkpoint} at step {train_args.initial_step}")
+        if cli.resume_optimizer_state:
+            print("[resume] optimizer state loaded")
 
     weight_dtype = setup_weight_dtype(accelerator)
     vae.to(accelerator.device, dtype=weight_dtype)
@@ -236,7 +248,7 @@ def main() -> None:
             if cli.save_every > 0 and local_step % cli.save_every == 0:
                 accelerator.wait_for_everyone()
                 if accelerator.is_main_process:
-                    ckpt_path = save_checkpoint(output_root, step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
+                    ckpt_path = save_checkpoint(output_root, step, train_args, neuro_adapter, guidance_generator, optimizer, train_dataset, losses)
                     print(f"[checkpoint] {ckpt_path}")
                 accelerator.wait_for_everyone()
     finally:
@@ -247,7 +259,7 @@ def main() -> None:
     accelerator.wait_for_everyone()
     final_ckpt = None
     if accelerator.is_main_process:
-        final_ckpt = save_checkpoint(output_root, final_step, train_args, neuro_adapter, guidance_generator, train_dataset, losses)
+        final_ckpt = save_checkpoint(output_root, final_step, train_args, neuro_adapter, guidance_generator, optimizer, train_dataset, losses)
     finished_at = datetime.now().isoformat(timespec="seconds")
     summary = {
         **config,

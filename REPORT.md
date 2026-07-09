@@ -175,6 +175,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 - 2026-07-09 已补上作者官方 `metric_brain_adapter.py` 评估。官方 AlexNet / Inception / CLIP 等深度特征指标整体支持 100000 step 最好。
 - 2026-07-09 已补上固定 seed 对照。固定 seed 后，brain encoder selection 仍支持 20000 step，官方深度图像指标仍支持 100000 step。
 - 2026-07-09 已补一组训练配置小对照：从 20000 step 出发，`lr=1e-5`、effective global batch size 8、短续训到 21000 step。该结果没有超过 20000 的 brain encoder selection，也没有超过 50k/100k 的官方图像指标。
+- 2026-07-09 已改造 `train_limited.py`，支持保存和恢复 AdamW optimizer state，并通过两段式 smoke test。
 - 当前没有发现 saved GT 与 test dataset index 错位，前 10 个样本检查 mismatch count 均为 0。
 - 最可疑的问题是 resume 没有恢复 optimizer state、4 卡阶段 global batch size 变化但学习率不变，以及 brain encoder selection 与官方图像指标衡量对象不同。
 
@@ -212,7 +213,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 先汇报当前结果，说明链路已跑通，结果还不是论文级。
 
 中期：
-继续做训练配置对照。`lr=1e-5` + effective global batch size 8 的 21000 step 短续训没有带来明确突破，下一步重点应转向 optimizer state 恢复方式。
+继续做训练配置对照。`lr=1e-5` + effective global batch size 8 的 21000 step 短续训没有带来明确突破；optimizer state 保存/恢复能力已经加好，下一步应从同一个含 optimizer state 的起点做 model-only resume vs model+optimizer resume 对照。
 
 长期：
 50000 step 的同设置解码已经完成，指标低于 20000 step。后续如果继续长训，应在训练完成后立即做同设置解码，并重点排查 global batch size、学习率、数据对应和评价指标。
@@ -228,4 +229,4 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 
 可以回答：
 
-> 下一步技术上不应该继续盲目加训练步数，因为不同指标趋势不一致。固定 seed 对照和 21000 step 短续训都没有消除分歧，应该重点排查 optimizer state 恢复方式、resume 训练动态，以及 brain encoder selection 和官方图像指标之间的差异。
+> 下一步技术上不应该继续盲目加训练步数，因为不同指标趋势不一致。固定 seed 对照和 21000 step 短续训都没有消除分歧。现在已经补上 optimizer state 保存/恢复能力，后续应该做 model-only resume vs model+optimizer resume 的 A/B 对照，并继续区分 brain encoder selection 和官方图像指标。

@@ -302,6 +302,8 @@ diagnostics/data_alignment_100000_first10.json
 1. 继续做训练配置小对照，重点排查 optimizer state：
    - 已完成从 20000 checkpoint 开始、effective global batch size 8、`lr=1e-5`、1000 step 短续训。
    - 该 21000 checkpoint 没有超过 20000 的 brain encoder selection，也没有超过 50k/100k 的官方图像指标。
-   - 下一步若继续，应优先改造 checkpoint 保存/恢复 optimizer state，或直接跑作者原版 `accelerator.save_state(...)` 流程。
+   - 已改造 `train_limited.py`，支持保存 optimizer state，并通过两段式 smoke test 确认 `--resume-optimizer-state` 可以恢复 AdamW state。
+   - 历史正式 checkpoint 不含 optimizer state，不能直接用于 optimizer-state 恢复实验。
+   - 下一步若继续，应从新版脚本生成的同一个含 optimizer state 起点出发，做 model-only resume vs model+optimizer resume 的 A/B 对照，或直接跑作者原版 `accelerator.save_state(...)` 流程。
 
 当前最应该避免的是：继续用 `lr=1e-4`、4 卡、长 step 盲训，然后只看单一指标。官方图像指标支持 100000 step 更好，但 brain encoder selection 仍支持 20000 step，因此下一步应先做公平对照。
