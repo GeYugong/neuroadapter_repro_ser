@@ -1325,3 +1325,105 @@ assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png
 assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png
 assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 ```
+
+## 2026-07-09 Training Configuration Ablation Started
+
+目的：固定 seed 对照表明，brain encoder selection 与官方图像指标的分歧不是简单由扩散随机性造成的。因此下一步开始排查训练配置，重点关注：
+
+- 从 20k checkpoint 继续训练是否应该降低学习率。
+- 20k 之后改变 GPU 数量导致的 effective global batch size 改变是否影响训练动态。
+- 在当前服务器有其他任务占用 GPU 的情况下，使用 DDP 是否会出现异常慢速。
+
+### 异常 DDP 启动记录
+
+先尝试从 20k checkpoint 出发，用 2 卡 DDP、每卡 batch 4、学习率 `1e-5` 训练到 25k：
+
+```text
+run: 20260709-lr1e-5-bs4-ddp2-resume20000-to25000
+checkpoint: checkpoint-step-20000.pt
+target: 20000 -> 25000
+GPU: CUDA_VISIBLE_DEVICES=0,2
+batch size: 4 per process
+effective global batch size: 8
+learning rate: 1e-5
+```
+
+该 run 启动后速度异常慢，约 14 step 用时 241 秒，按该速度 5000 step 会超过 20 小时，明显慢于此前 2 卡/4 卡训练记录。因此中止该 run，并将 partial output 标记为：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-ddp2-resume20000-to25000.aborted-slow-gpu0-2
+```
+
+该 run 不作为有效训练结果，只作为服务器当前共享状态下 DDP 异常慢速的记录。
+
+### 新增 gradient accumulation 支持
+
+为避免 DDP 通信和共享 GPU 状态干扰，给 `scripts/train_limited.py` 新增：
+
+```text
+--gradient-accumulation-steps
+```
+
+这样可以用单卡 `batch_size=4`、`gradient_accumulation_steps=2` 模拟 effective global batch size 8，与 20k 阶段的 2 卡 DDP global batch size 保持一致。
+
+已完成 smoke test：
+
+```text
+run: 20260709-gradaccum2-smoke-lr1e-5-2steps
+checkpoint: checkpoint-step-20000.pt
+GPU: 3
+batch size: 4
+gradient accumulation steps: 2
+learning rate: 1e-5
+steps: 2
+result: completed
+final checkpoint: checkpoint-step-20002.pt
+```
+
+对照确认：
+
+```text
+run: 20260709-noaccum-smoke-lr1e-5-5steps
+GPU: 3
+batch size: 4
+gradient accumulation steps: 1
+learning rate: 1e-5
+steps: 5
+result: completed
+```
+
+### 正式配置对照启动
+
+正式启动单卡 accumulation 配置：
+
+```text
+run: 20260709-lr1e-5-bs4-accum2-resume20000-to25000
+checkpoint: checkpoint-step-20000.pt
+target: 20000 -> 25000
+GPU: 3
+batch size: 4
+gradient accumulation steps: 2
+effective global batch size: 8
+learning rate: 1e-5
+save every: 1000
+```
+
+该实验的目的不是追求更长训练，而是排查：在保持 effective global batch size 8 且降低学习率到 `1e-5` 后，继续训练得到的 25k checkpoint 是否比原来的 20k / 50k / 100k 更符合 brain encoder selection 或官方图像指标。
+
+启动后确认：
+
+```text
+output:
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to25000
+
+log:
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/logs/20260709-lr1e-5-bs4-accum2-resume20000-to25000.log
+```
+
+后续动作：
+
+1. 等 `checkpoint-step-25000.pt` 生成。
+2. 使用固定 seed `12345`、50 samples、8 candidates、50 denoising steps 解码。
+3. 跑 brain encoder selection 汇总。
+4. 转换为官方 metric 输入并跑 `metric_brain_adapter.py`。
+5. 将 25k 结果与 20k / 50k / 100k 固定 seed 结果对比。

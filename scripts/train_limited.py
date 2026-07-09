@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--init-checkpoint", type=Path, default=None, help="Optional checkpoint-step-*.pt to resume model weights from.")
     parser.add_argument("--topk", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-6)
     parser.add_argument("--num-workers", type=int, default=0)
@@ -95,7 +96,7 @@ def main() -> None:
         learning_rate=cli.lr,
         weight_decay=cli.weight_decay,
         mixed_precision=cli.mixed_precision,
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=cli.gradient_accumulation_steps,
         clip_max_norm=1.0,
         condition_dim=768,
         num_decoder_queries=50,
@@ -192,25 +193,28 @@ def main() -> None:
         progress = tqdm(range(1, cli.max_steps + 1), desc="limited train", disable=not accelerator.is_main_process)
         for local_step in progress:
             step = train_args.initial_step + local_step
-            try:
-                batch = next(data_iter)
-            except StopIteration:
-                data_iter = iter(train_dataloader)
-                batch = next(data_iter)
 
             optimizer.zero_grad()
-            loss = process_training_batch(
-                batch,
-                vae,
-                noise_scheduler,
-                text_encoder,
-                guidance_generator,
-                neuro_adapter,
-                weight_dtype,
-                accelerator,
-                train_dataset,
-            )
-            accelerator.backward(loss)
+            micro_losses = []
+            for _ in range(cli.gradient_accumulation_steps):
+                try:
+                    batch = next(data_iter)
+                except StopIteration:
+                    data_iter = iter(train_dataloader)
+                    batch = next(data_iter)
+                loss = process_training_batch(
+                    batch,
+                    vae,
+                    noise_scheduler,
+                    text_encoder,
+                    guidance_generator,
+                    neuro_adapter,
+                    weight_dtype,
+                    accelerator,
+                    train_dataset,
+                )
+                accelerator.backward(loss / cli.gradient_accumulation_steps)
+                micro_losses.append(loss.detach())
             accelerator.clip_grad_norm_(
                 list(unwrap(neuro_adapter).image_proj_model.parameters())
                 + list(unwrap(neuro_adapter).adapter_modules.parameters())
@@ -219,7 +223,7 @@ def main() -> None:
             )
             optimizer.step()
 
-            reduced_loss = accelerator.reduce(loss.detach(), reduction="mean")
+            reduced_loss = accelerator.reduce(torch.stack(micro_losses).mean(), reduction="mean")
             loss_value = float(reduced_loss.cpu())
             elapsed = time.perf_counter() - start
             row = {"step": step, "loss": loss_value, "elapsed_sec": elapsed}
