@@ -1,6 +1,6 @@
 # NeuroAdapter 复现问题诊断
 
-更新日期：2026-07-08
+更新日期：2026-07-09
 
 ## 当前问题
 
@@ -87,23 +87,23 @@ optimizer state: 未恢复，只恢复模型权重
 - EfficientNet feature similarity
 - SwAV feature similarity
 
-当前输出不能直接喂给作者 metric：
+原始解码输出不能直接喂给作者 metric：
 - 作者 metric 需要 `evaluation_metadata.json`
 - 作者 metric 需要 `sample_summary.json`
 - 作者 metric 需要 `sample_000001.npz` 形式的样本文件
 - 当前解码输出是 `summary.json + gt.png + candidate_*.png`
 
-环境依赖检查：
+已新增 `scripts/prepare_metric_inputs.py` 将当前输出转换为官方 metric 所需格式，并安装 OpenAI CLIP、缓存 Inception / EfficientNet / SwAV 权重。20000 / 50000 / 100000 三组 50 sample 结果均已跑通 `metric_brain_adapter.py`。
 
-```text
-clip missing
-skimage ok
-torchvision ok
-pandas ok
-scipy ok
-```
+官方 metric 结果：
 
-因此官方完整 deep metric 当前不能直接跑。已补充轻量评价脚本 `scripts/evaluate_decode_outputs.py`，对当前 PNG 输出计算 pixel correlation 和 SSIM。
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0016 | 0.2430 | 61.80 | 68.82 | 62.12 | 62.20 | 0.9395 | 0.6429 |
+| 50000 | 0.0677 | 0.3084 | 68.20 | 85.84 | 78.04 | 80.69 | 0.8330 | 0.5083 |
+| 100000 | 0.0757 | 0.2974 | 77.06 | 89.18 | 85.71 | 87.31 | 0.7879 | 0.4592 |
+
+说明：`PixCorr`、`SSIM`、AlexNet、Inception、CLIP 越高越好。作者脚本中的 `Eff` 和 `SwAV` 实际使用 correlation distance，越低越好。
 
 轻量图像指标结果：
 
@@ -116,6 +116,7 @@ scipy ok
 这说明不同指标给出的趋势不一致：
 - brain encoder selection 认为 20000 最好。
 - pixel correlation / SSIM 认为 50000 或 100000 更好。
+- 官方 AlexNet / Inception / CLIP 深度特征指标认为 100000 最好。
 
 所以当前不能只靠一个指标下结论。
 
@@ -162,10 +163,10 @@ scipy ok
    - 学习率仍为 `1e-4`。
    - 这可能使后续训练不稳定或偏离。
 
-3. **当前评价和论文正式指标不是同一个东西**
+3. **brain encoder selection 和官方图像指标不是同一个东西**
    - brain encoder selection 是一种候选选择 sanity check。
    - 官方 metric 是图像质量/识别指标。
-   - 当前已经观察到 brain score 与 pixel/SSIM 趋势相反。
+   - 当前已经观察到 brain score 与官方图像指标趋势不一致。
 
 4. **候选生成随机性未严格固定**
    - 当前三次 decode 使用相同样本数和候选数，但没有严格记录固定 diffusion seed。
@@ -221,11 +222,38 @@ python scripts/check_data_alignment.py \
   --max-samples 10
 ```
 
+### `scripts/prepare_metric_inputs.py`
+
+将 `decode_brain_encoder_select.py` 输出的 `summary.json + PNG` 转换成作者 `metric_brain_adapter.py` 需要的 `.npz + metadata` 结构。
+
+示例：
+
+```bash
+python scripts/prepare_metric_inputs.py \
+  /path/to/decode/summary.json \
+  --output-dir /path/to/neuroadapter_metric_inputs/run-name
+```
+
+### `scripts/summarize_official_metrics.py`
+
+汇总多个 `metric_subset.json` 的官方 metric 结果。
+
+示例：
+
+```bash
+python scripts/summarize_official_metrics.py \
+  /path/to/20k/metric_subset.json \
+  /path/to/50k/metric_subset.json \
+  /path/to/100k/metric_subset.json \
+  --json-out diagnostics/official_metric_summary.json
+```
+
 ## 已生成诊断文件
 
 ```text
 diagnostics/decode_brain_encoder_summary.json
 diagnostics/decode_lightweight_image_metrics.json
+diagnostics/official_metric_summary.json
 diagnostics/data_alignment_20000_first10.json
 diagnostics/data_alignment_50000_first10.json
 diagnostics/data_alignment_100000_first10.json
@@ -237,14 +265,12 @@ diagnostics/data_alignment_100000_first10.json
 
 更合理的下一步：
 
-1. 把当前 PNG 输出转换成作者 metric 所需的 `.npz + metadata` 格式。
-2. 安装/确认 `clip` 和 SwAV / torchvision 权重缓存后，跑官方完整 metric。
-3. 做固定 seed 的 decode 对照，减少扩散随机性的影响。
-4. 如果必须继续训练，先做小规模对照：
+1. 做固定 seed 的 decode 对照，减少扩散随机性的影响。
+2. 如果必须继续训练，先做小规模对照：
    - 从 20000 checkpoint 开始
    - 学习率降到 `1e-5`
    - 使用和 20000 阶段一致的 global batch size，或明确记录 batch 改动
    - 只训练 5000-10000 step
    - 立刻跑同设置 50 sample decode
 
-当前最应该避免的是：继续用 `lr=1e-4`、4 卡、长 step 盲训，然后只看单一 brain encoder selection 指标。
+当前最应该避免的是：继续用 `lr=1e-4`、4 卡、长 step 盲训，然后只看单一指标。官方图像指标支持 100000 step 更好，但 brain encoder selection 仍支持 20000 step，因此下一步应先做公平对照。

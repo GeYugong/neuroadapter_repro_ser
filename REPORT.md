@@ -172,10 +172,19 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 - 50000 step：39/50 positive，mean best score 0.1664
 - 100000 step：41/50 positive，mean best score 0.2172
 - 轻量图像指标 pixel/SSIM 与 brain encoder 指标趋势不一致，说明不能只看单一指标。
+- 2026-07-09 已补上作者官方 `metric_brain_adapter.py` 评估。官方 AlexNet / Inception / CLIP 等深度特征指标整体支持 100000 step 最好。
 - 当前没有发现 saved GT 与 test dataset index 错位，前 10 个样本检查 mismatch count 均为 0。
-- 最可疑的问题是 resume 没有恢复 optimizer state、4 卡阶段 global batch size 变化但学习率不变，以及当前评价不是论文正式 metric。
+- 最可疑的问题是 resume 没有恢复 optimizer state、4 卡阶段 global batch size 变化但学习率不变，以及 brain encoder selection 与官方图像指标衡量对象不同。
 
-因此当前技术建议是：先补官方 metric / 固定 seed 对照 / 配置排查，不要继续盲目长训。
+官方 metric 汇总：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0016 | 0.2430 | 61.80 | 68.82 | 62.12 | 62.20 | 0.9395 | 0.6429 |
+| 50000 | 0.0677 | 0.3084 | 68.20 | 85.84 | 78.04 | 80.69 | 0.8330 | 0.5083 |
+| 100000 | 0.0757 | 0.2974 | 77.06 | 89.18 | 85.71 | 87.31 | 0.7879 | 0.4592 |
+
+因此当前技术建议是：先做固定 seed 对照 / 配置排查，不要继续盲目长训。
 
 ## 我对下一步的判断
 
@@ -183,7 +192,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 
 1. 如果目标是“证明代码能跑”：现在已经基本完成。
 2. 如果目标是“拿到更像论文的图”：50000 step 的同设置解码指标低于 20000 step，继续训练是否有效并不确定；如果继续训练，应把它视为探索，并同步核对配置。
-3. 如果目标是“严谨复现论文指标”：下一步应补官方 full evaluation / metric，而不是只看小样本图。
+3. 如果目标是“严谨复现论文指标”：官方 metric 已经跑通，但还需要固定 seed 对照、更多样本/subject 和训练配置消融。
 
 我的建议路线：
 
@@ -192,7 +201,7 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 先汇报当前结果，说明链路已跑通，结果还不是论文级。
 
 中期：
-补一个更正式的 evaluation/metric，确认当前结果在数字指标上处于什么水平。
+做固定 seed 解码和训练配置对照，确认 100000 step 在官方图像指标上的优势是否稳定。
 
 长期：
 50000 step 的同设置解码已经完成，指标低于 20000 step。后续如果继续长训，应在训练完成后立即做同设置解码，并重点排查 global batch size、学习率、数据对应和评价指标。
@@ -202,10 +211,10 @@ accelerate launch --config_file acc_config.yaml train_brain_adapter.py \
 
 可以回答：
 
-> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码和 brain encoder 候选选择评估都能跑。现在已经训练到 100000 step；20000 step 的 50 sample 评估是 49/50 positive、mean best score 0.2534，50000 step 是 39/50 positive、mean best score 0.1664，100000 step 是 41/50 positive、mean best score 0.2172。也就是说 100000 比 50000 有恢复，但仍低于 20000。
+> 跑通了 subject 1 的主要链路：数据加载、训练、checkpoint、解码、brain encoder 候选选择评估和作者官方 metric 都能跑。现在已经训练到 100000 step；brain encoder selection 上 20000 step 最高，但官方 AlexNet / Inception / CLIP 指标上 100000 step 最高。
 
 ## 如果师兄问“下一步打算干什么”
 
 可以回答：
 
-> 我觉得下一步技术上不应该继续盲目加训练步数，因为 100000 step 仍然没有超过 20000 step。应该先排查配置和评价流程，尤其是 global batch size、学习率、resume 训练动态、数据/图像对应关系，以及当前 brain encoder selection 和论文正式指标之间的差异。
+> 下一步技术上不应该继续盲目加训练步数，因为不同指标趋势不一致。应该先做固定 seed 对照和配置排查，尤其是 global batch size、学习率、resume 训练动态，以及 brain encoder selection 和官方图像指标之间的差异。

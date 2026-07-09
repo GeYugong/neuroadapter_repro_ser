@@ -1136,3 +1136,80 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 - 但 100000 step 仍低于 20000 step：mean best score 低 0.0363，positive count 少 8 个。
 - 从预览图看，部分类别感更稳定，例如冲浪、食物、猫、飞机等，但仍大量不是精确重建。
 - 当前证据不支持继续盲目加训练步数。更合理的下一步是核对训练设置与评价流程，尤其是 global batch size、学习率、resume 后训练动态、数据/图像对应关系，以及 brain encoder selection 是否足以代表论文指标。
+
+## 2026-07-09 Official Metric Evaluation
+
+目的：补上作者官方 `metric_brain_adapter.py` 指标，避免只依赖 brain encoder selection、pixel corr 和 SSIM。
+
+处理步骤：
+
+1. 新增 `scripts/prepare_metric_inputs.py`，把当前 `decode_brain_encoder_select.py` 输出的 `summary.json + gt.png + candidate_*.png` 转换为官方 metric 需要的结构：
+
+```text
+evaluation_metadata.json
+sample_summary.json
+sample_000000.npz ... sample_000049.npz
+```
+
+2. 对三组 50 sample 解码结果完成转换：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs/20260706-steps20000-be-select50-cand8-denoise50
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs/20260707-steps50000-be-select50-cand8-denoise50
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs/20260708-steps100000-be-select50-cand8-denoise50
+```
+
+3. 安装 OpenAI CLIP：
+
+```bash
+conda run -n neuroadapter pip install git+https://github.com/openai/CLIP.git
+```
+
+4. 使用 GPU0 跑官方 metric：
+
+```bash
+cd /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/code/NeuroAdapter
+CUDA_VISIBLE_DEVICES=0 PYTHONNOUSERSITE=1 PYTHONPATH=$PWD \
+conda run -n neuroadapter python metric_brain_adapter.py \
+  --results_dir /path/to/neuroadapter_metric_inputs/<run-name> \
+  --evaluation_mode subset \
+  --create_visualization
+```
+
+第一次运行时自动下载并缓存了 Inception、EfficientNet、SwAV 等权重。三组均成功生成：
+
+```text
+metric_subset.json
+metric_comparison_grid.png
+```
+
+官方 metric 汇总：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0016 | 0.2430 | 61.80 | 68.82 | 62.12 | 62.20 | 0.9395 | 0.6429 |
+| 50000 | 0.0677 | 0.3084 | 68.20 | 85.84 | 78.04 | 80.69 | 0.8330 | 0.5083 |
+| 100000 | 0.0757 | 0.2974 | 77.06 | 89.18 | 85.71 | 87.31 | 0.7879 | 0.4592 |
+
+说明：
+- `PixCorr`、`SSIM`、`Alex(2)`、`Alex(5)`、`Incep`、`CLIP` 越高越好。
+- 作者脚本中的 `Eff` 和 `SwAV` 实际使用 `scipy.spatial.distance.correlation`，是相关距离，越低越好。
+
+结论：
+- 官方深度特征指标整体支持 100000 step 最好：AlexNet、Inception、CLIP 均最高，Eff/SwAV 相关距离最低。
+- 这和 brain encoder selection 不一致；brain encoder selection 最高的是 20000 step。
+- 因此当前更准确的判断是：100000 step 的图像语义/视觉特征更好，但当前 brain encoder selection 指标没有超过 20000 step。
+
+已新增诊断汇总：
+
+```text
+diagnostics/official_metric_summary.json
+```
+
+已保存三张官方 metric comparison grid 到仓库 assets：
+
+```text
+assets/20260709-steps20000-official-metric-comparison-grid.png
+assets/20260709-steps50000-official-metric-comparison-grid.png
+assets/20260709-steps100000-official-metric-comparison-grid.png
+```

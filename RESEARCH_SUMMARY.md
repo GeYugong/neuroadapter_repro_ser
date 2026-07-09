@@ -1,13 +1,13 @@
 # NeuroAdapter 复现研究总结报告
 
-更新日期：2026-07-08
+更新日期：2026-07-09
 
 ## 1. 当前结论
 
 目前已经完成 NeuroAdapter 在服务器上的第一轮复现工作：项目目录、代码、数据、训练、checkpoint、解码、候选图生成、brain encoder 选择、轻量指标诊断、实验记录和 GitHub 同步都已经建立起来。
 
 
-> 已经跑通 subject 1 的主要工程链路，并完成到 100000 step 的探索性训练；当前生成图能看到一定类别相关性，但仍不是稳定、精确的 brain-to-image 重建。不同评价指标之间也不一致，因此下一步应优先补官方 metric 和训练配置对照，而不是继续盲目长训。
+> 已经跑通 subject 1 的主要工程链路，并完成到 100000 step 的探索性训练；当前生成图能看到一定类别相关性，但仍不是稳定、精确的 brain-to-image 重建。不同评价指标之间并不一致：brain encoder selection 最高的是 20000 step，而官方图像指标中的 AlexNet / Inception / CLIP 更支持 100000 step。
 
 ## 2. 项目与目录状态
 
@@ -171,7 +171,41 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 - 按肉眼观感：100000 可能更自然、更像正常图像
 
 
-> 100000 step 的视觉自然性可能更好，但当前 brain encoder selection 指标没有超过 20000 step。评价标准之间存在分歧，需要进一步跑官方完整 metric。
+> 100000 step 的视觉自然性可能更好，但当前 brain encoder selection 指标没有超过 20000 step。官方 metric 跑通后，AlexNet / Inception / CLIP 等深度特征指标更支持 100000 step。
+
+### 5.3 官方 Metric 结果
+
+已将当前三组解码输出转换为 `metric_brain_adapter.py` 需要的格式，并运行作者官方 metric 脚本。转换后的目录位于：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter_metric_inputs
+```
+
+每组目录包含：
+
+```text
+evaluation_metadata.json
+sample_summary.json
+sample_000000.npz ... sample_000049.npz
+metric_subset.json
+metric_comparison_grid.png
+```
+
+官方 metric 汇总：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0016 | 0.2430 | 61.80 | 68.82 | 62.12 | 62.20 | 0.9395 | 0.6429 |
+| 50000 | 0.0677 | 0.3084 | 68.20 | 85.84 | 78.04 | 80.69 | 0.8330 | 0.5083 |
+| 100000 | 0.0757 | 0.2974 | 77.06 | 89.18 | 85.71 | 87.31 | 0.7879 | 0.4592 |
+
+说明：
+
+- `PixCorr`、`SSIM`、`Alex(2)`、`Alex(5)`、`Incep`、`CLIP` 越高越好。
+- 作者脚本中的 `Eff` 和 `SwAV` 实际使用的是 `scipy.spatial.distance.correlation`，是相关距离，越低越好。
+- 按官方深度特征指标，100000 step 整体最好，尤其 AlexNet、Inception、CLIP 均最高。
+- 这与 brain encoder selection 指标不同：brain encoder selection 最高的是 20000 step。
+- 当前更准确的结论是：100000 step 的图像语义/视觉特征更好，但未在当前 brain encoder selection 指标上超过 20000 step。
 
 ## 6. 目前对图像效果的判断
 
@@ -233,26 +267,18 @@ selection metric: whole_brain_encoder dinov2_q enc_1 run_1 lh/rh mean score
 
 因此，后面效果不稳定有可能与 global batch size 改变有关。现在不能把 20k、50k、100k 简单理解成“同一设置下只增加 step”的公平对比。
 
-### 7.4 官方 metric 还没跑通
+### 7.4 官方 metric 已跑通
 
-作者的 `metric_brain_adapter.py` 需要的格式和当前输出不同：
+作者的 `metric_brain_adapter.py` 需要的格式和原始解码输出不同：
 
 - 作者 metric 需要 `evaluation_metadata.json`。
 - 作者 metric 需要 `sample_summary.json`。
 - 作者 metric 需要 `sample_000001.npz` 形式的样本文件。
-- 当前输出是 `summary.json + gt.png + candidate_*.png`。
+- 原始解码输出是 `summary.json + gt.png + candidate_*.png`。
 
-依赖检查结果：
+已新增 `scripts/prepare_metric_inputs.py` 完成格式转换。转换后，官方 metric 对 20000 / 50000 / 100000 三组 50 sample 结果均已跑通。
 
-```text
-clip missing
-skimage ok
-torchvision ok
-pandas ok
-scipy ok
-```
-
-因此目前还没有完成论文正式指标评估。
+运行过程中安装了 OpenAI CLIP，并缓存了 Inception、EfficientNet、SwAV 等权重。完整结果保存在各自 `metric_subset.json` 中，并汇总到 `diagnostics/official_metric_summary.json`。
 
 ## 8. 当前工作产物
 
@@ -269,6 +295,7 @@ scipy ok
 ```text
 diagnostics/decode_brain_encoder_summary.json
 diagnostics/decode_lightweight_image_metrics.json
+diagnostics/official_metric_summary.json
 diagnostics/data_alignment_20000_first10.json
 diagnostics/data_alignment_50000_first10.json
 diagnostics/data_alignment_100000_first10.json
@@ -280,6 +307,9 @@ diagnostics/data_alignment_100000_first10.json
 assets/20260706-steps20000-be-select50-cand8-denoise50-preview12.png
 assets/20260707-steps50000-be-select50-cand8-denoise50-preview12.png
 assets/20260708-steps100000-be-select50-cand8-denoise50-preview12.png
+assets/20260709-steps20000-official-metric-comparison-grid.png
+assets/20260709-steps50000-official-metric-comparison-grid.png
+assets/20260709-steps100000-official-metric-comparison-grid.png
 ```
 
 完整大图保存在服务器 `outputs/neuroadapter_decode` 下，不进入 Git。
@@ -400,35 +430,61 @@ assets/20260708-steps100000-be-select50-cand8-denoise50-preview12.png
 - 指标上 100000 step 比 50000 step 恢复，但仍低于 20000 step：41/50 positive，mean best score 0.2172。
 - 结论：100000 step 肉眼效果可能最好，但 brain encoder selection 不是最高。当前必须区分“视觉自然性”和“脑表征匹配分数”。
 
+### 9.11 20000 step，官方 metric comparison grid
+
+![20000 step official metric grid](assets/20260709-steps20000-official-metric-comparison-grid.png)
+
+观察：
+
+- 该图上半部分是 50 张 GT，下半部分是对应 best candidate。
+- 预测图中有少量类别相关结果，例如浴室、飞机、部分运动/动物图。
+- 大量样本仍偏向室内、人物、建筑或随机物体，与 GT 语义不稳定。
+- 结论：20000 step 在 brain encoder selection 上最高，但官方图像指标和视觉观察并不支持它是图像质量最好的一组。
+
+### 9.12 50000 step，官方 metric comparison grid
+
+![50000 step official metric grid](assets/20260709-steps50000-official-metric-comparison-grid.png)
+
+观察：
+
+- 相比 20000 step，预测图整体自然性提高。
+- 冲浪、猫、飞机、运动、食物/室内等类别更容易出现对应语义。
+- 仍存在明显错配，例如部分生活场景被转成无关人物或室内图。
+- 结论：50000 step 的官方图像指标明显高于 20000 step，说明继续训练确实改善了图像语义特征。
+
+### 9.13 100000 step，官方 metric comparison grid
+
+![100000 step official metric grid](assets/20260709-steps100000-official-metric-comparison-grid.png)
+
+观察：
+
+- 100000 step 的预测图整体最成型，类别感比 20k 和 50k 更稳定。
+- 冲浪、猫、飞机、食物、室内等类别在 GT 对应位置更常出现相近语义。
+- 仍然不是精确重建，存在菜市场转成餐厅、咖啡转成水果/室内、运动图转成其他运动等问题。
+- 结论：官方视觉指标和肉眼观察更支持 100000 step 是当前图像质量最好的 checkpoint。
+
 ## 10. 目前还没有完成的事
 
 以下内容还没完成，不能在汇报中说已经完成：
 
 1. 没有跑作者原版完整 `accelerate launch train_brain_adapter.py --num_train_epochs 100` 流程。
-2. 没有跑官方完整 `metric_brain_adapter.py`。
-3. 没有完成所有 subject 的训练与评估。
-4. 没有下载或处理完整 NSD 全量配置。
-5. 没有证明结果达到论文表格或论文图示水平。
-6. 没有做固定 seed 的公平解码对照。
-7. 没有做 2 卡 vs 4 卡、global batch 8 vs 16 的严格消融。
+2. 没有完成所有 subject 的训练与评估。
+3. 没有下载或处理完整 NSD 全量配置。
+4. 没有证明结果达到论文表格或论文图示水平。
+5. 没有做固定 seed 的公平解码对照。
+6. 没有做 2 卡 vs 4 卡、global batch 8 vs 16 的严格消融。
 
 ## 11. 后续工作计划
 
-下一阶段不宜直接继续长训。主要原因是 100000 step 的 brain encoder selection 指标仍未超过 20000 step，且当前还没有完成官方正式 metric。后续工作应优先围绕评价流程和训练配置排查展开。
+下一阶段不宜直接继续长训。主要原因是 brain encoder selection 与官方图像指标给出的趋势不一致，且 20k 之后改变了 GPU 数量和 global batch size。后续工作应优先围绕公平对照和训练配置排查展开。
 
-1. **补官方 metric 格式转换**
-   把当前 PNG 解码输出转换为作者 metric 所需的 `.npz + metadata` 结构。
-
-2. **补齐 metric 依赖**
-   安装或确认 `clip`，确认 deep feature 相关权重缓存，然后跑官方完整指标。
-
-3. **做固定 seed 解码**
+1. **做固定 seed 解码**
    对 20k、50k、100k 使用相同样本、相同候选数、相同 denoising steps、可复现 seed，减少扩散随机性的干扰。
 
-4. **做训练配置小对照**
+2. **做训练配置小对照**
    从 20k checkpoint 出发，保持 global batch size 不变，或降低学习率到 `1e-5`，只训练 5000-10000 step，再看指标是否改善。
 
-5. **再决定是否继续长训**
+3. **再决定是否继续长训**
    如果官方 metric 和固定 seed 对照显示 100k 确实更好，再考虑继续训练。否则继续长训可能只是消耗 GPU 时间。
 
 ## 12. 阶段性汇报摘要
@@ -443,6 +499,6 @@ assets/20260708-steps100000-be-select50-cand8-denoise50-preview12.png
 | 50000 | 39 / 50 | 0.1664 |
 | 100000 | 41 / 50 | 0.2172 |
 
-从视觉结果看，100000 step 的生成图自然性较好，厨房/室内、冲浪、食物、猫、飞机等类别更成型。但从 brain encoder selection 指标看，100000 step 仍未超过 20000 step。当前结果说明复现链路已经跑通，但还不能证明达到论文效果。
+从视觉结果和官方 metric 看，100000 step 的生成图自然性较好，厨房/室内、冲浪、食物、猫、飞机等类别更成型；AlexNet、Inception、CLIP 等官方深度特征指标也以 100000 step 最高。但从 brain encoder selection 指标看，100000 step 仍未超过 20000 step。当前结果说明复现链路已经跑通，但还不能证明达到论文效果。
 
-后续重点应放在三个方面：补官方完整 metric，做固定 seed 的公平解码对照，排查 2 卡到 4 卡后 global batch size 改变以及 optimizer state 未恢复对训练结果的影响。
+后续重点应放在两个方面：做固定 seed 的公平解码对照，排查 2 卡到 4 卡后 global batch size 改变以及 optimizer state 未恢复对训练结果的影响。
