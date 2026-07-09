@@ -40,10 +40,11 @@ topk: 100
 | checkpoint | positive best score | mean best score | min | max |
 |---:|---:|---:|---:|---:|
 | 20000 | 47 / 50 | 0.2357 | -0.0067 | 0.5282 |
+| 21000 lr1e-5 accum2 | 42 / 50 | 0.1967 | -0.2250 | 0.5440 |
 | 50000 | 39 / 50 | 0.1678 | -0.2086 | 0.5113 |
 | 100000 | 40 / 50 | 0.2041 | -0.2172 | 0.5331 |
 
-固定 seed 后仍是 20000 > 100000 > 50000，说明该分歧不是简单由扩散采样随机性造成的。
+固定 seed 后，20000 仍最高。21000 lr1e-5 accum2 没有超过 20000，也略低于 100000，说明该分歧不是简单由扩散采样随机性造成的，也不是短续训 1000 step 就能解决。
 
 ## 已完成的非训练排查
 
@@ -129,6 +130,7 @@ optimizer state: 未恢复，只恢复模型权重
 | checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 20000 | 0.0360 | 0.2242 | 59.39 | 70.41 | 58.57 | 62.86 | 0.9363 | 0.6328 |
+| 21000 lr1e-5 accum2 | 0.0671 | 0.2647 | 61.84 | 67.31 | 63.80 | 71.06 | 0.9074 | 0.5982 |
 | 50000 | 0.0715 | 0.3167 | 71.14 | 84.08 | 74.33 | 85.27 | 0.8473 | 0.5112 |
 | 100000 | 0.0893 | 0.3038 | 80.04 | 90.98 | 85.14 | 89.22 | 0.7864 | 0.4620 |
 
@@ -145,7 +147,7 @@ optimizer state: 未恢复，只恢复模型权重
 - pixel correlation / SSIM 认为 50000 或 100000 更好。
 - 官方 AlexNet / Inception / CLIP 深度特征指标认为 100000 最好。
 
-所以当前不能只靠一个指标下结论。固定 seed 后仍然是同样结论：brain encoder selection 和官方图像指标衡量的对象不同，随机 seed 不是主要解释。
+所以当前不能只靠一个指标下结论。固定 seed 和 21k 配置小对照后仍然是同样结论：brain encoder selection 和官方图像指标衡量的对象不同，随机 seed 不是主要解释。
 
 ### 3. 数据和索引对应关系检查
 
@@ -281,9 +283,11 @@ python scripts/summarize_official_metrics.py \
 ```text
 diagnostics/decode_brain_encoder_summary.json
 diagnostics/decode_brain_encoder_summary_seed12345.json
+diagnostics/decode_brain_encoder_summary_seed12345_steps21000.json
 diagnostics/decode_lightweight_image_metrics.json
 diagnostics/official_metric_summary.json
 diagnostics/official_metric_summary_seed12345.json
+diagnostics/official_metric_summary_seed12345_with21000.json
 diagnostics/data_alignment_20000_first10.json
 diagnostics/data_alignment_50000_first10.json
 diagnostics/data_alignment_100000_first10.json
@@ -295,13 +299,9 @@ diagnostics/data_alignment_100000_first10.json
 
 更合理的下一步：
 
-1. 做训练配置小对照，重点排查 global batch size、学习率和 optimizer state：
-   - 从 20000 checkpoint 开始
-   - 使用和 20000 阶段一致的 global batch size，或单独比较 global batch 8 与 16
-   - 学习率降到 `1e-5` 或单独比较 `1e-4` 与 `1e-5`
-   - 若继续 resume，应保存/恢复 optimizer state，或明确把实验标记为只加载模型权重的探索性训练
-   - 只训练 5000-10000 step
-   - 立刻跑同设置 50 sample decode
-   - 同时跑 brain encoder selection 和官方 metric
+1. 继续做训练配置小对照，重点排查 optimizer state：
+   - 已完成从 20000 checkpoint 开始、effective global batch size 8、`lr=1e-5`、1000 step 短续训。
+   - 该 21000 checkpoint 没有超过 20000 的 brain encoder selection，也没有超过 50k/100k 的官方图像指标。
+   - 下一步若继续，应优先改造 checkpoint 保存/恢复 optimizer state，或直接跑作者原版 `accelerator.save_state(...)` 流程。
 
 当前最应该避免的是：继续用 `lr=1e-4`、4 卡、长 step 盲训，然后只看单一指标。官方图像指标支持 100000 step 更好，但 brain encoder selection 仍支持 20000 step，因此下一步应先做公平对照。

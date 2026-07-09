@@ -225,6 +225,7 @@ topk: 100
 | checkpoint | positive best score | mean best score | min | max |
 |---:|---:|---:|---:|---:|
 | 20000 | 47 / 50 | 0.2357 | -0.0067 | 0.5282 |
+| 21000 lr1e-5 accum2 | 42 / 50 | 0.1967 | -0.2250 | 0.5440 |
 | 50000 | 39 / 50 | 0.1678 | -0.2086 | 0.5113 |
 | 100000 | 40 / 50 | 0.2041 | -0.2172 | 0.5331 |
 
@@ -233,13 +234,14 @@ topk: 100
 | checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 20000 | 0.0360 | 0.2242 | 59.39 | 70.41 | 58.57 | 62.86 | 0.9363 | 0.6328 |
+| 21000 lr1e-5 accum2 | 0.0671 | 0.2647 | 61.84 | 67.31 | 63.80 | 71.06 | 0.9074 | 0.5982 |
 | 50000 | 0.0715 | 0.3167 | 71.14 | 84.08 | 74.33 | 85.27 | 0.8473 | 0.5112 |
 | 100000 | 0.0893 | 0.3038 | 80.04 | 90.98 | 85.14 | 89.22 | 0.7864 | 0.4620 |
 
 固定 seed 后，结论仍然一致：
 
-- brain encoder selection：20000 最高，100000 次之，50000 最低。
-- 官方深度特征指标：100000 最好。
+- brain encoder selection：20000 最高，100000 与 21000 次之，50000 最低。
+- 官方深度特征指标：100000 最好；21000 相比 20000 有部分改善，但不如 50k / 100k。
 - SSIM：50000 略高于 100000。
 
 因此，20k 与 100k 的分歧不是单纯由 diffusion 随机 seed 导致，而是评价指标本身衡量对象不同。
@@ -332,9 +334,11 @@ topk: 100
 ```text
 diagnostics/decode_brain_encoder_summary.json
 diagnostics/decode_brain_encoder_summary_seed12345.json
+diagnostics/decode_brain_encoder_summary_seed12345_steps21000.json
 diagnostics/decode_lightweight_image_metrics.json
 diagnostics/official_metric_summary.json
 diagnostics/official_metric_summary_seed12345.json
+diagnostics/official_metric_summary_seed12345_with21000.json
 diagnostics/data_alignment_20000_first10.json
 diagnostics/data_alignment_50000_first10.json
 diagnostics/data_alignment_100000_first10.json
@@ -350,6 +354,7 @@ assets/20260709-steps20000-official-metric-comparison-grid.png
 assets/20260709-steps50000-official-metric-comparison-grid.png
 assets/20260709-steps100000-official-metric-comparison-grid.png
 assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png
+assets/20260709-seed12345-steps21000-lr1e-5-accum2-official-metric-comparison-grid.png
 assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png
 assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 ```
@@ -509,6 +514,8 @@ assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 
 ![fixed seed 20000 step official metric grid](assets/20260709-seed12345-steps20000-official-metric-comparison-grid.png)
 
+![fixed seed 21000 lr1e-5 accum2 official metric grid](assets/20260709-seed12345-steps21000-lr1e-5-accum2-official-metric-comparison-grid.png)
+
 ![fixed seed 50000 step official metric grid](assets/20260709-seed12345-steps50000-official-metric-comparison-grid.png)
 
 ![fixed seed 100000 step official metric grid](assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png)
@@ -516,9 +523,10 @@ assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 观察：
 
 - 固定 seed 后，20k 仍有较多预测偏向室内、交通、人像和随机物体。
+- 21k lr1e-5 accum2 的图像已是正常自然图像，交通、飞机、室内、食物等类别更常出现，但整体仍较散。
 - 50k 的图像自然性明显优于 20k，冲浪、猫、飞机、食物等类别感更强。
 - 100k 整体最成型，类别语义更稳定，但依旧不是精确重建。
-- 结论：固定 seed 视觉检查仍支持 100k 图像质量最好。
+- 结论：21k 短续训没有带来明确突破；固定 seed 视觉检查仍支持 100k 图像质量最好。
 
 ## 10. 目前还没有完成的事
 
@@ -529,14 +537,14 @@ assets/20260709-seed12345-steps100000-official-metric-comparison-grid.png
 3. 没有下载或处理完整 NSD 全量配置。
 4. 没有证明结果达到论文表格或论文图示水平。
 5. 没有做 2 卡 vs 4 卡、global batch 8 vs 16 的严格消融。
-6. 没有做学习率、optimizer state 恢复方式的训练配置消融。
+6. 没有做 optimizer state 恢复方式的训练配置消融。
 
 ## 11. 后续工作计划
 
 下一阶段不宜直接继续长训。固定 seed 对照已经证明，brain encoder selection 与官方图像指标的分歧不是简单随机性造成的。后续工作应优先围绕训练配置排查展开。
 
-1. **做训练配置小对照**
-   从 20k checkpoint 出发，保持 global batch size 不变，或降低学习率到 `1e-5`，只训练 5000-10000 step，再看指标是否改善。
+1. **继续训练配置小对照**
+   已完成一组从 20k 出发的 `lr=1e-5`、effective global batch size 8、1000 step 短续训。结果没有超过 20k 的 brain encoder selection，也没有超过 50k/100k 的官方图像指标。下一步若继续排查，应优先比较 optimizer state 恢复方式，而不是单纯继续加 step。
 
 2. **再决定是否继续长训**
    如果官方 metric 和固定 seed 对照显示 100k 确实更好，再考虑继续训练。否则继续长训可能只是消耗 GPU 时间。

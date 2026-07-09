@@ -1451,3 +1451,93 @@ log:
 3. 跑 brain encoder selection 汇总。
 4. 转换为官方 metric 输入并跑 `metric_brain_adapter.py`。
 5. 将 21k 结果与 20k / 50k / 100k 固定 seed 结果对比。
+
+## 2026-07-09 Training Configuration Ablation Completed
+
+21k 配置小对照已完成。
+
+训练结果：
+
+```text
+run: 20260709-lr1e-5-bs4-accum2-resume20000-to21000
+checkpoint: checkpoint-step-20000.pt -> checkpoint-step-21000.pt
+GPU: 3
+batch size: 4
+gradient accumulation steps: 2
+effective global batch size: 8
+learning rate: 1e-5
+additional steps: 1000
+elapsed: 5652.24 sec, about 1.57 h
+first loss: 0.1010585874
+last loss: 0.0741295889
+min loss: 0.0193443783
+max loss: 0.2592017651
+```
+
+保存文件：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to21000/checkpoint-step-20500.pt
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to21000/checkpoint-step-21000.pt
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260709-lr1e-5-bs4-accum2-resume20000-to21000/summary.json
+```
+
+固定 seed 解码：
+
+```text
+run: 20260709-seed12345-steps21000-lr1e-5-accum2-be-select50-cand8-denoise50
+checkpoint: checkpoint-step-21000.pt
+seed: 12345
+seed strategy: seed + dataset_idx
+samples: 50
+candidates per sample: 8
+denoising steps: 50
+topk: 100
+elapsed: 17.02 min
+```
+
+Brain encoder selection 结果：
+
+| checkpoint | positive best score | mean best score | min | max |
+|---:|---:|---:|---:|---:|
+| 20000 | 47 / 50 | 0.2357 | -0.0067 | 0.5282 |
+| 21000 lr1e-5 accum2 | 42 / 50 | 0.1967 | -0.2250 | 0.5440 |
+| 50000 | 39 / 50 | 0.1678 | -0.2086 | 0.5113 |
+| 100000 | 40 / 50 | 0.2041 | -0.2172 | 0.5331 |
+
+官方 metric 结果：
+
+| checkpoint | PixCorr ↑ | SSIM ↑ | Alex(2) ↑ | Alex(5) ↑ | Incep ↑ | CLIP ↑ | Eff ↓ | SwAV ↓ |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 20000 | 0.0360 | 0.2242 | 59.39 | 70.41 | 58.57 | 62.86 | 0.9363 | 0.6328 |
+| 21000 lr1e-5 accum2 | 0.0671 | 0.2647 | 61.84 | 67.31 | 63.80 | 71.06 | 0.9074 | 0.5982 |
+| 50000 | 0.0715 | 0.3167 | 71.14 | 84.08 | 74.33 | 85.27 | 0.8473 | 0.5112 |
+| 100000 | 0.0893 | 0.3038 | 80.04 | 90.98 | 85.14 | 89.22 | 0.7864 | 0.4620 |
+
+视觉检查：
+
+![fixed seed 21000 lr1e-5 accum2 official metric grid](assets/20260709-seed12345-steps21000-lr1e-5-accum2-official-metric-comparison-grid.png)
+
+观察：
+- 21k 生成图已经是正常自然图像，但仍明显受 Stable Diffusion 先验影响。
+- 交通、飞机、室内、食物、动物等类别频繁出现，整体类别感比 20k 更丰富。
+- 但 21k 没有形成比 50k / 100k 更稳定的语义重建，也没有超过 20k 的 brain encoder selection。
+
+结论：
+- 降低学习率到 `1e-5` 并保持 effective global batch size 8，短续训 1000 step 没有解决指标分歧。
+- 21k 相比 20k 在部分官方图像指标上有改善，但整体仍不如 50k / 100k。
+- 21k 的 brain encoder selection 低于 20k。
+- 下一步若继续排查，应优先关注 optimizer state 恢复方式，或尝试作者原版 `accelerator.save_state(...)` 训练状态恢复流程，而不是继续盲目加 step。
+
+新增诊断文件：
+
+```text
+diagnostics/decode_brain_encoder_summary_seed12345_steps21000.json
+diagnostics/official_metric_summary_seed12345_with21000.json
+```
+
+新增图片：
+
+```text
+assets/20260709-seed12345-steps21000-lr1e-5-accum2-official-metric-comparison-grid.png
+```
