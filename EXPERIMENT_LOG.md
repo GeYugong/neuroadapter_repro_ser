@@ -1658,3 +1658,36 @@ scripts/run_optimizer_resume_ablation.sh
 ```
 
 完成后必须使用相同的固定 seed、相同的测试样本、相同的 candidate 数和 denoising steps 解码，并跑 `metric_brain_adapter.py`。训练 loss 只用于检查稳定性，不作为哪条分支更好的最终结论。
+
+### Execution and Results
+
+两条分支均从 `checkpoint-step-21002.pt` 继续到 step 23002，且均成功保存 22002、22502 和 23002 checkpoint。
+
+| Branch | Optimizer state restored | Train elapsed | Final loss |
+| --- | --- | ---: | ---: |
+| model-only | no | 11098.76 s | 0.0870543 |
+| with-state | yes | 11099.83 s | 0.0870549 |
+
+固定评估设置：seed `12345`，50 test samples，8 candidates/sample，50 denoising steps。两组解码均成功完成，单组耗时约 1126 s。
+
+| Branch | Positive brain-encoder score | Mean brain-encoder score |
+| --- | ---: | ---: |
+| model-only | 43 / 50 | 0.2036 |
+| with-state | 44 / 50 | 0.2031 |
+
+官方 `metric_brain_adapter.py` 结果：
+
+| Branch | PixCorr | SSIM | Alex(2) | Alex(5) | Incep | CLIP | Eff | SwAV |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| model-only | 0.0422 | 0.2907 | 66.94 | 74.78 | 70.37 | 72.16 | 0.8880 | 0.6020 |
+| with-state | 0.0292 | 0.2887 | 67.51 | 74.20 | 72.04 | 71.39 | 0.8980 | 0.6013 |
+
+说明：PixCorr、SSIM、Alex(2)、Alex(5)、Incep、CLIP 越高越好；Eff、SwAV 为 correlation distance，越低越好。两条分支没有一致的胜负关系，指标差异整体很小。视觉检查显示两组均能生成自然图像和若干类别线索，但没有稳定的肉眼优势。
+
+![model-only official metric grid](assets/20260715-optimizer-resume-model-only-official-metric-comparison-grid.png)
+
+![with-state official metric grid](assets/20260715-optimizer-resume-with-state-official-metric-comparison-grid.png)
+
+**重要限制：** `checkpoint-step-21002.pt` 的 optimizer state 并不是从历史 20k 训练连续保存下来的。它是从不含 optimizer state 的 21k checkpoint 加载模型权重后，只训练 2 step 生成的。因此，本实验比较的是“重新初始化 AdamW”与“恢复 2-step AdamW state”，不能据此判断恢复完整长程 optimizer state 对 20k -> 50k -> 100k 历史续训的影响。
+
+下一步：从随机初始化开始连续训练，先保存一个包含足够多 optimizer updates 的中点 checkpoint，再以该中点分别进行 model-only 与 with-state 续训；这才是有效的 optimizer resume 消融。
