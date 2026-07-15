@@ -1619,3 +1619,42 @@ result: completed
   - model-only resume
   - model + optimizer resume
   再比较两条分支的解码和官方 metric。
+
+## 2026-07-15 Optimizer Resume Ablation (Scheduled)
+
+目的：验证历史长程续训没有恢复 AdamW state 是否会显著影响生成质量和官方评估指标。这是当前复现与作者连续训练流程之间最明确、可单独控制的差异。
+
+起点 checkpoint：
+
+```text
+/public/home/mty/GeYugong/outputs/neuroadapter/20260709-optimizer-state-save-smoke-2steps/checkpoint-step-21002.pt
+```
+
+该 checkpoint 包含模型权重和 AdamW state，由新版 `train_limited.py` 保存。
+
+预注册配置：
+
+| 项目 | 固定值 |
+| --- | --- |
+| subject | 1 |
+| topk | 100 |
+| batch size | 4 |
+| gradient accumulation | 2 |
+| effective batch size | 8 |
+| learning rate | `1e-5` |
+| additional optimizer steps | 2000 |
+| checkpoint interval | 500 steps |
+| GPU | model-only: 3; optimizer-state: 5 |
+
+两条分支唯一差异：
+
+- `model-only`：加载相同 checkpoint 的模型权重，但重新初始化 AdamW state。
+- `with-state`：加载相同 checkpoint 的模型权重，并用 `--resume-optimizer-state` 恢复 AdamW state。
+
+启动脚本：
+
+```text
+scripts/run_optimizer_resume_ablation.sh
+```
+
+完成后必须使用相同的固定 seed、相同的测试样本、相同的 candidate 数和 denoising steps 解码，并跑 `metric_brain_adapter.py`。训练 loss 只用于检查稳定性，不作为哪条分支更好的最终结论。
