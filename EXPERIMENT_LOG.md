@@ -1691,3 +1691,16 @@ scripts/run_optimizer_resume_ablation.sh
 **重要限制：** `checkpoint-step-21002.pt` 的 optimizer state 并不是从历史 20k 训练连续保存下来的。它是从不含 optimizer state 的 21k checkpoint 加载模型权重后，只训练 2 step 生成的。因此，本实验比较的是“重新初始化 AdamW”与“恢复 2-step AdamW state”，不能据此判断恢复完整长程 optimizer state 对 20k -> 50k -> 100k 历史续训的影响。
 
 下一步：从随机初始化开始连续训练，先保存一个包含足够多 optimizer updates 的中点 checkpoint，再以该中点分别进行 model-only 与 with-state 续训；这才是有效的 optimizer resume 消融。
+
+## 2026-07-15 Released Trainer Compatibility Run (Planned)
+
+目的：从 limited training 脚本转向作者发布的 `train_brain_adapter.py` + `accelerate` 训练循环。该训练路径使用作者的 DDP、bf16、epoch checkpoint 和 `accelerator.save_state(...)` 机制，更接近论文给出的训练方式。
+
+兼容包装器：`scripts/train_original_compatible.py`。
+
+包装器不改作者源码，只处理两个发布环境依赖：
+
+- 将作者机器上硬编码的 NSD / parcel 路径替换为本机已准备的数据目录；
+- 为单 subject 训练补齐未发布的 groupwise dataset 导入符号。groupwise training 仍显式拒绝执行。
+
+首个运行配置：2 x A40、subject 1、topk 100、batch size 8 per GPU、lr `1e-4`、bf16、1 epoch、每 epoch 保存 checkpoint。该运行的目标是验证作者训练入口与本机数据的真实端到端兼容性，不能视为完整 100 epoch 论文复现。
