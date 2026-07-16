@@ -1704,3 +1704,23 @@ scripts/run_optimizer_resume_ablation.sh
 - 为单 subject 训练补齐未发布的 groupwise dataset 导入符号。groupwise training 仍显式拒绝执行。
 
 首个运行配置：2 x A40、subject 1、topk 100、batch size 8 per GPU、lr `1e-4`、bf16、1 epoch、每 epoch 保存 checkpoint。该运行的目标是验证作者训练入口与本机数据的真实端到端兼容性，不能视为完整 100 epoch 论文复现。
+
+### Epoch 1 Result
+
+运行：`20260715-original-accelerate-subj1-e1-bs8`。
+
+结果：成功完成 1 epoch，2 个 DDP 进程各处理一个数据 shard，dataloader length 为 563。训练主体耗时 9 分 27 秒；最终日志为：
+
+```text
+Epoch 0, step 562, data_time: 0.177s, time: 0.684s, avg_train_loss: 0.143257
+Training completed!
+```
+
+完整训练状态保存于：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/original_trainer/
+20260715-original-accelerate-subj1-e1-bs8/checkpoint-1
+```
+
+其中包括 DDP 模型分片、`optimizer.bin` 以及每个进程的 RNG state。这是首个可以通过 `accelerator.load_state(...)` 做完整恢复的 checkpoint。

@@ -67,6 +67,44 @@ def setup_local_dataset(args, tokenizer):
     return train_dataset, train_dataloader
 
 
+def training_loop_with_optional_resume(
+    args,
+    accelerator,
+    neuro_adapter,
+    guidance_generator,
+    train_dataloader,
+    optimizer,
+    lr_scheduler,
+    vae,
+    text_encoder,
+    noise_scheduler,
+    weight_dtype,
+    train_dataset,
+):
+    if args.resume_from_checkpoint is not None:
+        accelerator.print(f"Restoring full Accelerate state from {args.resume_from_checkpoint}")
+        accelerator.load_state(args.resume_from_checkpoint)
+        accelerator.wait_for_everyone()
+
+    return released_training_loop(
+        args,
+        accelerator,
+        neuro_adapter,
+        guidance_generator,
+        train_dataloader,
+        optimizer,
+        lr_scheduler,
+        vae,
+        text_encoder,
+        noise_scheduler,
+        weight_dtype,
+        train_dataset,
+    )
+
+
+released_training_loop = released_train.training_loop
+
+
 def main() -> None:
     parser = released_train.create_argument_parser()
     parser.add_argument(
@@ -80,6 +118,11 @@ def main() -> None:
     parser.add_argument(
         "--parcel-dir",
         default="/public/home/mty/GeYugong/data/neuroadapter/parcels/schaefer",
+    )
+    parser.add_argument(
+        "--resume-from-checkpoint",
+        default=None,
+        help="Accelerate checkpoint directory created by an earlier compatible run.",
     )
     args = parser.parse_args()
 
@@ -96,6 +139,7 @@ def main() -> None:
         os.makedirs(args.output_dir, exist_ok=True)
 
     released_train.setup_dataset_and_dataloader = setup_local_dataset
+    released_train.training_loop = training_loop_with_optional_resume
     released_train.main(args)
 
 
