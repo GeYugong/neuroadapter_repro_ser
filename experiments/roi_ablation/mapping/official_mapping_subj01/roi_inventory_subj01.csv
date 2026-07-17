@@ -1,0 +1,201 @@
+global_token_index,hemisphere,token_position_within_hemi,schaefer_parcel_index,num_vertices,mean_ncsnr,dominant_group,functional_level,qualifying_labels
+0,lh,0,38,184,0.883794,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.679348}]"
+1,lh,1,41,293,0.788269,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+2,lh,2,53,192,0.767374,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2d"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.817708}]"
+3,lh,3,57,204,0.76093,V3,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3d"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.519608}]"
+4,lh,4,13,408,0.759208,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2v"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.553922}]"
+5,lh,5,26,318,0.740127,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1v"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.550314}]"
+6,lh,6,29,233,0.736868,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1v"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.871245}]"
+7,lh,7,182,336,0.711199,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.955357}]"
+8,lh,8,39,241,0.710584,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 1.0}]"
+9,lh,9,58,85,0.684172,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+10,lh,10,12,381,0.681184,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+11,lh,11,48,326,0.666867,V3,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3d"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.539877}]"
+12,lh,12,183,201,0.644961,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.915423}]"
+13,lh,13,43,218,0.639784,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.692661}]"
+14,lh,14,10,326,0.639587,Unlabeled,unlabeled,[]
+15,lh,15,17,148,0.629662,V3,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3v"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.635135}]"
+16,lh,16,6,137,0.625153,Face,high_level,"[{""collection"": ""floc-faces"", ""roi"": ""FFA-1"", ""group"": ""Face"", ""level"": ""high_level"", ""overlap"": 0.832117}, {""collection"": ""floc-bodies"", ""roi"": ""FBA-1"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.766423}]"
+17,lh,17,51,162,0.622288,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.777778}]"
+18,lh,18,35,354,0.621009,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.977401}]"
+19,lh,19,63,182,0.571946,Unlabeled,unlabeled,[]
+20,lh,20,32,216,0.570154,V3,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3d"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.509259}]"
+21,lh,21,185,109,0.554781,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+22,lh,22,23,222,0.552131,Face,high_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3v"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.527027}, {""collection"": ""floc-faces"", ""roi"": ""OFA"", ""group"": ""Face"", ""level"": ""high_level"", ""overlap"": 0.554054}]"
+23,lh,23,62,102,0.545794,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+24,lh,24,71,370,0.544117,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.762162}]"
+25,lh,25,54,80,0.53637,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+26,lh,26,9,178,0.534724,V4,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""hV4"", ""group"": ""V4"", ""level"": ""low_level"", ""overlap"": 0.752809}]"
+27,lh,27,60,358,0.529117,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.882682}]"
+28,lh,28,44,130,0.520434,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.907692}]"
+29,lh,29,188,146,0.52023,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+30,lh,30,69,302,0.517558,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.622517}]"
+31,lh,31,28,326,0.514134,Unlabeled,unlabeled,[]
+32,lh,32,52,323,0.513492,Unlabeled,unlabeled,[]
+33,lh,33,191,256,0.513337,Unlabeled,unlabeled,[]
+34,lh,34,7,564,0.511869,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.505319}]"
+35,lh,35,189,176,0.505341,Unlabeled,unlabeled,[]
+36,lh,36,33,250,0.495262,Unlabeled,unlabeled,[]
+37,lh,37,184,251,0.492328,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.808765}]"
+38,lh,38,11,410,0.487454,Word,high_level,"[{""collection"": ""floc-words"", ""roi"": ""VWFA-1"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.953659}]"
+39,lh,39,179,184,0.481644,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.951087}]"
+40,lh,40,64,128,0.48103,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.945312}]"
+41,lh,41,18,193,0.481026,Unlabeled,unlabeled,[]
+42,lh,42,178,208,0.47482,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.591346}]"
+43,lh,43,5,401,0.473915,Face,high_level,"[{""collection"": ""floc-faces"", ""roi"": ""FFA-1"", ""group"": ""Face"", ""level"": ""high_level"", ""overlap"": 0.653367}]"
+44,lh,44,20,259,0.473777,Word,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.698842}, {""collection"": ""floc-words"", ""roi"": ""VWFA-1"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.764479}]"
+45,lh,45,187,208,0.468476,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.894231}]"
+46,lh,46,181,343,0.463648,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.772595}]"
+47,lh,47,3,252,0.462363,Unlabeled,unlabeled,[]
+48,lh,48,14,225,0.459309,V4,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""hV4"", ""group"": ""V4"", ""level"": ""low_level"", ""overlap"": 0.595556}]"
+49,lh,49,233,365,0.454165,Unlabeled,unlabeled,[]
+50,lh,50,468,360,0.450152,Unlabeled,unlabeled,[]
+51,lh,51,73,221,0.443097,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.710407}]"
+52,lh,52,16,222,0.441867,Unlabeled,unlabeled,[]
+53,lh,53,200,305,0.439601,Unlabeled,unlabeled,[]
+54,lh,54,27,535,0.431026,Unlabeled,unlabeled,[]
+55,lh,55,192,305,0.429338,Unlabeled,unlabeled,[]
+56,lh,56,67,215,0.428583,Unlabeled,unlabeled,[]
+57,lh,57,76,276,0.427843,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.717391}]"
+58,lh,58,471,228,0.418801,Unlabeled,unlabeled,[]
+59,lh,59,8,245,0.411889,V4,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""hV4"", ""group"": ""V4"", ""level"": ""low_level"", ""overlap"": 0.604082}]"
+60,lh,60,242,281,0.409226,Unlabeled,unlabeled,[]
+61,lh,61,215,256,0.39092,Unlabeled,unlabeled,[]
+62,lh,62,186,244,0.390266,Scene,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.528689}, {""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.901639}]"
+63,lh,63,280,158,0.38444,Unlabeled,unlabeled,[]
+64,lh,64,174,329,0.380727,Word,high_level,"[{""collection"": ""floc-words"", ""roi"": ""VWFA-2"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.729483}]"
+65,lh,65,61,252,0.377361,Unlabeled,unlabeled,[]
+66,lh,66,377,272,0.377134,Unlabeled,unlabeled,[]
+67,lh,67,496,255,0.375507,Unlabeled,unlabeled,[]
+68,lh,68,15,171,0.372932,Unlabeled,unlabeled,[]
+69,lh,69,202,227,0.366708,Unlabeled,unlabeled,[]
+70,lh,70,237,364,0.365393,Unlabeled,unlabeled,[]
+71,lh,71,79,241,0.357643,Unlabeled,unlabeled,[]
+72,lh,72,204,167,0.35427,Unlabeled,unlabeled,[]
+73,lh,73,1,346,0.353416,Word,high_level,"[{""collection"": ""floc-words"", ""roi"": ""mfs-words"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.884393}]"
+74,lh,74,176,318,0.353036,Word,high_level,"[{""collection"": ""floc-words"", ""roi"": ""VWFA-1"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.694969}]"
+75,lh,75,4,276,0.3492,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+76,lh,76,243,238,0.348251,Unlabeled,unlabeled,[]
+77,lh,77,175,267,0.347668,Word,high_level,"[{""collection"": ""floc-words"", ""roi"": ""VWFA-1"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.692884}]"
+78,lh,78,374,236,0.346131,Unlabeled,unlabeled,[]
+79,lh,79,180,204,0.344612,Unlabeled,unlabeled,[]
+80,lh,80,194,246,0.343939,Unlabeled,unlabeled,[]
+81,lh,81,231,175,0.334995,Unlabeled,unlabeled,[]
+82,lh,82,103,155,0.332761,Unlabeled,unlabeled,[]
+83,lh,83,208,176,0.332106,Unlabeled,unlabeled,[]
+84,lh,84,207,277,0.33175,Unlabeled,unlabeled,[]
+85,lh,85,473,123,0.331334,Unlabeled,unlabeled,[]
+86,lh,86,2,214,0.327771,Unlabeled,unlabeled,[]
+87,lh,87,499,439,0.326813,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.929385}]"
+88,lh,88,276,319,0.326032,Unlabeled,unlabeled,[]
+89,lh,89,47,189,0.314626,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+90,lh,90,466,447,0.312831,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.55481}]"
+91,lh,91,30,327,0.309405,Unlabeled,unlabeled,[]
+92,lh,92,283,185,0.307589,Unlabeled,unlabeled,[]
+93,lh,93,221,302,0.307478,Unlabeled,unlabeled,[]
+94,lh,94,19,214,0.306885,Unlabeled,unlabeled,[]
+95,lh,95,479,192,0.305896,Unlabeled,unlabeled,[]
+96,lh,96,356,266,0.305501,Unlabeled,unlabeled,[]
+97,lh,97,373,143,0.304836,Unlabeled,unlabeled,[]
+98,lh,98,193,320,0.304309,Unlabeled,unlabeled,[]
+99,lh,99,219,292,0.303437,Unlabeled,unlabeled,[]
+100,rh,0,190,205,0.882063,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.921951}]"
+101,rh,1,16,440,0.796989,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2v"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.504545}]"
+102,rh,2,33,280,0.794451,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.971429}]"
+103,rh,3,24,192,0.778354,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2v"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.619792}]"
+104,rh,4,185,173,0.758168,Body,high_level,"[{""collection"": ""floc-faces"", ""roi"": ""FFA-2"", ""group"": ""Face"", ""level"": ""high_level"", ""overlap"": 0.797688}, {""collection"": ""floc-bodies"", ""roi"": ""FBA-2"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.965318}]"
+105,rh,5,52,156,0.74892,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2d"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.871795}]"
+106,rh,6,191,294,0.740518,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+107,rh,7,28,306,0.730882,Unlabeled,unlabeled,[]
+108,rh,8,37,265,0.705747,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.709434}]"
+109,rh,9,45,210,0.704722,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 1.0}]"
+110,rh,10,247,295,0.704393,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.911864}]"
+111,rh,11,192,252,0.678045,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.996032}]"
+112,rh,12,11,254,0.67198,V4,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""hV4"", ""group"": ""V4"", ""level"": ""low_level"", ""overlap"": 0.641732}]"
+113,rh,13,48,296,0.666603,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.97973}]"
+114,rh,14,58,184,0.666565,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2d"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.521739}]"
+115,rh,15,29,285,0.645374,Unlabeled,unlabeled,[]
+116,rh,16,57,228,0.63418,V3,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3d"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.574561}]"
+117,rh,17,42,212,0.613809,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.938679}]"
+118,rh,18,20,300,0.597587,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.853333}]"
+119,rh,19,224,244,0.587198,Unlabeled,unlabeled,[]
+120,rh,20,189,411,0.57727,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.982968}]"
+121,rh,21,245,284,0.574603,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.598592}]"
+122,rh,22,7,365,0.57291,Unlabeled,unlabeled,[]
+123,rh,23,17,241,0.569948,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2v"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.59751}]"
+124,rh,24,44,322,0.56303,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2d"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.580745}]"
+125,rh,25,187,343,0.562188,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.661808}, {""collection"": ""floc-words"", ""roi"": ""VWFA-1"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.553936}]"
+126,rh,26,68,253,0.560016,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.992095}]"
+127,rh,27,50,379,0.555385,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.667546}]"
+128,rh,28,76,315,0.553744,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.844444}]"
+129,rh,29,412,300,0.552684,Unlabeled,unlabeled,[]
+130,rh,30,36,165,0.54866,V1,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V1d"", ""group"": ""V1"", ""level"": ""low_level"", ""overlap"": 0.921212}]"
+131,rh,31,8,327,0.546301,Unlabeled,unlabeled,[]
+132,rh,32,6,310,0.543242,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.619355}]"
+133,rh,33,27,197,0.538525,Unlabeled,unlabeled,[]
+134,rh,34,60,302,0.533608,Unlabeled,unlabeled,[]
+135,rh,35,12,249,0.527852,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 1.0}]"
+136,rh,36,193,221,0.526474,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.968326}]"
+137,rh,37,252,203,0.522821,Unlabeled,unlabeled,[]
+138,rh,38,1,430,0.512507,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""FBA-2"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.595349}]"
+139,rh,39,61,161,0.508471,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.881988}]"
+140,rh,40,71,182,0.504035,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.78022}]"
+141,rh,41,483,434,0.500797,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.668203}]"
+142,rh,42,66,204,0.498366,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.529412}]"
+143,rh,43,19,224,0.498243,V3,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V3v"", ""group"": ""V3"", ""level"": ""low_level"", ""overlap"": 0.745536}, {""collection"": ""floc-words"", ""roi"": ""OWFA"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.625}]"
+144,rh,44,414,195,0.496753,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.989744}]"
+145,rh,45,14,216,0.496339,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""PPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.587963}]"
+146,rh,46,358,243,0.49398,Unlabeled,unlabeled,[]
+147,rh,47,34,329,0.490313,Unlabeled,unlabeled,[]
+148,rh,48,184,301,0.477883,Face,high_level,"[{""collection"": ""floc-faces"", ""roi"": ""FFA-2"", ""group"": ""Face"", ""level"": ""high_level"", ""overlap"": 0.820598}, {""collection"": ""floc-bodies"", ""roi"": ""FBA-2"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.800664}]"
+149,rh,49,387,262,0.474528,Unlabeled,unlabeled,[]
+150,rh,50,13,178,0.472593,Unlabeled,unlabeled,[]
+151,rh,51,79,249,0.470058,Unlabeled,unlabeled,[]
+152,rh,52,15,280,0.459437,Face,high_level,"[{""collection"": ""floc-faces"", ""roi"": ""OFA"", ""group"": ""Face"", ""level"": ""high_level"", ""overlap"": 0.617857}, {""collection"": ""floc-words"", ""roi"": ""OWFA"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.553571}]"
+153,rh,53,38,233,0.455919,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.536481}]"
+154,rh,54,249,292,0.455698,Unlabeled,unlabeled,[]
+155,rh,55,199,379,0.453386,Unlabeled,unlabeled,[]
+156,rh,56,75,250,0.442494,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.82}]"
+157,rh,57,26,297,0.435878,V2,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""V2v"", ""group"": ""V2"", ""level"": ""low_level"", ""overlap"": 0.589226}]"
+158,rh,58,4,314,0.429167,Unlabeled,unlabeled,[]
+159,rh,59,481,478,0.423188,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.774059}]"
+160,rh,60,10,329,0.421629,V4,low_level,"[{""collection"": ""prf-visualrois"", ""roi"": ""hV4"", ""group"": ""V4"", ""level"": ""low_level"", ""overlap"": 0.841945}]"
+161,rh,61,362,124,0.415742,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.879032}]"
+162,rh,62,73,192,0.409563,Unlabeled,unlabeled,[]
+163,rh,63,55,192,0.404823,Scene,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.744792}, {""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.989583}]"
+164,rh,64,51,325,0.404566,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.969231}]"
+165,rh,65,196,197,0.401755,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.715736}]"
+166,rh,66,25,190,0.401597,Word,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.568421}, {""collection"": ""floc-words"", ""roi"": ""OWFA"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.678947}]"
+167,rh,67,497,434,0.393537,Unlabeled,unlabeled,[]
+168,rh,68,5,257,0.391161,Unlabeled,unlabeled,[]
+169,rh,69,59,172,0.387919,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.604651}]"
+170,rh,70,415,274,0.385392,Unlabeled,unlabeled,[]
+171,rh,71,2,626,0.385181,Unlabeled,unlabeled,[]
+172,rh,72,389,404,0.384961,Unlabeled,unlabeled,[]
+173,rh,73,215,222,0.382199,Unlabeled,unlabeled,[]
+174,rh,74,188,289,0.378872,Unlabeled,unlabeled,[]
+175,rh,75,3,157,0.375958,Unlabeled,unlabeled,[]
+176,rh,76,205,227,0.375618,Unlabeled,unlabeled,[]
+177,rh,77,200,340,0.367245,Unlabeled,unlabeled,[]
+178,rh,78,227,291,0.365675,Unlabeled,unlabeled,[]
+179,rh,79,204,158,0.364075,Unlabeled,unlabeled,[]
+180,rh,80,390,223,0.363643,Unlabeled,unlabeled,[]
+181,rh,81,186,448,0.362555,Word,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""FBA-2"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.502232}, {""collection"": ""floc-words"", ""roi"": ""VWFA-2"", ""group"": ""Word"", ""level"": ""high_level"", ""overlap"": 0.839286}]"
+182,rh,82,417,295,0.36097,Unlabeled,unlabeled,[]
+183,rh,83,216,193,0.360776,Unlabeled,unlabeled,[]
+184,rh,84,246,241,0.359929,Unlabeled,unlabeled,[]
+185,rh,85,194,213,0.359714,Body,high_level,"[{""collection"": ""floc-bodies"", ""roi"": ""EBA"", ""group"": ""Body"", ""level"": ""high_level"", ""overlap"": 0.807512}, {""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.615023}]"
+186,rh,86,65,232,0.353537,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.866379}]"
+187,rh,87,248,461,0.350202,Unlabeled,unlabeled,[]
+188,rh,88,201,190,0.345015,Unlabeled,unlabeled,[]
+189,rh,89,195,286,0.344601,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""OPA"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.562937}]"
+190,rh,90,221,185,0.33961,Unlabeled,unlabeled,[]
+191,rh,91,480,268,0.338916,Scene,high_level,"[{""collection"": ""floc-places"", ""roi"": ""RSC"", ""group"": ""Scene"", ""level"": ""high_level"", ""overlap"": 0.55597}]"
+192,rh,92,399,481,0.331882,Unlabeled,unlabeled,[]
+193,rh,93,256,226,0.331726,Unlabeled,unlabeled,[]
+194,rh,94,217,286,0.331257,Unlabeled,unlabeled,[]
+195,rh,95,212,235,0.322197,Unlabeled,unlabeled,[]
+196,rh,96,72,339,0.318554,Unlabeled,unlabeled,[]
+197,rh,97,78,223,0.317911,Unlabeled,unlabeled,[]
+198,rh,98,242,172,0.317743,Unlabeled,unlabeled,[]
+199,rh,99,262,342,0.316136,Unlabeled,unlabeled,[]

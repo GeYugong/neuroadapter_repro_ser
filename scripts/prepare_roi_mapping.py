@@ -105,6 +105,7 @@ def main() -> None:
     parser.add_argument("--roi-label-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--min-overlap", type=float, default=0.5)
+    parser.add_argument("--source", default="NSD/Algonauts fsaverage ROI label arrays")
     args = parser.parse_args()
 
     if not 0 < args.min_overlap <= 1:
@@ -178,7 +179,7 @@ def main() -> None:
         "checkpoint": str(args.checkpoint),
         "checkpoint_step": int(checkpoint.get("step", -1)),
         "mapping_rule": f"ROI overlap strictly greater than {args.min_overlap:.0%}",
-        "source": "NSD/Algonauts fsaverage ROI label arrays",
+        "source": args.source,
         "num_selected_tokens": len(rows),
         "group_counts": {key: len(value) for key, value in sorted(groups.items())},
         "unlabeled_tokens": sum(row["dominant_group"] == "Unlabeled" for row in rows),

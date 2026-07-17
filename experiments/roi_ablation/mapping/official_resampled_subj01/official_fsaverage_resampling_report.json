@@ -1,0 +1,204 @@
+{
+  "method": "nearest neighbor from fsaverage sphere coordinates to Subject 1 sphere.reg coordinates",
+  "collections": {
+    "prf-visualrois": {
+      "lh": {
+        "exact_equal_to_mirror": true,
+        "different_vertices": 0,
+        "resampled_counts": {
+          "0": 159213,
+          "1": 710,
+          "2": 828,
+          "3": 632,
+          "4": 692,
+          "5": 567,
+          "6": 669,
+          "7": 531
+        },
+        "mirror_counts": {
+          "0": 159213,
+          "1": 710,
+          "2": 828,
+          "3": 632,
+          "4": 692,
+          "5": 567,
+          "6": 669,
+          "7": 531
+        }
+      },
+      "rh": {
+        "exact_equal_to_mirror": true,
+        "different_vertices": 0,
+        "resampled_counts": {
+          "0": 158813,
+          "1": 444,
+          "2": 991,
+          "3": 887,
+          "4": 725,
+          "5": 682,
+          "6": 535,
+          "7": 765
+        },
+        "mirror_counts": {
+          "0": 158813,
+          "1": 444,
+          "2": 991,
+          "3": 887,
+          "4": 725,
+          "5": 682,
+          "6": 535,
+          "7": 765
+        }
+      }
+    },
+    "floc-faces": {
+      "lh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 329,
+        "resampled_counts": {
+          "0": 162529,
+          "1": 432,
+          "2": 552,
+          "5": 329
+        },
+        "mirror_counts": {
+          "0": 162858,
+          "1": 432,
+          "2": 552
+        }
+      },
+      "rh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 657,
+        "resampled_counts": {
+          "0": 161921,
+          "1": 305,
+          "2": 330,
+          "3": 1003,
+          "5": 283
+        },
+        "mirror_counts": {
+          "0": 162578,
+          "1": 305,
+          "2": 330,
+          "3": 629
+        }
+      }
+    },
+    "floc-bodies": {
+      "lh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 394,
+        "resampled_counts": {
+          "0": 160037,
+          "1": 3231,
+          "2": 574
+        },
+        "mirror_counts": {
+          "0": 160431,
+          "1": 2837,
+          "2": 574
+        }
+      },
+      "rh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 1399,
+        "resampled_counts": {
+          "0": 157981,
+          "1": 4421,
+          "2": 206,
+          "3": 1234
+        },
+        "mirror_counts": {
+          "0": 159380,
+          "1": 3400,
+          "2": 206,
+          "3": 856
+        }
+      }
+    },
+    "floc-places": {
+      "lh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 1603,
+        "resampled_counts": {
+          "0": 158664,
+          "1": 2021,
+          "2": 1859,
+          "3": 1298
+        },
+        "mirror_counts": {
+          "0": 160267,
+          "1": 1863,
+          "2": 1311,
+          "3": 401
+        }
+      },
+      "rh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 878,
+        "resampled_counts": {
+          "0": 158607,
+          "1": 2849,
+          "2": 1250,
+          "3": 1136
+        },
+        "mirror_counts": {
+          "0": 159485,
+          "1": 2806,
+          "2": 891,
+          "3": 660
+        }
+      }
+    },
+    "floc-words": {
+      "lh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 502,
+        "resampled_counts": {
+          "0": 160691,
+          "1": 317,
+          "2": 1395,
+          "3": 474,
+          "4": 490,
+          "5": 475
+        },
+        "mirror_counts": {
+          "0": 161193,
+          "1": 317,
+          "2": 1381,
+          "3": 461,
+          "4": 490
+        }
+      },
+      "rh": {
+        "exact_equal_to_mirror": false,
+        "different_vertices": 218,
+        "resampled_counts": {
+          "0": 162206,
+          "1": 590,
+          "2": 397,
+          "3": 649
+        },
+        "mirror_counts": {
+          "0": 162424,
+          "1": 590,
+          "2": 397,
+          "3": 431
+        }
+      }
+    }
+  },
+  "lh": {
+    "source_vertices": 227021,
+    "target_vertices": 163842,
+    "mean_nearest_distance": 0.003268339803311097,
+    "max_nearest_distance": 0.013516904187121039
+  },
+  "rh": {
+    "source_vertices": 226601,
+    "target_vertices": 163842,
+    "mean_nearest_distance": 0.003318348891131971,
+    "max_nearest_distance": 0.016416463643744654
+  }
+}

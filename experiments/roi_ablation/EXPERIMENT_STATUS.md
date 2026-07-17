@@ -2,19 +2,24 @@
 
 ## Mapping gate: not passed
 
-The current Subject 1 mapping was created from mirrored fsaverage ROI arrays,
-not from a separately verified official NSD release. With the stated `>50%`
-parcel-overlap rule and the checkpoint's exact selected 200 tokens, it yields:
+The original Subject 1 mapping used mirrored fsaverage ROI arrays. Directly
+resampling the official NSD Subject 1 native-surface `.mgz` labels through the
+official `sphere.reg` registration changes fLoc labels substantially, proving
+that the mirror is not an exact official equivalent. With the official-resampled
+labels, the stated `>50%` parcel-overlap rule and this checkpoint's exact 200
+selected tokens yield:
 
 | Group | Tokens |
 |---|---:|
 | Low-level (V1-V4) | 30 |
-| High-level (Face, Body, Scene, Word) | 67 |
-| Labeled total | 97 |
-| Unlabeled | 103 |
+| High-level (Face, Body, Scene, Word) | 77 |
+| Labeled total | 107 |
+| Unlabeled | 93 |
 
-The paper target is approximately 50 low-level, 53 high-level, and 103 labeled
-tokens. This discrepancy was not resolved from the server's available files.
+The paper reports 50 low-level, 53 high-level, and 103 labeled tokens. The
+remaining discrepancy is therefore attributable to the checkpoint's selected
+parcels and/or its reproduction data pipeline, rather than the earlier mirror
+label source. This checkpoint cannot be described as the paper's ROI-mask setup.
 
 ## Consequence
 
@@ -25,6 +30,7 @@ mean-mask and random-matched-control runs were stopped before producing outputs.
 
 ## Required next action
 
-Obtain or independently verify the official NSD Subject 1 surface ROI labels
-and their space/vertex convention, then rerun `prepare_roi_mapping.py`. Resume
-ROI ablations only after the mapping discrepancy is explained or corrected.
+Identify the exact NSD preprocessing and SNR parcel-selection artifacts used by
+the authors (or obtain their trained Subject 1 checkpoint and parcel indices).
+Resume the paper-faithful ablation only after the selected-token discrepancy is
+explained or corrected.
