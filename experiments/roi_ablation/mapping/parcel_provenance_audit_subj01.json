@@ -1,0 +1,34 @@
+{
+  "checkpoint": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt",
+  "active_parcel_dir": "/public/home/mty/GeYugong/data/neuroadapter/parcels/schaefer",
+  "reference_parcel_dir": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/whole_brain_encoder/parcels/schaefer",
+  "official_ncsnr_dir": "/public/home/mty/GeYugong/data/nsd/betas/subj01/fsaverage/betas_fithrf_GLMdenoise_RR",
+  "hemispheres": {
+    "lh": {
+      "checkpoint_topk_matches_official_ncsnr": true,
+      "topk_set_overlap": 100,
+      "active_vs_reference": {
+        "best_match_jaccard_mean_excluding_background": 1.0,
+        "best_match_jaccard_min_excluding_background": 1.0,
+        "exact_best_matches_excluding_background": 500,
+        "same_index_partitions_excluding_background": 6
+      }
+    },
+    "rh": {
+      "checkpoint_topk_matches_official_ncsnr": true,
+      "topk_set_overlap": 100,
+      "active_vs_reference": {
+        "best_match_jaccard_mean_excluding_background": 0.3338174100707745,
+        "best_match_jaccard_min_excluding_background": 0.005155377344980667,
+        "exact_best_matches_excluding_background": 0,
+        "same_index_partitions_excluding_background": 0
+      }
+    }
+  },
+  "reference_left_right_partition_agreement": {
+    "best_match_jaccard_mean_excluding_background": 1.0,
+    "best_match_jaccard_min_excluding_background": 1.0,
+    "exact_best_matches_excluding_background": 500,
+    "same_index_partitions_excluding_background": 500
+  }
+}
