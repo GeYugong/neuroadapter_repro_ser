@@ -68,16 +68,28 @@ def compute_mean_tokens(guidance, dataset, device, dtype, batch_size, path: Path
     if path.exists():
         return torch.load(path, map_location="cpu")["mean_condition_tokens"].to(device=device, dtype=dtype)
     total, count = None, 0
-    for batch in tqdm(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0), desc="mean tokens"):
-        brain = torch.cat([
-            batch["brain_lh_f"].to(device=device, dtype=dtype),
-            batch["brain_rh_f"].to(device=device, dtype=dtype),
-        ], dim=1)
+    # Reading `dataset[idx]` also opens and resizes an NSD stimulus image.  The
+    # mean intervention only needs fMRI, so construct its parcel tensors from
+    # the HDF5 betas directly and avoid thousands of unrelated image reads.
+    base = dataset.base_dataset
+    brain_batches = []
+    for index in tqdm(range(len(dataset)), desc="mean tokens"):
+        data_indices = base.img_to_runs[index]
+        lh = torch.from_numpy(base.betas[0][data_indices]).mean(dim=0)
+        rh = torch.from_numpy(base.betas[1][data_indices]).mean(dim=0)
+        brain_batches.append(torch.cat([
+            dataset.extract_and_pad(lh, hemi="lh"),
+            dataset.extract_and_pad(rh, hemi="rh"),
+        ], dim=0))
+        if len(brain_batches) < batch_size and index + 1 < len(dataset):
+            continue
+        brain = torch.stack(brain_batches).to(device=device, dtype=dtype)
         with torch.no_grad():
             tokens, _ = guidance(brain)
         summed = tokens.float().sum(0)
         total = summed if total is None else total + summed
         count += tokens.shape[0]
+        brain_batches.clear()
     if total is None:
         raise RuntimeError("No training examples available to calculate mean tokens")
     mean = total / count
