@@ -171,7 +171,7 @@ def main() -> None:
 
     fieldnames = list(rows[0])
     with (args.output_dir / "roi_inventory_subj01.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 

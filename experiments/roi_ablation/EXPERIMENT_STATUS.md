@@ -23,6 +23,16 @@ This does not reproduce the paper's 50/53/103 composition. The old mirrored
 fsaverage ROI arrays are also not an official equivalent: their fLoc labels
 differ substantially after direct official resampling.
 
+## Algonauts source check
+
+The released NeuroAdapter lineage uses the Algonauts Project 2023 ROI-mask
+convention. Subject 1's five public ROI classes and five code tables were
+downloaded from that release and compared byte-for-byte with the original
+mirror used in this reproduction; all 15 files are identical. Re-running the
+same `>50%` mapping with those Algonauts masks gives 30 low-level, 67
+high-level, and 97 labeled tokens. Therefore the discrepancy is not caused by
+using the wrong public ROI-mask release.
+
 ## Parcel provenance finding
 
 The training checkpoint uses
