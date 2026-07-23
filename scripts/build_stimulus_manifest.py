@@ -59,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stimuli-hdf5", type=Path, required=True)
     parser.add_argument("--stim-info-csv", type=Path, required=True)
     parser.add_argument("--clip-checkpoint", type=Path, required=True)
+    parser.add_argument("--face-cascade", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     parser.add_argument("--batch-size", type=int, default=32)
@@ -211,10 +212,14 @@ def main() -> None:
 
     import cv2
 
-    face_path = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
-    if not face_path.is_file():
-        raise FileNotFoundError(f"OpenCV face cascade not found: {face_path}")
-    face_detector = cv2.CascadeClassifier(str(face_path))
+    if not args.face_cascade.is_file():
+        raise FileNotFoundError(
+            f"OpenCV face cascade not found: {args.face_cascade}. "
+            "Provide a local file explicitly; this script never downloads detector weights."
+        )
+    face_detector = cv2.CascadeClassifier(str(args.face_cascade))
+    if face_detector.empty():
+        raise ValueError(f"Failed to load OpenCV face cascade: {args.face_cascade}")
     person_detector = cv2.HOGDescriptor()
     person_detector.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
     model, preprocess, clip_labels, text_features = load_clip(args.clip_checkpoint, args.device)
@@ -350,6 +355,8 @@ def main() -> None:
         },
         "clip_checkpoint": args.clip_checkpoint.name,
         "clip_checkpoint_sha256": sha256_file(args.clip_checkpoint),
+        "face_cascade": args.face_cascade.name,
+        "face_cascade_sha256": sha256_file(args.face_cascade),
         "clip_prompts": CLIP_PROMPTS,
         "thresholds": thresholds,
         "candidate_counts": candidate_counts,
@@ -370,4 +377,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
