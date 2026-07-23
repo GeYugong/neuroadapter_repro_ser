@@ -2,7 +2,10 @@ name: E2_top_snr_causal_pilot
 subject: 1
 checkpoint_step: 100000
 mapping: experiments/E0_mapping/mapping_metadata.json
+mapping_inventory: experiments/E0_mapping/algonauts_top200_mapping_subj01.csv
 stimulus_manifest: experiments/E1_stimulus_manifest/confirmatory_manifest.csv
+dataset_index_column: dataset_idx
+stimulus_selection: highest_category_selection_score
 categories:
   Face: 10
   Body: 10
@@ -14,4 +17,4 @@ seeds: [12345]
 denoising_steps: 50
 noise_factor: 4.0
 status: configured_not_run
-
+authorization: do_not_run_until_manifest_runner_and_random_controls_are_validated

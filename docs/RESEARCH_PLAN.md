@@ -15,7 +15,7 @@ Subject 1 fsaverage ROI masks.
 1. Does masking a category-matched ROI degrade matched stimuli more than an
    unrelated ROI or matched random parcels?
 2. Do zero replacement and training-mean replacement agree in direction?
-3. Does top-SNR-200 underrepresent functional ROIs such as Face, Word, or V4?
+3. How does top-SNR-200 change functional ROI coverage and composition?
 4. After the core study, does attention magnitude predict masking effects?
 
 ## Stages
@@ -32,3 +32,6 @@ The current implementation covers stages A and B: documentation, parcel-level
 interventions, tests, E0 mapping, E1 manifest generation, and an E2 pilot
 configuration. It does not authorize full GPU decoding or model training.
 
+E0 found 100% retention for every publicly mapped functional ROI. Therefore,
+the planned ROI-balanced-200 training comparison is paused: its original
+coverage-deficit premise is not supported by the primary mapping.

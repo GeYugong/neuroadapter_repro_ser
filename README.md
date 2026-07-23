@@ -18,6 +18,21 @@ docs/CURRENT_STATE.md
 docs/DECISIONS.md
 ```
 
+## 当前阶段结果
+
+阶段 A/B 已完成，尚未启动 E2 扩散消融或新模型训练。
+
+- parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
+- 服务器单元测试结果为 `15 passed`；
+- E0 全 1000 parcel inventory 显示，公开映射得到的 97 个功能 ROI
+  parcel 全部进入 top-SNR-200，因此没有观察到 Face、Word、V4
+  覆盖不足；
+- E1 最终选择 37 张 Face、50 张 Body、50 张 Scene 确认性刺激；
+- 24 张 Word 候选中有 21 张不与确认性集合重叠；因缺少 OCR 证据，
+  仍只保留为 exploratory。
+
+详细证据、图表、限制和下一步门槛见 `docs/CURRENT_STATE.md`。
+
 ## 推荐项目入口
 
 长期工作时优先从这个目录进入本项目：
