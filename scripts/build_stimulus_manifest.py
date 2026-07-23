@@ -150,7 +150,11 @@ def select_rows(rows: list[dict], category: str, target: int, confirmatory: bool
     if confirmatory:
         candidates = [row for row in rows if row["confirmatory_category"] == category]
     else:
-        candidates = [row for row in rows if row[f"{category.lower()}_flag"]]
+        candidates = [
+            row
+            for row in rows
+            if row[f"{category.lower()}_flag"] and not row["confirmatory_category"]
+        ]
     return sorted(
         candidates,
         key=lambda row: (-float(row[f"{category.lower()}_selection_score"]), int(row["dataset_idx"])),
