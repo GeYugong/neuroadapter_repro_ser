@@ -56,10 +56,11 @@ def validate_e0() -> None:
         for row in coverage
         if row["roi_group"] != "Unlabeled"
     )
+    generated_prefix = "generated:"
     generated = {
-        value["path_role"].removeprefix("generated:"): value["sha256"]
+        value["path_role"][len(generated_prefix):]: value["sha256"]
         for value in hashes.values()
-        if value["path_role"].startswith("generated:")
+        if value["path_role"].startswith(generated_prefix)
     }
     for relative, expected in generated.items():
         assert sha256_file(root / relative) == expected
