@@ -1,0 +1,16 @@
+subject: 1
+target_per_category: 50
+minimum_confirmatory_count: 40
+minimum_word_count: 20
+clip_model: RN50
+thresholds:
+  face_area: 0.015
+  face_score: 0.30
+  person_area: 0.08
+  body_max_face_area: 0.04
+  body_score: 0.25
+  scene_score: 0.35
+  scene_max_person_area: 0.20
+  scene_max_face_area: 0.03
+  word_score: 0.45
+
