@@ -1,0 +1,6 @@
+project_root: ${NEUROADAPTER_PROJECT_ROOT}
+upstream_root: ${NEUROADAPTER_UPSTREAM_ROOT}
+data_root: ${NEUROADAPTER_DATA_ROOT}
+output_root: ${NEUROADAPTER_OUTPUT_ROOT}
+checkpoint_root: ${NEUROADAPTER_CHECKPOINT_ROOT}
+

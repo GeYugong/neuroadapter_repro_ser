@@ -1,5 +1,15 @@
 # ROI Ablation Status
 
+## Legacy / exploratory status
+
+This directory preserves the original Appendix P reproduction attempt. The
+project has moved to a public, independently reproducible Algonauts ROI
+protocol under `experiments/E0_mapping/`. The mapping discrepancy documented
+below remains scientifically relevant, but it no longer blocks the new study.
+
+The existing 50-sample zero-mask outputs and metrics are exploratory only.
+They must not be presented as final functional-ROI causal evidence.
+
 ## Mapping gate: not passed
 
 The paper's Appendix P requires a strict `>50%` parcel-overlap assignment and

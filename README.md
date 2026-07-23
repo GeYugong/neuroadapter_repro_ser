@@ -1,6 +1,22 @@
-# NeuroAdapter 复现实验仓库
+# NeuroAdapter 功能脑区因果研究
 
-这个仓库用于记录 NeuroAdapter 论文复现过程中的配置、脚本、笔记和实验说明。
+这个仓库最初用于 NeuroAdapter 论文复现，目前的主要研究目标是：
+
+> 研究不同功能性 fMRI 脑区对类别特异性图像重建的因果贡献，并分析
+> top-SNR parcel selection 是否会对脑区贡献结论产生偏差。
+
+Appendix P 的严格复现与已有 50-sample zero-mask 结果被保留为
+legacy/exploratory，不作为最终功能脑区结论。新研究采用公开的
+Algonauts Project 2023 Subject 1 fsaverage ROI masks。
+
+研究计划、协议与当前状态见：
+
+```text
+docs/RESEARCH_PLAN.md
+docs/EXPERIMENT_PROTOCOL.md
+docs/CURRENT_STATE.md
+docs/DECISIONS.md
+```
 
 ## 推荐项目入口
 
@@ -91,3 +107,17 @@ README、配置、脚本、笔记、小型结果摘要
 ```text
 NSD 数据、权重、checkpoint、生成图、大日志、wandb 输出
 ```
+
+## 新代码路径约定
+
+新代码通过以下环境变量或 CLI 参数解析路径，不再增加服务器绝对路径：
+
+```text
+NEUROADAPTER_PROJECT_ROOT
+NEUROADAPTER_UPSTREAM_ROOT
+NEUROADAPTER_DATA_ROOT
+NEUROADAPTER_OUTPUT_ROOT
+NEUROADAPTER_CHECKPOINT_ROOT
+```
+
+示例配置见 `configs/paths.example.yaml`。
