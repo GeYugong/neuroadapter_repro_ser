@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -16,8 +17,12 @@ from torch.utils.data import DataLoader, Subset
 from torchvision import transforms
 from tqdm import tqdm
 
+REPRO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPRO_ROOT / "src"))
+
 from brain_adapter.dataset import nsd_topk_parcel_dataset
 from brain_adapter.model import GuidanceGenerator
+from neuro_roi_causal.model_wrapper import forward_with_parcel_intervention, map_fmri_to_parcel_tokens
 
 from decode_limited import BrainIPAdapter, load_diffusion_models, run_diffusion, setup_ip_adapter_modules
 
@@ -66,7 +71,7 @@ def make_dataset(tokenizer, checkpoint: dict, split: str, topk: int):
     )
 
 
-def compute_mean_condition_tokens(
+def compute_mean_parcel_tokens(
     guidance_generator: GuidanceGenerator,
     train_dataset,
     device: torch.device,
@@ -77,7 +82,12 @@ def compute_mean_condition_tokens(
     """Compute E_train[ParcelMapper(fMRI)] once and cache it by checkpoint."""
     if output_path.exists():
         cached = torch.load(output_path, map_location="cpu")
-        return cached["mean_condition_tokens"].to(device=device, dtype=dtype)
+        if "mean_parcel_tokens" not in cached:
+            raise ValueError(
+                f"{output_path} is a legacy condition-token mean cache; "
+                "parcel-level mean masking requires regeneration"
+            )
+        return cached["mean_parcel_tokens"].to(device=device, dtype=dtype)
 
     loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
     total = None
@@ -88,29 +98,22 @@ def compute_mean_condition_tokens(
                 [batch["brain_lh_f"].to(device=device, dtype=dtype), batch["brain_rh_f"].to(device=device, dtype=dtype)],
                 dim=1,
             )
-            condition_tokens, _ = guidance_generator(brain_data)
-            token_sum = condition_tokens.float().sum(dim=0)
+            parcel_tokens = map_fmri_to_parcel_tokens(
+                guidance_generator, brain_data, guidance_generator.parcel_mapper.num_parcels
+            )
+            token_sum = parcel_tokens.float().sum(dim=0)
             total = token_sum if total is None else total + token_sum
-            count += condition_tokens.shape[0]
+            count += parcel_tokens.shape[0]
     if total is None or count == 0:
         raise RuntimeError("Training dataset produced no condition tokens")
     mean = total / count
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"mean_condition_tokens": mean.cpu(), "num_train_samples": count}, output_path)
+    torch.save({
+        "mean_parcel_tokens": mean.cpu(),
+        "num_train_samples": count,
+        "intervention_stage": "after_parcel_mapper_before_token_mapper",
+    }, output_path)
     return mean.to(device=device, dtype=dtype)
-
-
-def mask_condition_tokens(tokens: torch.Tensor, indices: list[int], mode: str, mean_tokens: torch.Tensor | None) -> torch.Tensor:
-    if not indices:
-        return tokens
-    masked = tokens.clone()
-    if mode == "zero":
-        masked[:, indices, :] = 0
-    else:
-        if mean_tokens is None:
-            raise ValueError("mean token masking requires --mean-token-path")
-        masked[:, indices, :] = mean_tokens[indices].unsqueeze(0)
-    return masked
 
 
 def to_pil(tensor: torch.Tensor) -> Image.Image:
@@ -174,7 +177,7 @@ def main() -> None:
         if args.mean_token_path is None:
             raise ValueError("--mean-token-path is required for mean masking")
         train_dataset = make_dataset(tokenizer, checkpoint, "train", topk=checkpoint["num_parcels"] // 2)
-        mean_tokens = compute_mean_condition_tokens(
+        mean_tokens = compute_mean_parcel_tokens(
             guidance, train_dataset, device, dtype, args.mean_batch_size, args.mean_token_path
         )
 
@@ -185,20 +188,26 @@ def main() -> None:
     }
     indices = list(range(args.start_idx, args.start_idx + args.num_samples))
     loader = DataLoader(Subset(test_dataset, indices), batch_size=1, shuffle=False, num_workers=0)
-    rows, grid_rows = [], []
+    rows, grid_rows, intervention_audits = [], [], []
     with torch.no_grad():
         for dataset_index, batch in zip(indices, tqdm(loader, desc=args.run_name)):
             brain_data = torch.cat(
                 [batch["brain_lh_f"].to(device=device, dtype=dtype), batch["brain_rh_f"].to(device=device, dtype=dtype)], dim=1
             )
-            condition_tokens, _ = guidance(brain_data)
-            masked_tokens = mask_condition_tokens(condition_tokens, mask_indices, args.mask_mode, mean_tokens)
-            if args.mask_group == "no_mask" and not torch.equal(condition_tokens, masked_tokens):
-                raise RuntimeError("no_mask unexpectedly changed condition tokens")
+            intervention_mode = "none" if args.mask_group == "no_mask" else args.mask_mode
+            condition_tokens, _, audit = forward_with_parcel_intervention(
+                guidance,
+                brain_data,
+                expected_num_parcels=int(checkpoint["num_parcels"]),
+                indices=mask_indices,
+                mode=intervention_mode,
+                mean_parcel_tokens=mean_tokens,
+            )
+            intervention_audits.append({"dataset_idx": dataset_index, **audit.to_dict()})
             generator = torch.Generator(device=device).manual_seed(args.seed + dataset_index)
             init_image = torch.zeros_like(batch["img_ipadapter"].to(device=device, dtype=dtype))
             generated = run_diffusion(
-                masked_tokens, init_image, models, num_predictions=1,
+                condition_tokens, init_image, models, num_predictions=1,
                 noise_factor=args.noise_factor, denoising_steps=args.denoising_steps, generator=generator,
             )
             gt = to_pil(batch["img_encoder"][0])
@@ -222,6 +231,8 @@ def main() -> None:
         "checkpoint": str(args.checkpoint), "checkpoint_step": int(checkpoint["step"]),
         "sub_approach": config["sub_approach"], "mask_group": args.mask_group,
         "mask_mode": args.mask_mode, "masked_token_indices": mask_indices,
+        "intervention_stage": "after_parcel_mapper_before_token_mapper",
+        "intervention_audits": intervention_audits,
         "num_masked_tokens": len(mask_indices), "seed": args.seed,
         "seed_strategy": "seed + dataset_idx", "num_samples": args.num_samples,
         "start_idx": args.start_idx, "denoising_steps": args.denoising_steps,

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -20,8 +21,13 @@ from torch.utils.data import DataLoader, Subset
 from torchvision import transforms
 from tqdm import tqdm
 
+REPRO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPRO_ROOT / "src"))
+
 from brain_adapter.dataset import nsd_topk_parcel_dataset
 from brain_adapter.model import GuidanceGenerator
+from neuro_roi_causal.interventions import apply_parcel_intervention
+from neuro_roi_causal.model_wrapper import map_fmri_to_parcel_tokens, parcel_tokens_to_condition
 from decode_limited import BrainIPAdapter, load_diffusion_models, setup_ip_adapter_modules
 
 
@@ -66,7 +72,13 @@ def make_dataset(tokenizer, checkpoint: dict, split: str):
 
 def compute_mean_tokens(guidance, dataset, device, dtype, batch_size, path: Path) -> torch.Tensor:
     if path.exists():
-        return torch.load(path, map_location="cpu")["mean_condition_tokens"].to(device=device, dtype=dtype)
+        cached = torch.load(path, map_location="cpu")
+        if "mean_parcel_tokens" not in cached:
+            raise ValueError(
+                f"{path} is a legacy condition-token mean cache; "
+                "parcel-level mean masking requires regeneration"
+            )
+        return cached["mean_parcel_tokens"].to(device=device, dtype=dtype)
     total, count = None, 0
     # Reading `dataset[idx]` also opens and resizes an NSD stimulus image.  The
     # mean intervention only needs fMRI, so construct its parcel tensors from
@@ -85,7 +97,9 @@ def compute_mean_tokens(guidance, dataset, device, dtype, batch_size, path: Path
             continue
         brain = torch.stack(brain_batches).to(device=device, dtype=dtype)
         with torch.no_grad():
-            tokens, _ = guidance(brain)
+            tokens = map_fmri_to_parcel_tokens(
+                guidance, brain, guidance.parcel_mapper.num_parcels
+            )
         summed = tokens.float().sum(0)
         total = summed if total is None else total + summed
         count += tokens.shape[0]
@@ -94,7 +108,11 @@ def compute_mean_tokens(guidance, dataset, device, dtype, batch_size, path: Path
         raise RuntimeError("No training examples available to calculate mean tokens")
     mean = total / count
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"mean_condition_tokens": mean.cpu(), "num_train_samples": count}, path)
+    torch.save({
+        "mean_parcel_tokens": mean.cpu(),
+        "num_train_samples": count,
+        "intervention_stage": "after_parcel_mapper_before_token_mapper",
+    }, path)
     return mean.to(device=device, dtype=dtype)
 
 
@@ -176,6 +194,7 @@ def main() -> None:
         mean_tokens = compute_mean_tokens(guidance, make_dataset(tokenizer, checkpoint, "train"), device, dtype, args.mean_batch_size, args.mean_token_path)
 
     records = {name: [] for name in names}
+    intervention_audits = {name: [] for name in names}
     grids = {name: [] for name in names}
     started_at = datetime.now().isoformat(timespec="seconds")
     started = time.perf_counter()
@@ -183,7 +202,9 @@ def main() -> None:
         loader = DataLoader(Subset(test_dataset, indices), batch_size=1, shuffle=False, num_workers=0)
         for dataset_idx, batch in zip(indices, tqdm(loader, desc=args.run_name)):
             brain = torch.cat([batch["brain_lh_f"].to(device=device, dtype=dtype), batch["brain_rh_f"].to(device=device, dtype=dtype)], dim=1)
-            base_tokens, _ = guidance(brain)
+            base_parcel_tokens = map_fmri_to_parcel_tokens(
+                guidance, brain, int(checkpoint["num_parcels"])
+            )
             gt = transforms.ToPILImage()(batch["img_encoder"][0].detach().cpu().clamp(0, 1))
             gt_path = root / f"sample_{dataset_idx:04d}_gt.png"
             gt.save(gt_path)
@@ -192,13 +213,21 @@ def main() -> None:
                 chunk = conditions[start:start + args.condition_batch_size]
                 token_batch = []
                 for condition in chunk:
-                    token_copy = base_tokens.clone()
                     indices_to_mask = [int(value) for value in condition.get("masked_token_indices", [])]
-                    if condition.get("mask_mode", "zero") == "zero":
-                        token_copy[:, indices_to_mask, :] = 0
-                    else:
-                        token_copy[:, indices_to_mask, :] = mean_tokens[indices_to_mask].unsqueeze(0)
-                    token_batch.append(token_copy)
+                    mode = condition.get("mask_mode", "zero")
+                    if not indices_to_mask:
+                        mode = "none"
+                    intervened, audit = apply_parcel_intervention(
+                        base_parcel_tokens,
+                        indices_to_mask,
+                        mode,
+                        mean_parcel_tokens=mean_tokens,
+                        expected_num_parcels=int(checkpoint["num_parcels"]),
+                    )
+                    token_batch.append(parcel_tokens_to_condition(guidance, intervened))
+                    intervention_audits[condition["name"]].append(
+                        {"dataset_idx": dataset_idx, **audit.to_dict()}
+                    )
                 # Reinitialize per chunk so every condition sees the exact same
                 # VAE posterior draw and diffusion noise, including across chunks.
                 generator = torch.Generator(device=device).manual_seed(args.seed + dataset_idx)
@@ -219,7 +248,7 @@ def main() -> None:
             grid.paste(image, (0, 256 * row))
         grid_path = condition_dirs[name] / "grid_gt_pred.png"
         grid.save(grid_path)
-        summary = {"run_name": args.run_name, "condition": condition, "checkpoint": str(args.checkpoint), "checkpoint_step": int(checkpoint["step"]), "sub_approach": config["sub_approach"], "seed": args.seed, "seed_strategy": "shared seed + dataset_idx; matched across all conditions", "num_samples": args.num_samples, "start_idx": args.start_idx, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "records": records[name], "grid": str(grid_path)}
+        summary = {"run_name": args.run_name, "condition": condition, "checkpoint": str(args.checkpoint), "checkpoint_step": int(checkpoint["step"]), "sub_approach": config["sub_approach"], "seed": args.seed, "seed_strategy": "shared seed + dataset_idx; matched across all conditions", "num_samples": args.num_samples, "start_idx": args.start_idx, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "intervention_stage": "after_parcel_mapper_before_token_mapper", "intervention_audits": intervention_audits[name], "records": records[name], "grid": str(grid_path)}
         (condition_dirs[name] / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": args.num_samples, "denoising_steps": args.denoising_steps, "condition_batch_size": args.condition_batch_size, "seed": args.seed}
     (root / "run_summary.json").write_text(json.dumps(root_summary, indent=2, ensure_ascii=False), encoding="utf-8")
