@@ -97,16 +97,16 @@
   "word_minimum": 20,
   "word_confirmatory": false,
   "word_status": "exploratory_no_ocr_evidence",
-  "git_commit": "9d4e3e28d9bc889b46a112d19799a3bc1527ac98",
+  "git_commit": "62b8565d1deeda7fea0be0d63c23e3f08762fd04",
   "selection_uses_reconstruction_outputs": false,
   "output_hashes": {
-    "all_test_images.csv": "0462d477f01b79a93d55f18e73d31f1ccaae626fef995ed45a47364f345551e5",
-    "face_candidates.csv": "651637b22715a67e8bef5ae1d33c3ac73c33b09a5b65e84a265e558b44795593",
-    "body_candidates.csv": "96ed3fd0464494cb772e28fb0c19ddbf926819e26c6e6c47ff3d36fc87e7ddee",
-    "scene_candidates.csv": "2e90fb7c71dbbd446928dffada9db2cd1840f416508e9b18b1c68d59c4de8635",
-    "word_candidates.csv": "38b8ccd7921d9f3eec281246954801ef9560eb73ecff69c941598201c97051a4",
-    "confirmatory_manifest.csv": "a1ef83e192ded1dfdd92517baec2ed2c5e40a932c3aeeafb67002f8b18024778",
-    "exploratory_manifest.csv": "861815ea9eba1e6eb16e93a0b3f8ee60d2949d65115ea0925f8e798992858e5c",
+    "all_test_images.csv": "fec894396978ffa62f0ec2dc27c506616185cebb107a7a83405c4341945032c3",
+    "face_candidates.csv": "81ba9e56ae8d4c8518ff88476017fbfc4685659ebd58f51e1b87bd0565f6dd38",
+    "body_candidates.csv": "7677767b87d7175045c2c4c60dce22735c10876bd75dc14f24cff0b603394ed3",
+    "scene_candidates.csv": "3366d306d13ec5471de0b81355beb525a0fd909bdcec26d2d525d1b6f624fa8a",
+    "word_candidates.csv": "5f69e2b5928f3a0bf83f09892519051a5ad808b572656f03eaa3b48c36381cbf",
+    "confirmatory_manifest.csv": "d3aa55eab6b537d4b4628313f1cfabdf925ed934fd475bffa1924ac1776aafdf",
+    "exploratory_manifest.csv": "d672e4a6a8310d27ba1fa7880552604a495cc46e8962adba57941ce67e8a5f89",
     "figures/category_audit_grid.png": "de7634e6542d396a7d7cfd1ca51b604077b7ab9c0ed60e07bf5a40fc59602d7a"
   }
 }

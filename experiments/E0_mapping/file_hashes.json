@@ -77,19 +77,19 @@
   },
   "algonauts_full_parcel_inventory_subj01.csv": {
     "path_role": "generated:algonauts_full_parcel_inventory_subj01.csv",
-    "sha256": "8042235976876e9ab47f885b3834d6daf7e14eaeb5bf1e8311f398596c0553e3"
+    "sha256": "4da6cc53a740742e19dc36863f0c06927bd59b85223a4958a8c078a9ceed3776"
   },
   "algonauts_top200_mapping_subj01.csv": {
     "path_role": "generated:algonauts_top200_mapping_subj01.csv",
-    "sha256": "fd797f7f948cc97aa3eee6a1b97add9b2bcac76867189769d71a0673cc081128"
+    "sha256": "3de270fcb0465c2e5c40de6f2301b08200090aebec2b214d41824cd278e47523"
   },
   "roi_coverage_all_vs_top200.csv": {
     "path_role": "generated:roi_coverage_all_vs_top200.csv",
-    "sha256": "ddca7da01b3da36f69db820b16163090d70aeb2623b1cb40dd3e856ae939eb21"
+    "sha256": "7975a7dab2ec5e1c04a90c9a6a88d8a86f0b1a5295a2642cf6e868c7a3bee01f"
   },
   "mapping_metadata.json": {
     "path_role": "generated:mapping_metadata.json",
-    "sha256": "f762e0e79a0dd898dd22c2f482f466b76d70b2fe180860d47c2736f16521eaa4"
+    "sha256": "1b22849b4c43d32ee0ef7b33478d02045a6e35fc77704d76f63016cfd0adb7c4"
   },
   "roi_counts_all_vs_top200.png": {
     "path_role": "generated:figures/roi_counts_all_vs_top200.png",

@@ -43,5 +43,5 @@
     "figures/roi_hemisphere_distribution.png"
   ],
   "official_nsd_sensitivity_analysis": "../roi_ablation/mapping/official_mapping_subj01_nsd_fsaverage_reg",
-  "git_commit": "9d4e3e28d9bc889b46a112d19799a3bc1527ac98"
+  "git_commit": "62b8565d1deeda7fea0be0d63c23e3f08762fd04"
 }
