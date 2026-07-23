@@ -52,7 +52,10 @@ def main() -> None:
 
     fmri = torch.zeros(1, num_parcels, max_voxels)
     with torch.inference_mode():
-        reference_condition, reference_parcels = guidance(fmri)
+        reference_condition, auxiliary_parcels = guidance(fmri)
+        reference_parcels = (
+            reference_condition if auxiliary_parcels is None else auxiliary_parcels
+        )
         no_mask_condition, no_mask_parcels, no_mask_audit = (
             forward_with_parcel_intervention(
                 guidance,
@@ -80,6 +83,7 @@ def main() -> None:
     result = {
         "checkpoint_step": int(checkpoint["step"]),
         "sub_approach": str(config["sub_approach"]),
+        "token_mapper_applied": auxiliary_parcels is not None,
         "fmri_shape": list(fmri.shape),
         "parcel_token_shape": list(reference_parcels.shape),
         "condition_token_shape": list(reference_condition.shape),
