@@ -3,6 +3,7 @@ from neuro_roi_causal.stimulus_categories import assign_category
 
 THRESHOLDS = {
     "face_area": 0.01,
+    "face_min_person_area": 0.02,
     "face_score": 0.3,
     "person_area": 0.08,
     "body_max_face_area": 0.04,
@@ -37,6 +38,15 @@ def test_face_detector_false_positive_without_coco_person_is_rejected():
     result = assign_category(
         face_confidence=0.99, face_area_ratio=0.15, person_count=0, person_area_ratio=0.0,
         clip_face=0.1, clip_body=0.1, clip_scene=0.3, clip_word=0.4,
+        thresholds=THRESHOLDS,
+    )
+    assert result["category_flags"]["Face"] is False
+
+
+def test_tiny_background_person_is_not_a_face_stimulus():
+    result = assign_category(
+        face_confidence=0.99, face_area_ratio=0.1, person_count=1, person_area_ratio=0.005,
+        clip_face=0.1, clip_body=0.1, clip_scene=0.6, clip_word=0.1,
         thresholds=THRESHOLDS,
     )
     assert result["category_flags"]["Face"] is False

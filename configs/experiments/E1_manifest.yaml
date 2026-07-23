@@ -5,6 +5,7 @@ minimum_word_count: 20
 clip_model: RN50
 thresholds:
   face_area: 0.015
+  face_min_person_area: 0.02
   face_score: 0.30
   person_area: 0.08
   body_max_face_area: 0.04
@@ -13,4 +14,3 @@ thresholds:
   scene_max_person_area: 0.20
   scene_max_face_area: 0.03
   word_score: 0.45
-

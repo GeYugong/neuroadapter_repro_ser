@@ -20,6 +20,7 @@ def assign_category(
 ) -> dict:
     face = (
         person_count > 0
+        and person_area_ratio >= thresholds["face_min_person_area"]
         and face_area_ratio >= thresholds["face_area"]
         and face_confidence >= thresholds["face_score"]
     )
