@@ -349,6 +349,16 @@ def main() -> None:
         for category, count in selected_counts.items()
         if category != "Word"
     }
+    output_paths = [
+        args.output_dir / "all_test_images.csv",
+        args.output_dir / "face_candidates.csv",
+        args.output_dir / "body_candidates.csv",
+        args.output_dir / "scene_candidates.csv",
+        args.output_dir / "word_candidates.csv",
+        args.output_dir / "confirmatory_manifest.csv",
+        args.output_dir / "exploratory_manifest.csv",
+        args.output_dir / "figures" / "category_audit_grid.png",
+    ]
     manifest_metadata = {
         "schema_version": 1,
         "subject": int(config["subject"]),
@@ -405,6 +415,10 @@ def main() -> None:
         "word_status": "exploratory_no_ocr_evidence",
         "git_commit": git_commit(REPRO_ROOT),
         "selection_uses_reconstruction_outputs": False,
+        "output_hashes": {
+            path.relative_to(args.output_dir).as_posix(): sha256_file(path)
+            for path in output_paths
+        },
     }
     (args.output_dir / "manifest_metadata.json").write_text(
         json.dumps(manifest_metadata, indent=2, ensure_ascii=False), encoding="utf-8"

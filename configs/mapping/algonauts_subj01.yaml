@@ -1,7 +1,8 @@
 subject: 1
 source: Algonauts Project 2023 Subject 1 fsaverage ROI masks
+source_url: https://algonauts.csail.mit.edu/challenge.html
+devkit_url: https://github.com/gifale95/algonauts_2023
 min_overlap: 0.5
 comparison: strict_greater_than
 groups: [V1, V2, V3, V4, Face, Body, Scene, Word]
 primary: true
-

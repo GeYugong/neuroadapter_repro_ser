@@ -36,6 +36,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--min-overlap", type=float, default=0.5)
     parser.add_argument("--subject", type=int, default=1)
+    parser.add_argument(
+        "--mapping-source-url",
+        default="https://algonauts.csail.mit.edu/challenge.html",
+    )
     return parser.parse_args()
 
 
@@ -270,6 +274,7 @@ def main() -> None:
         "schema_version": 1,
         "subject": args.subject,
         "mapping_source": "Algonauts Project 2023 Subject 1 fsaverage ROI masks",
+        "mapping_source_url": args.mapping_source_url,
         "overlap_rule": f"strictly greater than {args.min_overlap}",
         "num_all_parcels": len(rows),
         "num_top_snr_parcels": len(top_rows),
@@ -293,7 +298,19 @@ def main() -> None:
         args.parcel_dir / f"rh_labels_s{args.subject:02}.pt",
     ]
     input_paths.extend(sorted(args.roi_label_dir.glob("*.npy")))
-    hashes = {path.name: {"path_role": path.name, "sha256": sha256_file(path)} for path in input_paths}
+    hashes = {
+        path.name: {"path_role": f"input:{path.name}", "sha256": sha256_file(path)}
+        for path in input_paths
+    }
+    output_paths = [full_path, top_path, coverage_path, args.output_dir / "mapping_metadata.json"]
+    output_paths.extend(args.output_dir / path for path in figure_paths)
+    hashes.update({
+        path.name: {
+            "path_role": f"generated:{path.relative_to(args.output_dir).as_posix()}",
+            "sha256": sha256_file(path),
+        }
+        for path in output_paths
+    })
     (args.output_dir / "file_hashes.json").write_text(
         json.dumps(hashes, indent=2), encoding="utf-8"
     )
@@ -302,4 +319,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
