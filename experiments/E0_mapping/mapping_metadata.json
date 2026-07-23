@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "subject": 1,
+  "mapping_source": "Algonauts Project 2023 Subject 1 fsaverage ROI masks",
+  "mapping_source_url": "https://algonauts.csail.mit.edu/challenge.html",
+  "overlap_rule": "strictly greater than 0.5",
+  "num_all_parcels": 1000,
+  "num_top_snr_parcels": 200,
+  "checkpoint_step": 100000,
+  "top200_counts": {
+    "V1": 10,
+    "V2": 9,
+    "V3": 6,
+    "V4": 5,
+    "Face": 4,
+    "Body": 24,
+    "Scene": 31,
+    "Word": 8,
+    "Unlabeled": 103
+  },
+  "selection_bias_summary": {
+    "V4": {
+      "selection_rate": 1.0,
+      "overall_selection_rate": 0.2,
+      "underrepresented": false
+    },
+    "Face": {
+      "selection_rate": 1.0,
+      "overall_selection_rate": 0.2,
+      "underrepresented": false
+    },
+    "Word": {
+      "selection_rate": 1.0,
+      "overall_selection_rate": 0.2,
+      "underrepresented": false
+    }
+  },
+  "figures": [
+    "figures/roi_counts_all_vs_top200.png",
+    "figures/roi_selection_rate_difference.png",
+    "figures/roi_ncsnr_distributions.png",
+    "figures/functional_composition_all_vs_top200.png",
+    "figures/roi_hemisphere_distribution.png"
+  ],
+  "official_nsd_sensitivity_analysis": "../roi_ablation/mapping/official_mapping_subj01_nsd_fsaverage_reg",
+  "git_commit": "9d4e3e28d9bc889b46a112d19799a3bc1527ac98"
+}

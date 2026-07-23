@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "subject": 1,
+  "num_test_images": 1000,
+  "category_method": {
+    "semantic": "OpenAI CLIP RN50 zero-shot prompt ensembles",
+    "face_geometry": "OpenCV Haar frontal-face cascade, gated by COCO person presence",
+    "person_geometry": "COCO 2017 instance segmentation annotations",
+    "ocr": "unavailable; Word is exploratory and CLIP-only"
+  },
+  "software": {
+    "torch": "2.4.1+cu121",
+    "opencv": "4.12.0",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3"
+  },
+  "clip_checkpoint": "RN50.pt",
+  "clip_model": "RN50",
+  "clip_checkpoint_source": "https://openaipublic.azureedge.net/clip/models/afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762/RN50.pt",
+  "clip_checkpoint_sha256": "afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762",
+  "face_cascade": "haarcascade_frontalface_default.xml",
+  "face_cascade_source": "https://raw.githubusercontent.com/opencv/opencv/4.12.0/data/haarcascades/haarcascade_frontalface_default.xml",
+  "face_cascade_sha256": "0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0",
+  "coco_annotation_source": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
+  "coco_annotation_files": {
+    "instances_train2017.json": "610fce4944abdeb15354cc765333805529359d12d88f2f711393ca586901d01d",
+    "instances_val2017.json": "e8c7f7908f1d7278341fae127d0da654f102f11bd7b21d8aeefa635b8c810b6f"
+  },
+  "inference": {
+    "device": "cuda",
+    "batch_size": 64,
+    "clip_logit_scale": 100.0,
+    "face_scale_factor": 1.1,
+    "face_min_neighbors": 5,
+    "face_min_size": [
+      24,
+      24
+    ]
+  },
+  "audit_sampling": "evenly spaced score ranks across each selected category",
+  "clip_prompts": {
+    "Face": [
+      "a close-up photograph of a human face",
+      "a portrait with a clearly visible face",
+      "a photograph focused on a person's face"
+    ],
+    "Body": [
+      "a photograph of a full human body",
+      "a person whose body is clearly visible",
+      "a photograph focused on a standing or moving person"
+    ],
+    "Scene": [
+      "a wide photograph of an indoor or outdoor scene",
+      "a landscape, room, street, beach, or natural scene",
+      "a photograph focused on the surrounding environment"
+    ],
+    "Word": [
+      "an image containing prominent readable text",
+      "a sign, menu, label, or document with words",
+      "a photograph focused on written words"
+    ],
+    "Other": [
+      "a photograph focused on an object",
+      "a photograph that is not mainly a face, body, scene, or text"
+    ]
+  },
+  "thresholds": {
+    "face_area": 0.015,
+    "face_min_person_area": 0.02,
+    "face_score": 0.3,
+    "person_area": 0.08,
+    "body_max_face_area": 0.04,
+    "body_score": 0.25,
+    "scene_score": 0.35,
+    "scene_max_person_area": 0.2,
+    "scene_max_face_area": 0.03,
+    "word_score": 0.45
+  },
+  "candidate_counts": {
+    "Face": 63,
+    "Body": 136,
+    "Scene": 387,
+    "Word": 24
+  },
+  "selected_counts": {
+    "Face": 37,
+    "Body": 50,
+    "Scene": 50,
+    "Word": 21
+  },
+  "confirmatory_minimum": 40,
+  "confirmatory_shortages": {
+    "Face": true,
+    "Body": false,
+    "Scene": false
+  },
+  "word_minimum": 20,
+  "word_confirmatory": false,
+  "word_status": "exploratory_no_ocr_evidence",
+  "git_commit": "9d4e3e28d9bc889b46a112d19799a3bc1527ac98",
+  "selection_uses_reconstruction_outputs": false,
+  "output_hashes": {
+    "all_test_images.csv": "0462d477f01b79a93d55f18e73d31f1ccaae626fef995ed45a47364f345551e5",
+    "face_candidates.csv": "651637b22715a67e8bef5ae1d33c3ac73c33b09a5b65e84a265e558b44795593",
+    "body_candidates.csv": "96ed3fd0464494cb772e28fb0c19ddbf926819e26c6e6c47ff3d36fc87e7ddee",
+    "scene_candidates.csv": "2e90fb7c71dbbd446928dffada9db2cd1840f416508e9b18b1c68d59c4de8635",
+    "word_candidates.csv": "38b8ccd7921d9f3eec281246954801ef9560eb73ecff69c941598201c97051a4",
+    "confirmatory_manifest.csv": "a1ef83e192ded1dfdd92517baec2ed2c5e40a932c3aeeafb67002f8b18024778",
+    "exploratory_manifest.csv": "861815ea9eba1e6eb16e93a0b3f8ee60d2949d65115ea0925f8e798992858e5c",
+    "figures/category_audit_grid.png": "de7634e6542d396a7d7cfd1ca51b604077b7ab9c0ed60e07bf5a40fc59602d7a"
+  }
+}

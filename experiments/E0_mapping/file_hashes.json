@@ -1,0 +1,114 @@
+{
+  "checkpoint-step-100000.pt": {
+    "path_role": "input:checkpoint-step-100000.pt",
+    "sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40"
+  },
+  "metadata_sub-01.npy": {
+    "path_role": "input:metadata_sub-01.npy",
+    "sha256": "1b65339cd05783e2a7f5c11e7b8af155162d8bc753fa1765043c9d135141df44"
+  },
+  "lh_labels_s01.pt": {
+    "path_role": "input:lh_labels_s01.pt",
+    "sha256": "e1951d590434f9bb32ee4de4ade9a24fa641d6f8311fe01e9aa4aaa0c91a887b"
+  },
+  "rh_labels_s01.pt": {
+    "path_role": "input:rh_labels_s01.pt",
+    "sha256": "21e5bf365ab81edfd3afe377875313ea2388f9feb09627e4bb48d3ddd99c3516"
+  },
+  "lh.floc-bodies_fsaverage_space.npy": {
+    "path_role": "input:lh.floc-bodies_fsaverage_space.npy",
+    "sha256": "0243ce6e7e1ff6c8badf6eb4d39972c019833ef5815fed2b64775916002c7172"
+  },
+  "lh.floc-faces_fsaverage_space.npy": {
+    "path_role": "input:lh.floc-faces_fsaverage_space.npy",
+    "sha256": "e464d2768e7d45485d005403ef2e7cf339fa7b25f36ce57020df62cbd3a9b826"
+  },
+  "lh.floc-places_fsaverage_space.npy": {
+    "path_role": "input:lh.floc-places_fsaverage_space.npy",
+    "sha256": "2d711ddc64cce123e812b79ff063dbbd4633ef37f59e6c980e3bc7631c03923e"
+  },
+  "lh.floc-words_fsaverage_space.npy": {
+    "path_role": "input:lh.floc-words_fsaverage_space.npy",
+    "sha256": "6c6a9af60130a16f899a3ff1bc074995cff6def0001ac643b4171d3e24595664"
+  },
+  "lh.prf-visualrois_fsaverage_space.npy": {
+    "path_role": "input:lh.prf-visualrois_fsaverage_space.npy",
+    "sha256": "57baaddd63f05dbeaebb311eca7f82d59e953e2e6cb1bb0b96cb0be9c1b17a53"
+  },
+  "mapping_floc-bodies.npy": {
+    "path_role": "input:mapping_floc-bodies.npy",
+    "sha256": "06b188125856b1600fbb1aeca65663134defffcc67b3cf3c3db7626617e56818"
+  },
+  "mapping_floc-faces.npy": {
+    "path_role": "input:mapping_floc-faces.npy",
+    "sha256": "5426d5ea0383570ae8e8ace8c3485cb55a5ae28449e42030165094b3ddb21811"
+  },
+  "mapping_floc-places.npy": {
+    "path_role": "input:mapping_floc-places.npy",
+    "sha256": "e9716663179e47f505e76e09a09293eb0fbafd1100a061c182ef02b60cd0458f"
+  },
+  "mapping_floc-words.npy": {
+    "path_role": "input:mapping_floc-words.npy",
+    "sha256": "e9eb37e59d78a4102653925908a04d162e4e7a8972c63bf40efbfc46e7d284bf"
+  },
+  "mapping_prf-visualrois.npy": {
+    "path_role": "input:mapping_prf-visualrois.npy",
+    "sha256": "dda0292e71f0c4ff2f9c972e955c85e5fb00fdfb743973a7cb94d9df08e4ef42"
+  },
+  "rh.floc-bodies_fsaverage_space.npy": {
+    "path_role": "input:rh.floc-bodies_fsaverage_space.npy",
+    "sha256": "2835686c0e614bb68451a27a806471508b0ea0410d735bab054e7454f600e73f"
+  },
+  "rh.floc-faces_fsaverage_space.npy": {
+    "path_role": "input:rh.floc-faces_fsaverage_space.npy",
+    "sha256": "a8e6f425e05ddfbde34c8937a388a305e0ee4346ebf7909fe69d51e82c2ced2d"
+  },
+  "rh.floc-places_fsaverage_space.npy": {
+    "path_role": "input:rh.floc-places_fsaverage_space.npy",
+    "sha256": "a281c6de567ff0b970cba9885b54674f9cea4d54bfeaa1eb044f38aea9145e1a"
+  },
+  "rh.floc-words_fsaverage_space.npy": {
+    "path_role": "input:rh.floc-words_fsaverage_space.npy",
+    "sha256": "9f99d5b90e6ecdec2de401fe234b78c57975cbcb5f0ac113f42859b39ea6e9e8"
+  },
+  "rh.prf-visualrois_fsaverage_space.npy": {
+    "path_role": "input:rh.prf-visualrois_fsaverage_space.npy",
+    "sha256": "361ee672e94f4010ea02eedaf49c081f4804fbd1ded21e1a8abda1cf04e8b1a3"
+  },
+  "algonauts_full_parcel_inventory_subj01.csv": {
+    "path_role": "generated:algonauts_full_parcel_inventory_subj01.csv",
+    "sha256": "8042235976876e9ab47f885b3834d6daf7e14eaeb5bf1e8311f398596c0553e3"
+  },
+  "algonauts_top200_mapping_subj01.csv": {
+    "path_role": "generated:algonauts_top200_mapping_subj01.csv",
+    "sha256": "fd797f7f948cc97aa3eee6a1b97add9b2bcac76867189769d71a0673cc081128"
+  },
+  "roi_coverage_all_vs_top200.csv": {
+    "path_role": "generated:roi_coverage_all_vs_top200.csv",
+    "sha256": "ddca7da01b3da36f69db820b16163090d70aeb2623b1cb40dd3e856ae939eb21"
+  },
+  "mapping_metadata.json": {
+    "path_role": "generated:mapping_metadata.json",
+    "sha256": "f762e0e79a0dd898dd22c2f482f466b76d70b2fe180860d47c2736f16521eaa4"
+  },
+  "roi_counts_all_vs_top200.png": {
+    "path_role": "generated:figures/roi_counts_all_vs_top200.png",
+    "sha256": "07783021e6dce859346887a8c3c0317ab2cbf05455348bef61ff622e215403f6"
+  },
+  "roi_selection_rate_difference.png": {
+    "path_role": "generated:figures/roi_selection_rate_difference.png",
+    "sha256": "657d202c96000f5d639711e624c6599deb80429e98647ab0133c6f2fc0175359"
+  },
+  "roi_ncsnr_distributions.png": {
+    "path_role": "generated:figures/roi_ncsnr_distributions.png",
+    "sha256": "a924f22b2cfdde1fda5151f947dc6b3d60a0144abb3bba33a73e8b656cb19019"
+  },
+  "functional_composition_all_vs_top200.png": {
+    "path_role": "generated:figures/functional_composition_all_vs_top200.png",
+    "sha256": "80f6c7f712e44179c4b1d71b86b57dc6527263175c8c7d3a6f42c62abb24395d"
+  },
+  "roi_hemisphere_distribution.png": {
+    "path_role": "generated:figures/roi_hemisphere_distribution.png",
+    "sha256": "9e99d3f285f205eace5bcafa5fe5a58b1c85546916241571a4dbde3a78434453"
+  }
+}
