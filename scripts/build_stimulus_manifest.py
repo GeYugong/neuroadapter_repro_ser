@@ -20,6 +20,7 @@ from PIL import Image, ImageDraw
 REPRO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPRO_ROOT / "src"))
 
+from neuro_roi_causal.coco_annotations import load_person_geometry  # noqa: E402
 from neuro_roi_causal.provenance import git_commit, sha256_file  # noqa: E402
 from neuro_roi_causal.stimulus_categories import assign_category  # noqa: E402
 
@@ -58,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--stimuli-hdf5", type=Path, required=True)
     parser.add_argument("--stim-info-csv", type=Path, required=True)
+    parser.add_argument("--coco-annotations-root", type=Path, required=True)
     parser.add_argument("--clip-checkpoint", type=Path, required=True)
     parser.add_argument("--face-cascade", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -78,7 +80,7 @@ def sigmoid(value: float) -> float:
     return 1.0 / (1.0 + math.exp(-max(min(value, 20.0), -20.0)))
 
 
-def detect_geometry(image: np.ndarray, cv2, face_detector, person_detector) -> dict:
+def detect_face_geometry(image: np.ndarray, cv2, face_detector) -> dict:
     rgb = np.asarray(image, dtype=np.uint8)
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     faces, _, face_weights = face_detector.detectMultiScale3(
@@ -94,25 +96,10 @@ def detect_geometry(image: np.ndarray, cv2, face_detector, person_detector) -> d
     face_area = max(face_areas, default=0.0)
     face_confidence = max((sigmoid(float(value)) for value in face_weights), default=0.0)
 
-    boxes, person_weights = person_detector.detectMultiScale(
-        cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
-        winStride=(8, 8),
-        padding=(8, 8),
-        scale=1.05,
-    )
-    person_areas = [float(w * h) / image_area for (_, _, w, h) in boxes]
-    person_area = min(sum(person_areas), 1.0)
-    person_confidence = max(
-        (sigmoid(float(np.asarray(value).reshape(-1)[0])) for value in person_weights),
-        default=0.0,
-    )
     return {
         "face_confidence": face_confidence,
         "face_area_ratio": face_area,
-        "person_confidence": person_confidence,
-        "person_area_ratio": person_area,
         "face_count": len(faces),
-        "person_count": len(boxes),
     }
 
 
@@ -220,8 +207,9 @@ def main() -> None:
     face_detector = cv2.CascadeClassifier(str(args.face_cascade))
     if face_detector.empty():
         raise ValueError(f"Failed to load OpenCV face cascade: {args.face_cascade}")
-    person_detector = cv2.HOGDescriptor()
-    person_detector.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    person_geometry, coco_annotation_files = load_person_geometry(
+        args.coco_annotations_root
+    )
     model, preprocess, clip_labels, text_features = load_clip(args.clip_checkpoint, args.device)
 
     metadata = np.load(args.metadata, allow_pickle=True).item()
@@ -237,15 +225,21 @@ def main() -> None:
         stimuli = handle["imgBrick"]
         for dataset_idx, nsd_image_id in enumerate(test_ids):
             image = image_from_hdf5(stimuli, nsd_image_id)
-            geometry = detect_geometry(np.asarray(image), cv2, face_detector, person_detector)
+            geometry = detect_face_geometry(np.asarray(image), cv2, face_detector)
             info = stim_info.loc[nsd_image_id]
+            coco_split = str(info["cocoSplit"])
+            coco_image_id = int(info["cocoId"])
+            coco_key = (coco_split, coco_image_id)
+            if coco_key not in person_geometry:
+                raise KeyError(f"COCO image missing from instance annotations: {coco_key}")
             pending_images.append(image)
             pending_base.append({
                 "dataset_idx": dataset_idx,
                 "nsd_image_id": nsd_image_id,
-                "coco_image_id": int(info["cocoId"]),
-                "coco_split": str(info["cocoSplit"]),
+                "coco_image_id": coco_image_id,
+                "coco_split": coco_split,
                 **geometry,
+                **person_geometry[coco_key],
             })
             if len(pending_images) < args.batch_size and dataset_idx + 1 < len(test_ids):
                 continue
@@ -256,6 +250,7 @@ def main() -> None:
                 decision = assign_category(
                     face_confidence=float(base["face_confidence"]),
                     face_area_ratio=float(base["face_area_ratio"]),
+                    person_count=int(base["person_count"]),
                     person_area_ratio=float(base["person_area_ratio"]),
                     clip_face=score["clip_face"],
                     clip_body=score["clip_body"],
@@ -349,14 +344,44 @@ def main() -> None:
         "num_test_images": len(rows),
         "category_method": {
             "semantic": "OpenAI CLIP RN50 zero-shot prompt ensembles",
-            "face_geometry": "OpenCV bundled Haar frontal-face cascade",
-            "person_geometry": "OpenCV bundled HOG people detector",
+            "face_geometry": "OpenCV Haar frontal-face cascade, gated by COCO person presence",
+            "person_geometry": "COCO 2017 instance segmentation annotations",
             "ocr": "unavailable; Word is exploratory and CLIP-only",
         },
+        "software": {
+            "torch": torch.__version__,
+            "opencv": cv2.__version__,
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+        },
         "clip_checkpoint": args.clip_checkpoint.name,
+        "clip_model": str(config["clip_model"]),
+        "clip_checkpoint_source": (
+            "https://openaipublic.azureedge.net/clip/models/"
+            "afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762/"
+            "RN50.pt"
+        ),
         "clip_checkpoint_sha256": sha256_file(args.clip_checkpoint),
         "face_cascade": args.face_cascade.name,
+        "face_cascade_source": (
+            "https://raw.githubusercontent.com/opencv/opencv/4.12.0/"
+            "data/haarcascades/haarcascade_frontalface_default.xml"
+        ),
         "face_cascade_sha256": sha256_file(args.face_cascade),
+        "coco_annotation_source": (
+            "http://images.cocodataset.org/annotations/annotations_trainval2017.zip"
+        ),
+        "coco_annotation_files": {
+            path.name: sha256_file(path) for path in coco_annotation_files
+        },
+        "inference": {
+            "device": args.device,
+            "batch_size": args.batch_size,
+            "clip_logit_scale": 100.0,
+            "face_scale_factor": 1.1,
+            "face_min_neighbors": 5,
+            "face_min_size": [24, 24],
+        },
         "clip_prompts": CLIP_PROMPTS,
         "thresholds": thresholds,
         "candidate_counts": candidate_counts,
@@ -364,7 +389,7 @@ def main() -> None:
         "confirmatory_minimum": minimum,
         "confirmatory_shortages": shortages,
         "word_minimum": minimum_word,
-        "word_confirmatory": selected_counts["Word"] >= minimum_word and False,
+        "word_confirmatory": False,
         "word_status": "exploratory_no_ocr_evidence",
         "git_commit": git_commit(REPRO_ROOT),
         "selection_uses_reconstruction_outputs": False,

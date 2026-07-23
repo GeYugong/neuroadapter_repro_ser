@@ -10,6 +10,7 @@ def assign_category(
     *,
     face_confidence: float,
     face_area_ratio: float,
+    person_count: int,
     person_area_ratio: float,
     clip_face: float,
     clip_body: float,
@@ -18,8 +19,9 @@ def assign_category(
     thresholds: dict[str, float],
 ) -> dict:
     face = (
-        face_area_ratio >= thresholds["face_area"]
-        and max(face_confidence, clip_face) >= thresholds["face_score"]
+        person_count > 0
+        and face_area_ratio >= thresholds["face_area"]
+        and face_confidence >= thresholds["face_score"]
     )
     body = (
         person_area_ratio >= thresholds["person_area"]
@@ -55,4 +57,3 @@ def assign_category(
         "exclusion_reason": exclusion,
         "category_scores": scores,
     }
-

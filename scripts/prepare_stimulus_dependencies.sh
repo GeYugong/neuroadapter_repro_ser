@@ -15,3 +15,12 @@ curl --fail --location --retry 3 --output "$output" "$url"
 sha256sum "$output"
 printf 'source_url=%s\n' "$url" > "$output_dir/source.txt"
 
+cat <<'EOF'
+COCO instance annotations are also required.
+Download:
+  http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+Extract:
+  annotations/instances_train2017.json
+  annotations/instances_val2017.json
+Pass the annotations directory with --coco-annotations-root.
+EOF
