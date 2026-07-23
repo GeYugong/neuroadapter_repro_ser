@@ -1,0 +1,7 @@
+subject: 1
+source: Official NSD native ROI labels resampled to fsaverage
+min_overlap: 0.5
+comparison: strict_greater_than
+primary: false
+role: sensitivity_analysis
+
