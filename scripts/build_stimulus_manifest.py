@@ -169,7 +169,14 @@ def audit_grid(
     canvas = Image.new("RGB", (cell * per_category, (cell + label_height) * len(categories)), "white")
     draw = ImageDraw.Draw(canvas)
     for row_index, category in enumerate(categories):
-        selected = rows_by_category[category][:per_category]
+        category_rows = rows_by_category[category]
+        if len(category_rows) <= per_category:
+            selected = category_rows
+        else:
+            audit_indices = np.linspace(
+                0, len(category_rows) - 1, num=per_category, dtype=int
+            )
+            selected = [category_rows[int(index)] for index in audit_indices]
         for column, row in enumerate(selected):
             image = image_from_hdf5(stimuli, int(row["nsd_image_id"])).resize((cell, cell))
             x = column * cell
@@ -382,6 +389,7 @@ def main() -> None:
             "face_min_neighbors": 5,
             "face_min_size": [24, 24],
         },
+        "audit_sampling": "evenly spaced score ranks across each selected category",
         "clip_prompts": CLIP_PROMPTS,
         "thresholds": thresholds,
         "candidate_counts": candidate_counts,
