@@ -20,6 +20,12 @@ legacy/exploratory work.
 - Mean replacement uses training-set ParcelMapper outputs, not decoder queries.
 - The upstream NeuroAdapter checkout was not modified.
 - Server verification: `15 passed`.
+- The real step-100000 checkpoint smoke test passed. Its `sub_approach` is
+  `linear_projection`: fMRI `[1, 200, 626]` maps to parcel and condition tokens
+  `[1, 200, 768]` with no TokenMapper. No-mask exactly matches the upstream
+  forward path, and zero masking changes only the requested parcel.
+- The optional Transformer decoder path is covered separately by unit tests;
+  it is not the architecture of the current checkpoint.
 
 ## Stage B: E0 Mapping
 
@@ -111,10 +117,15 @@ resolved.
 The next safe commands re-verify the completed A/B gate:
 
 ```bash
-cd "$NEUROADAPTER_PROJECT_ROOT/repro"
-PYTHONPATH="$NEUROADAPTER_PROJECT_ROOT/tools/test-deps:src" \
+REPRO_ROOT="$(git rev-parse --show-toplevel)"
+PROJECT_ROOT="$(dirname "$REPRO_ROOT")"
+cd "$REPRO_ROOT"
+PYTHONPATH="$PROJECT_ROOT/tools/test-deps:src" \
   conda run -n neuroadapter python -m pytest -q
 python scripts/validate_stage_ab_artifacts.py
+conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
+  --checkpoint "$PROJECT_ROOT/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt" \
+  --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
 ```
 
 The next development task is to make `configs/experiments/E2_pilot.yaml`

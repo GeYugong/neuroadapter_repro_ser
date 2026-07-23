@@ -18,6 +18,11 @@ ROI interventions operate on ParcelMapper outputs before TokenMapper. This is
 required because a transformer decoder maps 200 parcel tokens to 50 decoder
 queries, destroying index equivalence.
 
+The actual step-100000 checkpoint uses `linear_projection`, not
+`transformer_decoder`; its 200 ParcelMapper outputs are used directly as 200
+condition tokens. The pre-TokenMapper implementation remains necessary for
+compatibility with Transformer checkpoints, and that branch is unit-tested.
+
 ## D004: Stimulus categorization
 
 The manifest builder refuses to download weights. Semantic confidence uses a
