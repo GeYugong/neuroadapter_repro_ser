@@ -1,12 +1,12 @@
-# Experiment Protocol
+# 实验协议
 
-## Pairing
+## 配对原则
 
-For a given subject, stimulus, checkpoint, and seed, every condition must use
-the same fMRI sample, initial VAE latent, diffusion noise, denoising schedule,
-guidance scale, and model weights. Only the parcel intervention may differ.
+对于给定的 subject、刺激、checkpoint 和随机种子，所有实验条件必须使用
+相同的 fMRI 样本、初始 VAE latent、扩散噪声、去噪调度、guidance scale
+和模型权重。不同条件之间只能改变 parcel 干预。
 
-## Intervention Point
+## 干预位置
 
 ```text
 fMRI beta
@@ -17,28 +17,27 @@ fMRI beta
   -> diffusion condition tokens
 ```
 
-Parcel indices must never be applied to decoder-query tokens. Training-mean
-replacement is the mean of ParcelMapper outputs for the corresponding parcel.
+parcel 索引不得作用于 decoder-query tokens。训练集均值替换使用对应
+parcel 的 ParcelMapper 输出在训练集上的均值。
 
-## Comparisons
+## 对比条件
 
-Each confirmatory ROI analysis includes:
+每项确认性 ROI 分析均包括：
 
-- no-mask baseline;
-- full-group zero and mean replacement;
-- equal-k zero and mean replacement;
-- hemisphere/SNR/parcel-size matched random controls;
-- at least one unrelated functional ROI control.
+- 不屏蔽基线（no-mask）；
+- 完整 ROI 组的零值替换和均值替换；
+- 等数量（equal-k）的零值替换和均值替换；
+- 按半球、SNR 和 parcel 大小匹配的随机对照；
+- 至少一个无关功能 ROI 对照。
 
-Face, Body, and Scene are confirmatory. Word is exploratory unless at least 20
-audited stimuli are available.
+Face、Body 和 Scene 属于确认性分析。Word 保持探索性分析，除非至少有
+20 个经过审查的刺激可用。
 
-## Provenance
+## 来源与可追溯性
 
-Each run records the repository commit, checkpoint and hash, mapping and hash,
-selected parcel indices, subject, dataset indices, seed, diffusion parameters,
-intervention stage and mode, masked indices, and software environment.
+每次运行都必须记录：仓库 commit、checkpoint 及其哈希、映射及其哈希、
+所选 parcel 索引、subject、数据集索引、随机种子、扩散参数、干预阶段
+与模式、被屏蔽索引，以及软件环境。
 
-Large images, checkpoints, datasets, caches, and complete logs remain outside
-Git. Small CSV/JSON summaries and audit figures may be committed.
-
+大尺寸图片、checkpoint、数据集、缓存和完整日志不进入 Git。小型
+CSV/JSON 摘要和审查图可以提交。

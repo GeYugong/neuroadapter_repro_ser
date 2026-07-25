@@ -1,57 +1,53 @@
-# Decisions
+# 决策记录
 
-## D001: Public ROI protocol
+## D001：公开 ROI 实验协议
 
-The primary ROI mapping is the Algonauts Project 2023 Subject 1 fsaverage
-release with a strict overlap threshold greater than 0.5. The resulting
-top-SNR-200 mapping is treated as a public research protocol rather than a
-strict reproduction of Appendix P.
+主要 ROI 映射采用 Algonauts Project 2023 发布的 Subject 1 fsaverage
+数据，并使用严格大于 0.5 的重叠阈值。由此得到的 top-SNR-200 映射被
+视为一套基于公开数据的研究协议，而不是对附录 P 的严格复现。
 
-## D002: Legacy experiments
+## D002：历史实验
 
-Existing ROI reproduction artifacts and the 50-sample zero-mask pilot are
-retained, but their conclusions are labeled legacy/exploratory.
+已有 ROI 复现产物和 50 样本 zero-mask pilot 均予以保留，但其结论标记
+为历史性/探索性结果。
 
-## D003: Intervention stage
+## D003：干预阶段
 
-ROI interventions operate on ParcelMapper outputs before TokenMapper. This is
-required because a transformer decoder maps 200 parcel tokens to 50 decoder
-queries, destroying index equivalence.
+ROI 干预作用于 ParcelMapper 的输出，并位于 TokenMapper 之前。原因是
+transformer decoder 会把 200 个 parcel token 映射为 50 个 decoder
+query，使二者不再具有一一对应的索引关系。
 
-The actual step-100000 checkpoint uses `linear_projection`, not
-`transformer_decoder`; its 200 ParcelMapper outputs are used directly as 200
-condition tokens. The pre-TokenMapper implementation remains necessary for
-compatibility with Transformer checkpoints, and that branch is unit-tested.
+实际的 step-100000 checkpoint 使用 `linear_projection`，而不是
+`transformer_decoder`；它的 200 个 ParcelMapper 输出被直接用作
+200 个 condition token。为兼容 Transformer checkpoint，TokenMapper
+之前的干预实现仍然有必要，并且该分支已有单元测试覆盖。
 
-## D004: Stimulus categorization
+## D004：刺激分类
 
-The manifest builder refuses to download weights. Semantic confidence uses a
-caller-supplied OpenAI CLIP RN50 checkpoint. Face geometry uses an explicitly
-provided OpenCV 4.12 Haar cascade and is gated by COCO person presence. Body
-and Scene use official COCO 2017 person segmentation area rather than OpenCV
-HOG, which produced visible false positives. Word remains exploratory because
-OCR evidence is unavailable.
+刺激清单生成器不会自行下载权重。语义置信度使用调用方提供的 OpenAI
+CLIP RN50 checkpoint。Face 的几何证据使用显式提供的 OpenCV 4.12
+Haar cascade，并要求 COCO 中存在 person。Body 和 Scene 使用 COCO 2017
+官方实例标注中的 person segmentation area，而不使用出现明显误检的
+OpenCV HOG。由于缺少 OCR 证据，Word 保持探索性分析。
 
-## D005: Top-SNR coverage hypothesis
+## D005：top-SNR 覆盖假设
 
-The full E0 inventory shows that all 97 publicly labeled functional parcels are
-already in top-SNR-200. Face, Word, and V4 each have 100% retention. The
-coverage-underrepresentation version of H3 is rejected for the primary public
-mapping. ROI-balanced model training is not justified by coverage alone and is
-paused unless another pre-registered selection question is established.
+E0 完整清单显示，通过公开数据标注的 97 个功能 parcel 全部已进入
+top-SNR-200。Face、Word 和 V4 的保留率均为 100%。因此，在主要公开
+映射下，H3 中“部分 ROI 覆盖不足”的版本不成立。仅凭覆盖率无法证明
+有必要训练 ROI-balanced 模型；除非预先注册新的选择偏差问题，否则
+暂停该训练。
 
-## D006: Honest stimulus counts
+## D006：如实记录刺激数量
 
-The final confirmatory manifest contains 37 Face, 50 Body, and 50 Scene images.
-The conservative Face rules intentionally accept a small shortfall from the
-preferred minimum of 40 rather than retain audited false positives or duplicate
-images. Of 24 CLIP-only Word candidates, 21 do not overlap the confirmatory
-manifest and are retained as exploratory samples. They remain non-confirmatory
-because the required OCR evidence is absent.
+最终确认性清单包含 37 张 Face、50 张 Body 和 50 张 Scene 图像。Face
+采用保守规则，宁可比期望下限 40 少 3 张，也不保留审查出的误检或重复
+图像。24 个仅由 CLIP 识别的 Word 候选中，有 21 个不与确认性清单重叠，
+因此保留为探索性样本。由于缺少必要的 OCR 证据，它们不进入确认性分析。
 
-## D007: Stage C gate
+## D007：阶段 C 准入条件
 
-The legacy decoder cannot consume non-contiguous manifest indices, and the
-legacy random-control generator does not consume the E0 schema. Neither is an
-acceptable E2 runner as-is. Stage C must first add manifest-aware dataset
-selection and validated zero/mean matched controls.
+旧版解码器无法读取刺激清单中不连续的数据集索引，旧版随机对照生成器
+也无法读取 E0 的数据结构。因此二者当前都不能直接作为 E2 runner。
+阶段 C 必须先实现基于清单的数据选择，以及经过验证的 zero/mean 匹配
+随机对照。

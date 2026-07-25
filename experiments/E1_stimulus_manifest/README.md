@@ -1,12 +1,12 @@
-# E1 Stimulus Manifest
+# E1 刺激清单
 
-The generated manifest is based only on ground-truth NSD stimuli. Reconstruction
-outputs are never used for category selection.
+生成的清单只以 ground-truth NSD 刺激为依据，绝不使用重建输出进行
+类别筛选。
 
-The final manifest contains 37 Face, 50 Body, and 50 Scene confirmatory images.
-The audit grid samples the full selected score range and passed visual review.
-Face is three samples below the preferred minimum, and no samples are repeated.
+最终清单包含 37 张 Face、50 张 Body 和 50 张 Scene 确认性图像。审查图
+覆盖了所选样本的完整分数范围，并已通过视觉检查。Face 比期望的最低
+数量少 3 张，且没有重复使用任何样本。
 
-Word has 24 CLIP-only candidates. The 21 that do not overlap a confirmatory
-category are retained, but they remain exploratory because OCR is unavailable
-and the visual audit contains false positives.
+Word 有 24 个仅由 CLIP 识别的候选。保留其中 21 个不与确认性类别重叠
+的样本，但由于缺少 OCR，且视觉审查发现了误检，它们仍只用于探索性
+分析。

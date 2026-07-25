@@ -1,38 +1,37 @@
-# Current State
+# 当前研究状态
 
-Last updated: 2026-07-24
+最后更新：2026-07-24
 
-## Scope
+## 当前范围
 
-Stages A and B are complete. No diffusion pilot, full E2 decoding, or model
-training was launched. The Appendix P reproduction attempt and existing
-50-sample zero-mask outputs remain under `experiments/roi_ablation/` as
-legacy/exploratory work.
+阶段 A 和 B 已完成。尚未启动扩散模型 pilot、完整 E2 解码或模型训练。
+附录 P 复现尝试以及已有的 50 样本 zero-mask 输出保留在
+`experiments/roi_ablation/` 下，作为历史性/探索性工作。
 
-## Stage A: Implementation
+## 阶段 A：实现
 
-- The research plan, protocol, decision log, result template, package layout,
-  path example, and E2 pilot design are present.
-- ROI intervention now occurs on ParcelMapper output before an optional
-  TokenMapper.
-- `none`, `zero`, and training-mean replacement enforce parcel dimensions and
-  indices, preserve non-target parcels bitwise, and record token-norm audits.
-- Mean replacement uses training-set ParcelMapper outputs, not decoder queries.
-- The upstream NeuroAdapter checkout was not modified.
-- Server verification: `15 passed`.
-- The real step-100000 checkpoint smoke test passed. Its `sub_approach` is
-  `linear_projection`: fMRI `[1, 200, 626]` maps to parcel and condition tokens
-  `[1, 200, 768]` with no TokenMapper. No-mask exactly matches the upstream
-  forward path, and zero masking changes only the requested parcel.
-- The optional Transformer decoder path is covered separately by unit tests;
-  it is not the architecture of the current checkpoint.
+- 已建立研究计划、实验协议、决策日志、结果模板、Python 包结构、路径
+  示例和 E2 pilot 设计。
+- ROI 干预现在作用于 ParcelMapper 输出，并位于可选 TokenMapper 之前。
+- `none`、`zero` 和训练集均值替换会检查 parcel 维度与索引，保证非目标
+  parcel 在比特级完全不变，并记录 token norm 审计结果。
+- 均值替换使用训练集上的 ParcelMapper 输出，而不是 decoder query。
+- 未修改上游 NeuroAdapter checkout。
+- 服务器验证结果：`15 passed`。
+- 真实 step-100000 checkpoint 的 smoke test 已通过。其 `sub_approach`
+  为 `linear_projection`：fMRI `[1, 200, 626]` 被映射为
+  `[1, 200, 768]` 的 parcel token 和 condition token，不经过
+  TokenMapper。no-mask 与上游 forward 路径完全一致，zero masking
+  只改变指定 parcel。
+- 可选 Transformer decoder 路径另有单元测试覆盖；当前 checkpoint
+  并不使用该架构。
 
-## Stage B: E0 Mapping
+## 阶段 B：E0 映射
 
-The primary mapping is the public Algonauts Project 2023 Subject 1 fsaverage
-mapping with a strict overlap rule greater than 0.5.
+主要映射采用公开的 Algonauts Project 2023 Subject 1 fsaverage 数据，
+并使用严格大于 0.5 的重叠规则。
 
-| ROI | All 1000 parcels | Top-SNR-200 | Retention |
+| ROI | 全部 1000 parcels | Top-SNR-200 | 保留率 |
 | --- | ---: | ---: | ---: |
 | V1 | 10 | 10 | 100% |
 | V2 | 9 | 9 | 100% |
@@ -42,15 +41,15 @@ mapping with a strict overlap rule greater than 0.5.
 | Body | 24 | 24 | 100% |
 | Scene | 31 | 31 | 100% |
 | Word | 8 | 8 | 100% |
-| Unlabeled | 903 | 103 | 11.4% |
+| 未标注 | 903 | 103 | 11.4% |
 
-All 97 parcels assigned a public functional ROI label are already included in
-top-SNR-200. Under this mapping, top-SNR selection does **not** reduce Face,
-Word, or V4 coverage. It instead strongly enriches labeled functional parcels
-relative to the overall 20% parcel-selection rate. The original coverage-based
-premise for an ROI-balanced-200 model is therefore unsupported.
+通过公开数据获得功能 ROI 标签的 97 个 parcel 全部已进入 top-SNR-200。
+在这一映射下，top-SNR 选择**没有**降低 Face、Word 或 V4 的覆盖率。
+相对于全部 parcel 中 20% 的总体选择比例，它反而显著富集了有功能标签
+的 parcel。因此，原先基于覆盖不足提出的 ROI-balanced-200 模型训练
+前提不成立。
 
-Generated artifacts:
+生成产物：
 
 ```text
 experiments/E0_mapping/
@@ -62,27 +61,25 @@ experiments/E0_mapping/
   figures/
 ```
 
-## Stage B: E1 Stimuli
+## 阶段 B：E1 刺激筛选
 
-Selection uses only ground-truth NSD stimuli. CLIP RN50 supplies semantic
-scores, OpenCV Haar supplies face geometry, and official COCO 2017 instance
-annotations supply person segmentation area. The manifest records dependency
-sources, hashes, software versions, thresholds, and inference parameters.
+筛选过程只使用 NSD ground-truth 刺激。CLIP RN50 提供语义分数，OpenCV
+Haar 提供人脸几何证据，COCO 2017 官方实例标注提供 person segmentation
+area。清单记录了依赖来源、哈希、软件版本、阈值和推理参数。
 
-| Category | Candidates | Selected | Role |
+| 类别 | 候选数 | 选中数 | 用途 |
 | --- | ---: | ---: | --- |
-| Face | 63 | 37 | Confirmatory, below preferred minimum of 40 |
-| Body | 136 | 50 | Confirmatory |
-| Scene | 387 | 50 | Confirmatory |
-| Word | 24 | 21 | Exploratory only; no OCR evidence |
+| Face | 63 | 37 | 确认性；低于期望下限 40 |
+| Body | 136 | 50 | 确认性 |
+| Scene | 387 | 50 | 确认性 |
+| Word | 24 | 21 | 仅探索性；缺少 OCR 证据 |
 
-The audit grid samples evenly spaced score ranks rather than only the highest
-scores. Visual inspection confirmed the Face, Body, and Scene audit samples.
-Word contains CLIP false positives and is not eligible for confirmatory tests.
-Its 21 selected samples exclude every confirmatory dataset index. No samples
-were duplicated to reach a target count.
+审查图不是只选择最高分样本，而是在完整分数排序中等间距取样。视觉检查
+确认 Face、Body 和 Scene 的审查样本可用。Word 中存在 CLIP 误检，因此
+不能进入确认性检验。其 21 个入选样本不包含任何确认性清单中的数据集
+索引。为达到目标数量，没有复制任何样本。
 
-Generated artifacts:
+生成产物：
 
 ```text
 experiments/E1_stimulus_manifest/
@@ -97,24 +94,22 @@ experiments/E1_stimulus_manifest/
   manifest_metadata.json
 ```
 
-## Open Issues Before E2
+## E2 开始前的待解决问题
 
-1. The legacy batch decoder accepts a contiguous `start_idx` range and cannot
-   yet consume the non-contiguous category-specific dataset indices.
-2. The legacy random-control generator expects old mapping column names and
-   emits only zero-mask controls. It must be adapted to the E0 schema, emit
-   zero/mean conditions, and record matching distances.
-3. E2 still requires a deterministic dry-run proving that every condition for
-   one image shares latent/noise across condition batches.
-4. Face has 37 audited samples, so final statistical power must use the true
-   sample count rather than assuming 50.
+1. 旧版批量解码器只接受连续的 `start_idx` 范围，目前无法读取按类别筛选
+   后不连续的数据集索引。
+2. 旧版随机对照生成器要求旧映射列名，并且只生成 zero-mask 对照。需要
+   使其兼容 E0 数据结构，同时生成 zero/mean 条件，并记录匹配距离。
+3. E2 仍需一次确定性 dry-run，证明同一张图像的所有实验条件在不同条件
+   batch 之间共享相同的 latent/noise。
+4. Face 只有 37 个已审查样本，因此最终统计效能必须使用真实样本量，
+   不能假设有 50 个样本。
 
-Do not run the current legacy decoder as the E2 pilot until items 1-3 are
-resolved.
+在解决第 1 至 3 项之前，不得把当前旧版解码器用于 E2 pilot。
 
-## Exact Next Command
+## 下一步准确命令
 
-The next safe commands re-verify the completed A/B gate:
+以下命令可安全地重新验证已经完成的 A/B 阶段准入条件：
 
 ```bash
 REPRO_ROOT="$(git rev-parse --show-toplevel)"
@@ -128,6 +123,6 @@ conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
   --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
 ```
 
-The next development task is to make `configs/experiments/E2_pilot.yaml`
-executable through a manifest-aware pilot runner. Full GPU decoding remains
-outside the current authorization.
+下一项开发任务是实现能够读取刺激清单的 pilot runner，使
+`configs/experiments/E2_pilot.yaml` 可以实际执行。完整 GPU 解码仍不在
+当前授权范围内。

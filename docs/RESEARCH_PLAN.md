@@ -1,37 +1,35 @@
-# Functional ROI Causal Study
+# 功能脑区因果研究计划
 
-## Objective
+## 研究目标
 
-This project studies whether functional fMRI regions make category-specific
-causal contributions to image reconstruction and whether top-SNR parcel
-selection biases those conclusions.
+本项目研究功能性 fMRI 脑区是否会对特定类别的图像重建产生因果贡献，
+以及 top-SNR parcel 选择是否会使相关结论产生偏差。
 
-Strict reproduction of Appendix P's 50/53/103 parcel counts is no longer the
-primary objective. The main protocol uses the public Algonauts Project 2023
-Subject 1 fsaverage ROI masks.
+严格复现附录 P 中的 50/53/103 parcel 数量已不再是主要目标。主实验协议
+采用公开的 Algonauts Project 2023 Subject 1 fsaverage ROI masks。
 
-## Research Questions
+## 研究问题
 
-1. Does masking a category-matched ROI degrade matched stimuli more than an
-   unrelated ROI or matched random parcels?
-2. Do zero replacement and training-mean replacement agree in direction?
-3. How does top-SNR-200 change functional ROI coverage and composition?
-4. After the core study, does attention magnitude predict masking effects?
+1. 屏蔽与图像类别相匹配的 ROI，相比屏蔽无关 ROI 或匹配的随机 parcel，
+   是否会使对应类别刺激的重建效果下降更多？
+2. 零值替换和训练集均值替换得到的效应方向是否一致？
+3. top-SNR-200 会如何改变功能 ROI 的覆盖率和组成？
+4. 核心研究完成后，attention 大小能否预测屏蔽效应？
 
-## Stages
+## 实验阶段
 
-- E0: build a complete public ROI inventory and quantify top-SNR selection bias.
-- E1: construct stimulus manifests for Face, Body, Scene, and exploratory Word.
-- E2: run paired causal masking on the existing top-SNR-200 model.
-- E3: compare newly trained top-SNR-200 and ROI-balanced-200 models.
-- E4: optional attention-to-causal-effect analysis.
+- E0：建立完整的公开 ROI 清单，并量化 top-SNR 选择偏差。
+- E1：为 Face、Body、Scene 和探索性 Word 类别建立刺激清单。
+- E2：在已有 top-SNR-200 模型上进行配对因果屏蔽实验。
+- E3：比较新训练的 top-SNR-200 与 ROI-balanced-200 模型。
+- E4：可选的 attention 与因果效应关系分析。
 
-## Current Scope
+## 当前范围
 
-The current implementation covers stages A and B: documentation, parcel-level
-interventions, tests, E0 mapping, E1 manifest generation, and an E2 pilot
-configuration. It does not authorize full GPU decoding or model training.
+当前实现覆盖阶段 A 和 B：研究文档、parcel 级干预、测试、E0 映射、
+E1 刺激清单生成，以及 E2 pilot 配置。目前尚未授权进行完整 GPU 解码
+或模型训练。
 
-E0 found 100% retention for every publicly mapped functional ROI. Therefore,
-the planned ROI-balanced-200 training comparison is paused: its original
-coverage-deficit premise is not supported by the primary mapping.
+E0 发现所有通过公开数据映射出的功能 ROI 均有 100% 的保留率。因此，
+计划中的 ROI-balanced-200 训练对比已暂停：主映射结果不支持原先所假设
+的 ROI 覆盖不足问题。

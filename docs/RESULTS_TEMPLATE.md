@@ -1,49 +1,47 @@
-# Experiment Results
+# 实验结果
 
-## Run Identity
+## 运行标识
 
-- Git commit:
-- Subject:
-- Checkpoint and SHA-256:
-- Mapping and SHA-256:
-- Selection manifest:
-- Stimulus manifest:
-- Seeds:
-- Diffusion parameters:
-- Software environment:
+- Git commit：
+- Subject：
+- Checkpoint 和 SHA-256：
+- 映射文件和 SHA-256：
+- Parcel 选择清单：
+- 刺激清单：
+- 随机种子：
+- 扩散参数：
+- 软件环境：
 
-## Conditions
+## 实验条件
 
-| Condition | ROI | Mode | Design | Masked tokens | Control |
+| 条件 | ROI | 模式 | 设计 | 被屏蔽 token 数 | 对照 |
 |---|---|---|---|---:|---|
 
-## Data
+## 数据规模
 
-| Category | Images | Seeds | Generated pairs |
+| 类别 | 图像数 | 随机种子数 | 生成配对数 |
 |---|---:|---:|---:|
 
-## Global Metrics
+## 全局指标
 
-| Condition | PixCorr | SSIM | LPIPS | CLIP | DINOv2 |
+| 条件 | PixCorr | SSIM | LPIPS | CLIP | DINOv2 |
 |---|---:|---:|---:|---:|---:|
 
-## Category-Specific Metrics
+## 类别特异性指标
 
-| Category | ROI | Metric | Causal loss | Random excess | 95% CI | p | q |
+| 类别 | ROI | 指标 | 因果损失 | 相对随机对照的额外损失 | 95% CI | p | q |
 |---|---|---|---:|---:|---|---:|---:|
 
-## Diagnostics
+## 诊断信息
 
-- no-mask reproducibility:
-- non-target token maximum delta:
-- shared-noise verification:
-- peak GPU memory:
-- seconds per sample:
-- failures or exclusions:
+- no-mask 可复现性：
+- 非目标 token 最大变化量：
+- 共享噪声验证：
+- GPU 峰值显存：
+- 每个样本耗时：
+- 失败或排除项：
 
-## Interpretation
+## 结果解释
 
-State whether evidence is confirmatory or exploratory. Do not infer functional
-importance from unequal full-group sizes without equal-k and matched-random
-comparisons.
-
+明确说明证据属于确认性还是探索性。在没有 equal-k 和匹配随机对照的
+情况下，不得根据大小不同的完整 ROI 组直接推断功能重要性。
