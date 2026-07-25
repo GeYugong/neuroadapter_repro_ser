@@ -2535,3 +2535,117 @@ Body 和 Scene 的 equal-k=4 只作为次要敏感性分析。Face 的 full ROI 
 
 当前尚未启动正式运行。本条记录用于证明统计方案在正式数据评估前已经
 固定。
+
+## 2026-07-25 正式 E2 zero-mask 运行与结果
+
+### 运行
+
+按照 `configs/experiments/E2_full.yaml` 执行：
+
+```text
+Face: 37 images x 9 conditions x 3 seeds
+Body: 50 images x 15 conditions x 3 seeds
+Scene: 50 images x 15 conditions x 3 seeds
+```
+
+前 8 个 category-seed 任务同时使用 8 张 A40；三个 Face 任务先完成后，
+在释放的 GPU 0 上补跑 `Scene × seed 34567`。最后一个任务期间 GPU 0
+同时存在另一份约 8.8 GB 的外部 CUDA 占用，因此该任务耗时较长；没有
+终止或修改其他进程。
+
+运行时长：
+
+| Seed | Face | Body | Scene |
+| ---: | ---: | ---: | ---: |
+| 12345 | 1162.23 s | 1670.41 s | 1690.38 s |
+| 23456 | 1153.87 s | 1675.04 s | 1679.23 s |
+| 34567 | 1161.09 s | 1685.23 s | 2360.64 s |
+
+服务器输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/
+E2_top_snr_causal_full
+```
+
+### 独立完整性审计
+
+命令：
+
+```bash
+conda run -n neuroadapter python scripts/audit_e2_outputs.py \
+  --run-root "$PROJECT_ROOT/outputs/roi_ablation/E2_top_snr_causal_full" \
+  --plan "$PROJECT_ROOT/outputs/e2/E2_top_snr_causal_full/plan/e2_pilot_plan.json"
+```
+
+结果：
+
+```text
+passed: true
+total_runs: 9
+total_image_seed_pairs: 411
+total_determinism_checks_passed: 411
+total_intervention_audits: 5499
+max_abs_delta_non_target: 0.0
+failures: []
+```
+
+### 正式评估
+
+五指标评估处理 5499 个 GT-pred 配对，GPU 1 运行约 519 秒。对同一图像
+先平均 3 个 seed，再执行 bootstrap、sign-flip 和预注册的 15 项全局
+Benjamini-Hochberg 校正。
+
+主要结果：
+
+| 类别 | 指标 | Target-random excess | 95% CI | p | 全局 q |
+| --- | --- | ---: | --- | ---: | ---: |
+| Face | PixCorr | 0.00190 | [-0.00097, 0.00480] | 0.21884 | 0.60104 |
+| Face | SSIM | 0.00021 | [-0.00102, 0.00143] | 0.74176 | 0.79475 |
+| Face | LPIPS | -0.00110 | [-0.00283, 0.00068] | 0.23304 | 0.60104 |
+| Face | CLIP | 0.00017 | [-0.00775, 0.00802] | 0.96690 | 0.96690 |
+| Face | DINO | -0.00511 | [-0.01607, 0.00701] | 0.41828 | 0.65969 |
+| Body | PixCorr | -0.00371 | [-0.01345, 0.00643] | 0.47208 | 0.65969 |
+| Body | SSIM | -0.00716 | [-0.01148, -0.00257] | 0.00285 | 0.04275 |
+| Body | LPIPS | 0.00290 | [-0.00196, 0.00765] | 0.25109 | 0.60104 |
+| Body | CLIP | 0.00211 | [-0.00910, 0.01448] | 0.73261 | 0.79475 |
+| Body | DINO | -0.00603 | [-0.02536, 0.01313] | 0.54917 | 0.68647 |
+| Scene | PixCorr | -0.01049 | [-0.02497, 0.00363] | 0.15799 | 0.60104 |
+| Scene | SSIM | -0.00335 | [-0.01000, 0.00378] | 0.37128 | 0.65969 |
+| Scene | LPIPS | 0.00208 | [-0.00382, 0.00789] | 0.48378 | 0.65969 |
+| Scene | CLIP | 0.00556 | [-0.00406, 0.01561] | 0.28049 | 0.60104 |
+| Scene | DINO | 0.00795 | [-0.00427, 0.02069] | 0.22599 | 0.60104 |
+
+Body/Scene equal-k=4 次要分析没有校正显著的正向结果，所有设计内
+`q>=0.12199`。
+
+### 视觉检查
+
+逐行检查 Face 37、Body 50、Scene 50 的正式对比图。GT、no-mask、
+full target、matched random 01 和 unrelated ROI 列均正确对齐；未发现
+空白图、损坏图、样本错位或明显类别错误。
+
+Git 中保存压缩审查图，服务器保留原始无损 PNG：
+
+```text
+experiments/E2_zero_full/figures/
+```
+
+### 正式结论
+
+在当前公开 Algonauts ROI 映射、step-100000 `linear_projection`
+checkpoint、zero-mask 干预和匹配随机对照下，没有获得“屏蔽类别匹配
+ROI 会比随机屏蔽相似 parcel 导致更大重建下降”的支持证据。
+
+唯一全局 `q<0.05` 的 Body SSIM excess 为负，方向与假设相反。pilot 的
+Face PixCorr 和 Scene DINO 正向信号均未在正式样本与 3 seeds 中复现。
+
+该结果不等于证明对应脑区没有生物学功能。限制包括：
+
+- 公开 ROI 映射与作者未公开 metadata 不同；
+- 当前 checkpoint 使用 linear projection；
+- zero-mask 可能形成训练分布外 token；
+- 结论只覆盖 Subject 1 和当前刺激分类协议。
+
+下一步先与合作者讨论该负结果，再决定是否预注册 mean-mask 稳健性分析。
+在此之前不根据结果反复改变 ROI、指标或样本集合。

@@ -24,8 +24,8 @@ docs/DECISIONS.md
 
 ## 当前阶段结果
 
-阶段 A/B 和 30 图 E2 zero-mask pilot 已完成，尚未启动完整 E2 或新模型
-训练。
+阶段 A/B、30 图 E2 pilot 和正式 E2 zero-mask 实验均已完成，没有训练
+新模型。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
 - 服务器单元测试结果为 `15 passed`；
@@ -38,7 +38,10 @@ docs/DECISIONS.md
 - E2 pilot 的 30/30 个确定性检查通过，非目标 parcel 最大变化量为
   `0.0`；
 - Face PixCorr 和 Scene DINO 出现初步正向信号，但多重比较校正后均未
-  达到 `q<0.05`，不能作为正式结论。
+  达到 `q<0.05`；
+- 正式实验完成 411 个 image-seed pairs 和 5499 个条件干预，所有确定性
+  与非目标 token 审计通过；
+- 正式 15 项主要检验没有校正显著的正向结果，pilot 信号未复现。
 
 详细证据、图表、限制和下一步门槛见 `docs/CURRENT_STATE.md`。
 

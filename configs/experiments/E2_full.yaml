@@ -29,4 +29,5 @@ primary_analysis:
 secondary_analysis:
   comparison: equal_k_target_roi_minus_mean_of_five_equal_k_matched_random_controls
   status: sensitivity_only
-status: preregistered_not_run
+status: completed
+completed_run_root: outputs/roi_ablation/E2_top_snr_causal_full

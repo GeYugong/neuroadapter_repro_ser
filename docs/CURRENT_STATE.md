@@ -4,8 +4,8 @@
 
 ## 当前范围
 
-阶段 A、B 和 30 图 E2 zero-mask pilot 已完成。尚未启动完整 E2 解码
-或新模型训练。
+阶段 A、B、30 图 E2 pilot 和正式 E2 zero-mask 实验均已完成。没有训练
+新模型。
 附录 P 复现尝试以及已有的 50 样本 zero-mask 输出保留在
 `experiments/roi_ablation/` 下，作为历史性/探索性工作。
 
@@ -112,12 +112,29 @@ pilot。新运行器可读取非连续 manifest 索引；随机对照按数量�
 详细指标和视觉对比见 `experiments/E2_zero_pilot/`。pilot 证明实验管线
 可用，但样本量不足以形成正式功能特异性结论。
 
-## 正式 E2 前的待解决问题
+## 正式 E2 zero-mask 结果
 
-1. 正式样本量使用 Face 37、Body 50、Scene 50，不得假设 Face 有 50 张；
-2. 使用 3 个预先固定的 seed，并保持当前完整配对噪声机制；
-3. mean-mask 继续延期，只运行 zero-mask；
-4. 正式统计需预先固定多重比较范围，不能根据 pilot 结果挑选指标。
+正式实验使用 Face 37、Body 50、Scene 50 和 3 个预注册 seed，共完成
+411 个 image-seed pairs 和 5499 个条件干预。
+
+- 9/9 个运行完整；
+- 411/411 个确定性 SHA-256 检查通过；
+- 5499/5499 个 intervention audit 完整；
+- 非目标 parcel 最大变化量：`0.0`；
+- 主要统计先按图像平均 3 seeds，再对 15 项检验统一 BH 校正。
+
+没有校正显著的正向结果支持类别匹配 ROI 比匹配随机 parcel 造成更大
+重建下降。唯一 `q<0.05` 的 Body SSIM excess 为负，方向与假设相反。
+pilot 中 Face PixCorr 和 Scene DINO 的信号未在正式实验中复现。
+
+完整结果与视觉审查图见 `experiments/E2_zero_full/`。
+
+## 当前限制与后续问题
+
+1. 结论只适用于公开 Algonauts ROI 映射和当前 step-100000 checkpoint；
+2. 作者附录 P 使用的原始 ROI metadata 仍未公开；
+3. mean-mask 尚未运行，zero-mask 可能产生分布外 token；
+4. 在没有新的预注册假设前，不应继续根据现有结果反复调整 ROI 或指标。
 
 ## 下一步准确命令
 
@@ -135,5 +152,5 @@ conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
   --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
 ```
 
-下一项工作是固定正式 E2 的 3 个 seed 和统计方案，然后将当前已经验证的
-zero-mask 流程扩大到 Face 37、Body 50、Scene 50。
+下一步应先与合作者讨论“正式 E2 未支持原假设”的科研含义，再决定是否
+把 mean-mask 作为预注册稳健性分析，或转向新的研究问题。

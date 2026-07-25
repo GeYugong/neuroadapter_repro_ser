@@ -1,0 +1,94 @@
+{
+  "run_root": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/E2_top_snr_causal_full",
+  "plan": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_full/plan/e2_pilot_plan.json",
+  "passed": true,
+  "runs": [
+    {
+      "seed": 12345,
+      "category": "Face",
+      "images": 37,
+      "conditions": 9,
+      "elapsed_sec": 1162.2331025279127,
+      "determinism_checks_passed": 37,
+      "intervention_audits": 333
+    },
+    {
+      "seed": 12345,
+      "category": "Body",
+      "images": 50,
+      "conditions": 15,
+      "elapsed_sec": 1670.4111573137343,
+      "determinism_checks_passed": 50,
+      "intervention_audits": 750
+    },
+    {
+      "seed": 12345,
+      "category": "Scene",
+      "images": 50,
+      "conditions": 15,
+      "elapsed_sec": 1690.3788512120955,
+      "determinism_checks_passed": 50,
+      "intervention_audits": 750
+    },
+    {
+      "seed": 23456,
+      "category": "Face",
+      "images": 37,
+      "conditions": 9,
+      "elapsed_sec": 1153.8691424275748,
+      "determinism_checks_passed": 37,
+      "intervention_audits": 333
+    },
+    {
+      "seed": 23456,
+      "category": "Body",
+      "images": 50,
+      "conditions": 15,
+      "elapsed_sec": 1675.0431490377523,
+      "determinism_checks_passed": 50,
+      "intervention_audits": 750
+    },
+    {
+      "seed": 23456,
+      "category": "Scene",
+      "images": 50,
+      "conditions": 15,
+      "elapsed_sec": 1679.2278429428115,
+      "determinism_checks_passed": 50,
+      "intervention_audits": 750
+    },
+    {
+      "seed": 34567,
+      "category": "Face",
+      "images": 37,
+      "conditions": 9,
+      "elapsed_sec": 1161.0925643108785,
+      "determinism_checks_passed": 37,
+      "intervention_audits": 333
+    },
+    {
+      "seed": 34567,
+      "category": "Body",
+      "images": 50,
+      "conditions": 15,
+      "elapsed_sec": 1685.2253846819513,
+      "determinism_checks_passed": 50,
+      "intervention_audits": 750
+    },
+    {
+      "seed": 34567,
+      "category": "Scene",
+      "images": 50,
+      "conditions": 15,
+      "elapsed_sec": 2360.6395656447858,
+      "determinism_checks_passed": 50,
+      "intervention_audits": 750
+    }
+  ],
+  "total_runs": 9,
+  "total_image_seed_pairs": 411,
+  "total_determinism_checks_passed": 411,
+  "total_intervention_audits": 5499,
+  "max_abs_delta_non_target": 0.0,
+  "failures": []
+}
