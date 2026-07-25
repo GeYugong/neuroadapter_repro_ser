@@ -331,6 +331,12 @@ def main() -> None:
                     intervention_audits[condition["name"]].append(
                         {"dataset_idx": dataset_idx, **audit.to_dict()}
                     )
+                actual_count = len(token_batch)
+                # Keep every diffusion call at the same batch shape. Without
+                # padding, CUDA kernels can produce different low-order bits
+                # for an identical condition in a short final batch.
+                while len(token_batch) < args.condition_batch_size:
+                    token_batch.append(token_batch[-1].clone())
                 generated = run_diffusion_conditions(
                     torch.cat(token_batch, dim=0),
                     base_latents,
@@ -338,7 +344,7 @@ def main() -> None:
                     models,
                     args.denoising_steps,
                     args.noise_factor,
-                )
+                )[:actual_count]
                 for condition, image in zip(chunk, generated):
                     name = condition["name"]
                     pred = Image.fromarray(image)
@@ -375,7 +381,7 @@ def main() -> None:
                 raise RuntimeError(
                     f"Determinism check failed for dataset index {dataset_idx}"
                 )
-    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "condition_batch_size": args.condition_batch_size, "seed": args.seed, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
+    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "condition_batch_size": args.condition_batch_size, "condition_batches_padded_to_fixed_size": True, "seed": args.seed, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
     (root / "run_summary.json").write_text(json.dumps(root_summary, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(root_summary, indent=2, ensure_ascii=False))
 
