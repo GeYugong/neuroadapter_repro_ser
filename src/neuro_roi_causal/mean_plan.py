@@ -56,7 +56,11 @@ def normalized_for_equivalence(plan: dict[str, Any], *, mean: bool) -> dict[str,
             if condition["name"] in {"no_mask", "no_mask_repeat"}:
                 continue
             if mean:
-                condition["name"] = condition["name"].removesuffix("_mean") + "_zero"
+                if not condition["name"].endswith("_mean"):
+                    raise ValueError(
+                        f"Mean condition lacks _mean suffix: {condition['name']}"
+                    )
+                condition["name"] = condition["name"][:-5] + "_zero"
                 condition["mask_mode"] = "zero"
     return value
 
