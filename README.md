@@ -9,14 +9,18 @@ Appendix P 的严格复现与已有 50-sample zero-mask 结果被保留为
 legacy/exploratory，不作为最终功能脑区结论。新研究采用公开的
 Algonauts Project 2023 Subject 1 fsaverage ROI masks。
 
-研究计划、协议与当前状态见：
+连续实验记录、研究计划、协议与当前状态见：
 
 ```text
+EXPERIMENT_LOG.md
 docs/RESEARCH_PLAN.md
 docs/EXPERIMENT_PROTOCOL.md
 docs/CURRENT_STATE.md
 docs/DECISIONS.md
 ```
+
+其中 `EXPERIMENT_LOG.md` 是唯一按时间连续追加的核心日志；其他文档不能
+替代它。
 
 ## 当前阶段结果
 

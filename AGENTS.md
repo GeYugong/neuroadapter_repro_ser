@@ -21,3 +21,10 @@
 - Do not start full E2 decoding or E3 training without explicit user confirmation.
 - Stop when parcel dimensions, mapping indices, model stages, or required external weights cannot be verified.
 
+## Experiment Logging
+
+- `EXPERIMENT_LOG.md` is the single chronological source of truth for project work.
+- Append every development, test, training, decoding, and evaluation event in Chinese.
+- Record commands, commits, inputs, checkpoints, outputs, GPU use, runtime, metrics, figures, problems, conclusions, and the next step.
+- Never overwrite or delete historical log entries. Corrections must be appended as new entries.
+- `docs/CURRENT_STATE.md` is only the latest snapshot, and `docs/DECISIONS.md` contains only scientific decisions.

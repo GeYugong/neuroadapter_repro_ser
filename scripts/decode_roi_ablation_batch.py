@@ -8,7 +8,9 @@ noise.  The only intended difference is the selected parcel-token intervention.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -26,12 +28,11 @@ sys.path.insert(0, str(REPRO_ROOT / "src"))
 
 from brain_adapter.dataset import nsd_topk_parcel_dataset
 from brain_adapter.model import GuidanceGenerator
+from neuro_roi_causal.decoding import sample_seed
+from neuro_roi_causal.diffusion_pairing import shared_state_audit
 from neuro_roi_causal.interventions import apply_parcel_intervention
 from neuro_roi_causal.model_wrapper import map_fmri_to_parcel_tokens, parcel_tokens_to_condition
 from decode_limited import BrainIPAdapter, load_diffusion_models, setup_ip_adapter_modules
-
-
-PROJECT_ROOT = Path("/public/home/mty/GeYugong/projects/neuroadapter-iclr2026")
 
 
 def parse_args() -> argparse.Namespace:
@@ -41,23 +42,39 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--num-samples", type=int, default=50)
     parser.add_argument("--start-idx", type=int, default=0)
+    parser.add_argument(
+        "--dataset-indices-file",
+        type=Path,
+        help="JSON list of explicit, potentially non-contiguous test dataset indices.",
+    )
     parser.add_argument("--seed", type=int, default=12345)
     parser.add_argument("--denoising-steps", type=int, default=50)
     parser.add_argument("--noise-factor", type=float, default=4.0)
     parser.add_argument("--condition-batch-size", type=int, default=8)
     parser.add_argument("--mean-token-path", type=Path)
     parser.add_argument("--mean-batch-size", type=int, default=8)
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=Path(
+            os.environ.get(
+                "NEUROADAPTER_PROJECT_ROOT",
+                "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026",
+            )
+        ),
+    )
+    parser.add_argument("--output-root", type=Path)
     return parser.parse_args()
 
 
-def make_dataset(tokenizer, checkpoint: dict, split: str):
+def make_dataset(tokenizer, checkpoint: dict, split: str, project_root: Path):
     dataset_args = SimpleNamespace(
         subj=1,
         hemi=None,
         backbone_arch="dinov2_q",
-        data_dir="/public/home/mty/GeYugong/data/neuroadapter/neural_data",
-        imgs_dir="/public/home/mty/GeYugong/data/nsd/stimuli",
-        parcel_dir="/public/home/mty/GeYugong/data/neuroadapter/parcels/schaefer",
+        data_dir=str(project_root / "data" / "neuroadapter" / "neural_data"),
+        imgs_dir=str(project_root / "data" / "nsd" / "stimuli"),
+        parcel_dir=str(project_root / "data" / "neuroadapter" / "parcels" / "schaefer"),
         tokenizer=tokenizer,
         gen_size=512,
     )
@@ -116,8 +133,40 @@ def compute_mean_tokens(guidance, dataset, device, dtype, batch_size, path: Path
     return mean.to(device=device, dtype=dtype)
 
 
-def run_diffusion_conditions(condition_tokens, base_image, models, denoising_steps, noise_factor, generator):
-    """Generate B conditions together with exactly matched latent/noise draws."""
+def prepare_shared_diffusion_state(base_image, models, seed: int):
+    """Draw one VAE latent and one noise tensor for all conditions of an image."""
+    vae = models["vae"]
+    device = models["device"]
+    dtype = models["dtype"]
+    generator = torch.Generator(device=device).manual_seed(seed)
+    try:
+        base_latents = (
+            vae.encode(base_image).latent_dist.sample(generator=generator)
+            * vae.config.scaling_factor
+        )
+    except TypeError as error:
+        raise RuntimeError(
+            "The installed VAE sampler does not accept a torch.Generator; "
+            "paired E2 decoding cannot prove shared stochastic state."
+        ) from error
+    noise = torch.randn(
+        base_latents.shape,
+        device=device,
+        dtype=dtype,
+        generator=generator,
+    )
+    return base_latents, noise, shared_state_audit(base_latents, noise, seed)
+
+
+def run_diffusion_conditions(
+    condition_tokens,
+    base_latents,
+    noise,
+    models,
+    denoising_steps,
+    noise_factor,
+):
+    """Generate a condition batch from precomputed shared latent and noise."""
     tokenizer = models["tokenizer"]
     text_encoder = models["text_encoder"]
     vae = models["vae"]
@@ -129,12 +178,7 @@ def run_diffusion_conditions(condition_tokens, base_image, models, denoising_ste
 
     input_ids = tokenizer("", max_length=tokenizer.model_max_length, padding="max_length", truncation=True, return_tensors="pt").input_ids.to(device)
     text_states = text_encoder(input_ids)[0].to(device=device, dtype=dtype).repeat(batch_size, 1, 1)
-    try:
-        base_latents = vae.encode(base_image).latent_dist.sample(generator=generator) * vae.config.scaling_factor
-    except TypeError:
-        base_latents = vae.encode(base_image).latent_dist.sample() * vae.config.scaling_factor
     latents = base_latents.repeat(batch_size, 1, 1, 1)
-    noise = torch.randn(base_latents.shape, device=device, dtype=dtype, generator=generator)
     scheduler.set_timesteps(denoising_steps)
     latents = scheduler.add_noise(latents, noise.repeat(batch_size, 1, 1, 1), scheduler.timesteps[:1])
     for timestep in scheduler.timesteps:
@@ -143,6 +187,34 @@ def run_diffusion_conditions(condition_tokens, base_image, models, denoising_ste
     images = vae.decode(latents / vae.config.scaling_factor).sample
     images = (images / 2 + 0.5).clamp(0, 1).cpu().permute(0, 2, 3, 1).numpy()
     return (images * 255).round().astype("uint8")
+
+
+def load_dataset_indices(args: argparse.Namespace, dataset_size: int) -> list[int]:
+    if args.dataset_indices_file is None:
+        if args.num_samples <= 0 or args.start_idx < 0:
+            raise ValueError("Sample count must be positive and start index non-negative")
+        indices = list(range(args.start_idx, args.start_idx + args.num_samples))
+    else:
+        payload = json.loads(args.dataset_indices_file.read_text(encoding="utf-8"))
+        indices = payload["dataset_indices"] if isinstance(payload, dict) else payload
+        indices = [int(value) for value in indices]
+        if not indices:
+            raise ValueError("Explicit dataset index list must not be empty")
+        if len(indices) != len(set(indices)):
+            raise ValueError("Explicit dataset indices must be unique")
+    if min(indices) < 0 or max(indices) >= dataset_size:
+        raise ValueError(
+            f"Requested dataset indices must be within [0, {dataset_size - 1}]"
+        )
+    return indices
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def make_pair(gt: Image.Image, pred: Image.Image, path: Path) -> Image.Image:
@@ -160,13 +232,19 @@ def main() -> None:
     names = [item["name"] for item in conditions]
     if len(names) != len(set(names)):
         raise ValueError("Condition names must be unique")
-    if args.condition_batch_size <= 0 or args.num_samples <= 0:
-        raise ValueError("Batch size and sample count must be positive")
+    if args.condition_batch_size <= 0:
+        raise ValueError("Condition batch size must be positive")
     requires_mean = any(item.get("mask_mode", "zero") == "mean" for item in conditions)
     if requires_mean and args.mean_token_path is None:
         raise ValueError("Mean-mask conditions require --mean-token-path")
 
-    root = PROJECT_ROOT / "outputs" / "roi_ablation" / args.run_name
+    project_root = args.project_root.resolve()
+    output_root = (
+        args.output_root.resolve()
+        if args.output_root is not None
+        else project_root / "outputs" / "roi_ablation"
+    )
+    root = output_root / args.run_name
     root.mkdir(parents=True, exist_ok=False)
     condition_dirs = {name: root / name for name in names}
     for path in condition_dirs.values():
@@ -185,17 +263,23 @@ def main() -> None:
     for module in (text_encoder, vae, unet, brain_adapter, guidance):
         module.to(device=device, dtype=dtype).eval()
     models = {"tokenizer": tokenizer, "text_encoder": text_encoder, "vae": vae, "noise_scheduler": scheduler, "brain_adapter": brain_adapter, "device": device, "dtype": dtype}
-    test_dataset = make_dataset(tokenizer, checkpoint, "test")
-    indices = list(range(args.start_idx, args.start_idx + args.num_samples))
-    if indices[-1] >= len(test_dataset):
-        raise ValueError("Requested test range exceeds dataset")
+    test_dataset = make_dataset(tokenizer, checkpoint, "test", project_root)
+    indices = load_dataset_indices(args, len(test_dataset))
     mean_tokens = None
     if requires_mean:
-        mean_tokens = compute_mean_tokens(guidance, make_dataset(tokenizer, checkpoint, "train"), device, dtype, args.mean_batch_size, args.mean_token_path)
+        mean_tokens = compute_mean_tokens(
+            guidance,
+            make_dataset(tokenizer, checkpoint, "train", project_root),
+            device,
+            dtype,
+            args.mean_batch_size,
+            args.mean_token_path,
+        )
 
     records = {name: [] for name in names}
     intervention_audits = {name: [] for name in names}
     grids = {name: [] for name in names}
+    shared_state_audits = []
     started_at = datetime.now().isoformat(timespec="seconds")
     started = time.perf_counter()
     with torch.no_grad():
@@ -209,6 +293,13 @@ def main() -> None:
             gt_path = root / f"sample_{dataset_idx:04d}_gt.png"
             gt.save(gt_path)
             base_image = torch.zeros_like(batch["img_ipadapter"].to(device=device, dtype=dtype))
+            state_seed = sample_seed(args.seed, dataset_idx)
+            base_latents, noise, state_audit = prepare_shared_diffusion_state(
+                base_image,
+                models,
+                state_seed,
+            )
+            shared_state_audits.append({"dataset_idx": dataset_idx, **state_audit})
             for start in range(0, len(conditions), args.condition_batch_size):
                 chunk = conditions[start:start + args.condition_batch_size]
                 token_batch = []
@@ -228,10 +319,14 @@ def main() -> None:
                     intervention_audits[condition["name"]].append(
                         {"dataset_idx": dataset_idx, **audit.to_dict()}
                     )
-                # Reinitialize per chunk so every condition sees the exact same
-                # VAE posterior draw and diffusion noise, including across chunks.
-                generator = torch.Generator(device=device).manual_seed(args.seed + dataset_idx)
-                generated = run_diffusion_conditions(torch.cat(token_batch, dim=0), base_image, models, args.denoising_steps, args.noise_factor, generator)
+                generated = run_diffusion_conditions(
+                    torch.cat(token_batch, dim=0),
+                    base_latents,
+                    noise,
+                    models,
+                    args.denoising_steps,
+                    args.noise_factor,
+                )
                 for condition, image in zip(chunk, generated):
                     name = condition["name"]
                     pred = Image.fromarray(image)
@@ -248,9 +343,27 @@ def main() -> None:
             grid.paste(image, (0, 256 * row))
         grid_path = condition_dirs[name] / "grid_gt_pred.png"
         grid.save(grid_path)
-        summary = {"run_name": args.run_name, "condition": condition, "checkpoint": str(args.checkpoint), "checkpoint_step": int(checkpoint["step"]), "sub_approach": config["sub_approach"], "seed": args.seed, "seed_strategy": "shared seed + dataset_idx; matched across all conditions", "num_samples": args.num_samples, "start_idx": args.start_idx, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "intervention_stage": "after_parcel_mapper_before_token_mapper", "intervention_audits": intervention_audits[name], "records": records[name], "grid": str(grid_path)}
+        summary = {"run_name": args.run_name, "condition": condition, "checkpoint": str(args.checkpoint), "checkpoint_step": int(checkpoint["step"]), "sub_approach": config["sub_approach"], "seed": args.seed, "seed_strategy": "shared seed + dataset_idx; one latent/noise draw reused across all condition batches", "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "intervention_stage": "after_parcel_mapper_before_token_mapper", "intervention_audits": intervention_audits[name], "records": records[name], "grid": str(grid_path)}
         (condition_dirs[name] / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
-    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": args.num_samples, "denoising_steps": args.denoising_steps, "condition_batch_size": args.condition_batch_size, "seed": args.seed}
+    determinism_checks = []
+    if "no_mask" in condition_dirs and "no_mask_repeat" in condition_dirs:
+        for dataset_idx in indices:
+            first = condition_dirs["no_mask"] / f"sample_{dataset_idx:04d}_pred.png"
+            repeated = condition_dirs["no_mask_repeat"] / f"sample_{dataset_idx:04d}_pred.png"
+            first_hash = file_sha256(first)
+            repeated_hash = file_sha256(repeated)
+            passed = first_hash == repeated_hash
+            determinism_checks.append({
+                "dataset_idx": dataset_idx,
+                "no_mask_sha256": first_hash,
+                "no_mask_repeat_sha256": repeated_hash,
+                "passed": passed,
+            })
+            if not passed:
+                raise RuntimeError(
+                    f"Determinism check failed for dataset index {dataset_idx}"
+                )
+    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "condition_batch_size": args.condition_batch_size, "seed": args.seed, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
     (root / "run_summary.json").write_text(json.dumps(root_summary, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(root_summary, indent=2, ensure_ascii=False))
 

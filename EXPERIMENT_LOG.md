@@ -2,6 +2,17 @@
 
 本文件记录服务器 `/public/home/mty/GeYugong` 上 NeuroAdapter 复现的完整过程。大数据、模型权重和训练输出不进入 Git，只记录路径、配置、结果和问题。
 
+## 日志制度
+
+- 本文件是项目唯一的连续主日志，按实际发生时间向末尾追加，不能覆盖或
+  删除已有历史记录。
+- 每次开发、测试、训练、解码和评估均记录：工作内容、配置与命令、
+  commit、数据/checkpoint/输出路径、GPU 使用情况、运行时长、测试与指标、
+  图片位置、问题处理、当前结论和下一步。
+- `docs/CURRENT_STATE.md` 只保存最新状态快照。
+- `docs/DECISIONS.md` 只保存关键科研决策及其依据。
+- 各实验目录中的 README 只解释该目录产物，不能替代本日志。
+
 ## 环境与代码
 
 - 服务器账号：`mty`
@@ -1724,3 +1735,490 @@ Training completed!
 ```
 
 其中包括 DDP 模型分片、`optimizer.bin` 以及每个进程的 RNG state。这是首个可以通过 `accelerator.load_state(...)` 做完整恢复的 checkpoint。
+
+## 2026-07-18 ROI 因果消融初步实现与映射排查
+
+### 目标
+
+尝试复现论文附录 P 的功能脑区因果扰动实验：对 Subject 1 的低层和高层
+功能 ROI parcel 进行屏蔽，并观察图像重建指标变化。
+
+### 代码与提交
+
+主要提交：
+
+```text
+06fda24 feat(roi-ablation): add deterministic parcel masking workflow
+2658992 feat(roi-ablation): add paired image evaluation
+8812f2f feat(roi-ablation): add matched random parcel controls
+e5b96c0 perf(roi-ablation): avoid stimulus reads for mean tokens
+a88db2a feat(roi-ablation): convert outputs for official metrics
+e9acbd7 feat(roi-ablation): automate official metric evaluation
+0267c57 feat(roi-ablation): add mean replacement conditions
+e2a09fd feat(roi-ablation): queue matched random controls
+```
+
+新增能力：
+
+- parcel zero-mask；
+- 训练集均值替换；
+- 同一图像各条件使用相同 seed 的配对解码；
+- 随机 parcel 对照；
+- PixCorr、SSIM 及作者官方 metric 输入转换。
+
+### 使用的数据与 checkpoint
+
+```text
+Subject 1 neural data:
+/public/home/mty/GeYugong/data/neuroadapter/neural_data
+
+Schaefer parcels:
+/public/home/mty/GeYugong/data/neuroadapter/parcels/schaefer
+
+step-100000 checkpoint:
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/
+20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt
+```
+
+### 初步运行
+
+完成了 50 个测试样本的 zero-mask pilot 及部分官方指标转换。该运行使用
+GPU，但因后续发现 ROI 映射没有通过论文一致性检查，结果被降级为
+历史性/探索性产物，不作为最终功能 ROI 因果结论。
+
+产物保留在：
+
+```text
+experiments/roi_ablation/
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/
+```
+
+### ROI 映射问题
+
+论文附录 P 对 Subject 1 报告：
+
+| 分组 | 论文数量 |
+| --- | ---: |
+| 低层 ROI | 50 |
+| 高层 ROI | 53 |
+| 已标注总数 | 103 |
+
+使用 NSD 官方原生 ROI 标签、官方 Subject 1/fsaverage `sphere.reg` 重采样
+后，对已经独立验证的 top-SNR-200 parcel 得到：
+
+| 分组 | 官方重采样结果 |
+| --- | ---: |
+| 低层 ROI | 30 |
+| 高层 ROI | 77 |
+| 已标注总数 | 107 |
+
+使用公开 Algonauts Project 2023 Subject 1 fsaverage masks，并采用严格
+`>0.5` 重叠阈值后得到：
+
+| 分组 | Algonauts 结果 |
+| --- | ---: |
+| 低层 ROI | 30 |
+| 高层 ROI | 67 |
+| 已标注总数 | 97 |
+
+检查确认：
+
+- 当前 checkpoint 的左右半球 top-100 SNR parcel 索引可以由 NSD 官方
+  `lh/rh.ncsnr.mgh` 精确重算；
+- Algonauts 下载文件与最初使用的镜像文件逐字节相同；
+- 差异不是由 `0.5` 与 `0.75` 阈值混用造成；
+- 公开 `whole_brain_encoder` 中的右半球 parcel partition 与左半球文件
+  完全相同，不能作为作者实验 parcel 的可靠替代；
+- 作者论文实验所用 `metadata_sub-01.npy` 中的 `lh_rois/rh_rois` 字段
+  或其生成流程没有随公开仓库发布。
+
+相关提交：
+
+```text
+826433e docs(roi-ablation): record unresolved mapping gate
+fea2b65 fix(roi-ablation): verify official NSD surface labels
+8673bbc fix(roi-ablation): audit parcel provenance
+9b3f394 docs(roi-ablation): verify Algonauts ROI source
+```
+
+可复现证据：
+
+```text
+experiments/roi_ablation/mapping/parcel_provenance_audit_subj01.json
+experiments/roi_ablation/mapping/official_resampled_subj01_nsd_fsaverage_reg/
+experiments/roi_ablation/mapping/official_mapping_subj01_nsd_fsaverage_reg/
+```
+
+### 结论与处理
+
+论文的 50/53/103 严格映射无法由现有公开 metadata 独立复现。已经完成的
+50 样本 zero-mask 结果保留，但只能视为探索性证据。mean-mask 和随机
+匹配对照在生成正式输出前停止，避免基于来源不一致的标签继续消耗算力。
+
+下一步从“严格复现附录 P”转为“使用公开、可独立复现的 Algonauts ROI
+协议研究功能脑区因果贡献”。
+
+## 2026-07-24 功能 ROI 因果研究阶段 A：干预实现
+
+### 研究范围调整
+
+建立新的研究问题：
+
+> 不同功能性 fMRI 脑区是否对对应类别图像重建产生因果贡献，以及
+> top-SNR parcel 选择是否会使该结论产生偏差。
+
+研究计划、协议和决策记录：
+
+```text
+docs/RESEARCH_PLAN.md
+docs/EXPERIMENT_PROTOCOL.md
+docs/DECISIONS.md
+docs/RESULTS_TEMPLATE.md
+```
+
+### 干预位置修正
+
+ROI 干预位置改为：
+
+```text
+fMRI beta
+  -> ParcelMapper
+  -> parcel tokens [B, P, D]
+  -> none / zero / training-mean
+  -> optional TokenMapper
+  -> diffusion condition tokens
+```
+
+原因：Transformer decoder 会把 200 个 parcel token 转换为 50 个 decoder
+query；在 TokenMapper 之后按 parcel 索引屏蔽会失去索引语义。
+
+实现保证：
+
+- `none`、`zero`、`mean` 三种模式均检查 parcel 数量和索引；
+- 非目标 parcel 在比特级完全不变；
+- mean 使用训练集 ParcelMapper 输出均值，不使用 decoder query 均值；
+- 记录目标与非目标 token norm 审计；
+- 未修改作者原始 NeuroAdapter checkout。
+
+主要提交：
+
+```text
+36a3c7c docs(research): define functional ROI causal study
+c5b4985 fix(intervention): mask parcel tokens before token mapping
+```
+
+### 测试
+
+服务器环境：
+
+```bash
+REPRO_ROOT="$(git rev-parse --show-toplevel)"
+PROJECT_ROOT="$(dirname "$REPRO_ROOT")"
+cd "$REPRO_ROOT"
+PYTHONPATH="$PROJECT_ROOT/tools/test-deps:src" \
+  conda run -n neuroadapter python -m pytest -q
+```
+
+结果：
+
+```text
+15 passed
+```
+
+本阶段测试不运行扩散解码，不使用 GPU。
+
+## 2026-07-24 功能 ROI 因果研究阶段 B：E0 映射
+
+### 配置
+
+主要映射采用：
+
+```text
+Algonauts Project 2023
+Subject 1
+fsaverage surface
+strict parcel overlap > 0.5
+```
+
+输入：
+
+```text
+experiments/E0_mapping/algonauts_top200_mapping_subj01.csv
+```
+
+主要提交：
+
+```text
+c8c3d46 feat(mapping): build full functional ROI inventory
+e34af65 feat(provenance): hash generated study artifacts
+974a812 test(artifacts): validate stage A and B outputs
+227a381 feat(results): add E0 and E1 study artifacts
+0ebc060 fix(provenance): stabilize generated CSV bytes
+dcc2536 fix(results): stabilize artifact hashes
+```
+
+### 结果
+
+| ROI | 全部 1000 parcels | Top-SNR-200 | 保留率 |
+| --- | ---: | ---: | ---: |
+| V1 | 10 | 10 | 100% |
+| V2 | 9 | 9 | 100% |
+| V3 | 6 | 6 | 100% |
+| V4 | 5 | 5 | 100% |
+| Face | 4 | 4 | 100% |
+| Body | 24 | 24 | 100% |
+| Scene | 31 | 31 | 100% |
+| Word | 8 | 8 | 100% |
+| 未标注 | 903 | 103 | 11.4% |
+
+公开映射得到的全部 97 个功能 ROI parcel 都进入了 top-SNR-200。因此，
+没有观察到 Face、Word 或 V4 覆盖不足；top-SNR 反而富集了有功能标签的
+parcel。
+
+图表位置：
+
+```text
+experiments/E0_mapping/figures/
+```
+
+本阶段只进行 CPU 数据处理和统计，没有训练模型，没有运行 GPU 解码。
+
+### 结论
+
+原先“top-SNR-200 遗漏功能脑区，因此需要 ROI-balanced-200 新模型”的
+前提不成立。暂停 ROI-balanced 模型训练，先使用现有模型做 E2 因果实验。
+
+## 2026-07-24 功能 ROI 因果研究阶段 B：E1 刺激筛选
+
+### 方法
+
+只使用 ground-truth NSD 测试刺激，重建图不参与类别筛选。
+
+- 语义分数：OpenAI CLIP RN50；
+- Face 几何证据：OpenCV 4.12 Haar cascade；
+- person 面积：COCO 2017 官方 instance segmentation；
+- Word：仅有 CLIP 分数，没有 OCR 证据，因此只能探索性使用。
+
+主要提交：
+
+```text
+6feaff0 feat(stimulus): build category-specific NSD manifests
+29a556e fix(stimulus): require explicit face detector asset
+e6a3e07 fix(stimulus): use COCO person annotations
+b350fe7 fix(stimulus): audit manifest score range
+b53081b fix(stimulus): exclude tiny background people
+a105448 fix(stimulus): separate exploratory word samples
+```
+
+### 候选与最终样本
+
+| 类别 | 候选数 | 最终选中 | 分析用途 |
+| --- | ---: | ---: | --- |
+| Face | 63 | 37 | 确认性 |
+| Body | 136 | 50 | 确认性 |
+| Scene | 387 | 50 | 确认性 |
+| Word | 24 | 21 | 探索性 |
+
+Face 使用保守筛选规则，宁可保留 37 张，也不通过复制或保留明显误检凑到
+40。Word 的 21 张图不与确认性集合重叠，但因缺少 OCR 且视觉检查存在
+CLIP 误检，不进入正式确认性实验。
+
+产物：
+
+```text
+experiments/E1_stimulus_manifest/confirmatory_manifest.csv
+experiments/E1_stimulus_manifest/exploratory_manifest.csv
+experiments/E1_stimulus_manifest/figures/category_audit_grid.png
+experiments/E1_stimulus_manifest/manifest_metadata.json
+```
+
+审查图在完整分数范围内等间距抽样，并已逐图视觉检查。Face、Body、Scene
+样本可用于 pilot。
+
+本阶段使用 CPU 和模型推理进行刺激评分，没有训练 NeuroAdapter。
+
+## 2026-07-24 真实 step-100000 checkpoint 干预 smoke test
+
+checkpoint：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/
+20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt
+```
+
+命令：
+
+```bash
+conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
+  --checkpoint "$PROJECT_ROOT/outputs/neuroadapter/\
+20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt" \
+  --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
+```
+
+结果：
+
+- checkpoint 的 `sub_approach = linear_projection`，不是
+  `transformer_decoder`；
+- fMRI 输入形状：`[1, 200, 626]`；
+- ParcelMapper 输出：`[1, 200, 768]`；
+- condition token：`[1, 200, 768]`；
+- 当前 checkpoint 不使用 TokenMapper；
+- no-mask 与作者 forward 路径完全一致；
+- zero-mask 只改变指定 token 0；
+- 非目标 token 最大变化量：`0.0`。
+
+相关提交：
+
+```text
+ed13ba0 test(intervention): smoke-test real checkpoint
+1441074 fix(validation): support parcel-only checkpoint
+8ca9653 docs(research): record checkpoint smoke test
+```
+
+该 smoke test 只验证模型前向和 token 干预，没有运行扩散生成；GPU 使用量
+很小，不属于训练。
+
+## 2026-07-25 研究文档中文化
+
+将以下面向阅读的状态与实验说明完整翻译为中文：
+
+```text
+docs/CURRENT_STATE.md
+docs/DECISIONS.md
+docs/EXPERIMENT_PROTOCOL.md
+docs/RESEARCH_PLAN.md
+docs/RESULTS_TEMPLATE.md
+experiments/E0_mapping/README.md
+experiments/E1_stimulus_manifest/README.md
+experiments/roi_ablation/EXPERIMENT_STATUS.md
+```
+
+未改变代码、命令、实验数值、数据路径或哈希。
+
+GitHub commit：
+
+```text
+58651ae docs(research): translate experiment records to Chinese
+```
+
+服务器对应 commit：
+
+```text
+464ea76 docs(research): translate experiment records to Chinese
+```
+
+本次仅修改 Markdown，不使用 GPU，未运行模型测试。
+
+## 2026-07-25 E2 pilot 运行器开发（进行中）
+
+### 目标
+
+在不训练新模型的前提下，使用现有 step-100000 checkpoint 和 30 张
+确认性刺激启动 E2 小规模因果消融：
+
+```text
+Face: 10
+Body: 10
+Scene: 10
+seed: 12345
+denoising steps: 50
+guidance/noise factor: 4.0
+```
+
+每个类别包括：
+
+- no-mask；
+- 对应 ROI 的 full-group zero/mean；
+- equal-k=4 zero/mean；
+- 5 组按数量、半球、mean ncsnr、parcel 大小匹配的随机 zero/mean；
+- 1 组无关功能 ROI 的 equal-k zero/mean；
+- no-mask repeat 确定性检查。
+
+### 已完成的代码修改
+
+新增：
+
+```text
+src/neuro_roi_causal/e2.py
+src/neuro_roi_causal/diffusion_pairing.py
+scripts/run_e2_pilot.py
+tests/test_e2.py
+tests/test_diffusion_pairing.py
+```
+
+修改：
+
+```text
+scripts/decode_roi_ablation_batch.py
+scripts/make_roi_random_controls.py
+configs/experiments/E2_pilot.yaml
+src/neuro_roi_causal/__init__.py
+```
+
+实现内容：
+
+1. `run_e2_pilot.py` 直接读取
+   `experiments/E1_stimulus_manifest/confirmatory_manifest.csv`，按类别分数
+   选择非连续的测试集索引。
+2. batch decoder 新增 `--dataset-indices-file`，保留旧 `start_idx` 接口，
+   但 E2 使用显式 JSON 索引。
+3. 随机对照读取新的 E0 字段：
+   `top200_token_index/dominant_roi/mean_ncsnr/num_vertices/hemisphere`。
+4. 随机候选限制为 top-SNR-200 中的 `Unlabeled` parcel；每组记录逐 parcel
+   匹配关系、距离、平均距离和最大距离。
+5. 同一图像只生成一次初始 VAE latent 和 diffusion noise；所有 condition
+   batch 直接复用同一张量，并记录两个张量的 SHA-256。
+6. `no_mask` 位于第一个 condition batch，`no_mask_repeat` 位于最后一个
+   condition batch；解码结束后自动比较输出 PNG SHA-256，不一致立即失败。
+
+### 本地 dry-run
+
+命令：
+
+```powershell
+python scripts/run_e2_pilot.py --plan-output-dir .tmp/e2-plan
+```
+
+结果：
+
+| 类别 | 图片数 | 条件数 | Full ROI parcel | Equal-k |
+| --- | ---: | ---: | ---: | ---: |
+| Face | 10 | 16 | 4 | 4 |
+| Body | 10 | 28 | 24 | 4 |
+| Scene | 10 | 28 | 31 | 4 |
+
+Face 前三个非连续测试索引为：
+
+```text
+973, 756, 287
+```
+
+30 张图片的索引互不重复。随机对照均保持目标 parcel 的左右半球数量，
+并且不与目标 ROI 重叠。
+
+本地计划生成约 2 秒，不使用 GPU，没有生成重建图。
+
+### 当前问题
+
+本机系统 Python 没有安装 `pytest`：
+
+```text
+No module named pytest
+```
+
+这不是 E2 代码错误。下一步把修改同步到服务器，在已有
+`neuroadapter` 环境中运行完整测试和 dry-run。当前代码尚未执行 GPU
+扩散解码，也尚未生成 E2 指标或图片。
+
+### 当前 commit
+
+上述 E2 修改当前尚未提交；完成服务器测试后统一提交。
+
+### 下一步
+
+1. 在服务器运行完整 pytest；
+2. 生成持久化 E2 plan 并审查随机匹配质量；
+3. 用真实 checkpoint 做最小 1 图 GPU dry-run，验证 latent/noise 哈希、
+   no-mask 跨 batch PNG 哈希和非目标 token 审计；
+4. 最小运行通过后再启动 30 图 pilot；
+5. 计算 PixCorr、SSIM、LPIPS、CLIP 和 DINO 指标并追加到本日志。
