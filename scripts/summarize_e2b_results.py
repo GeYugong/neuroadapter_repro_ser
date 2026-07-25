@@ -238,7 +238,7 @@ def main() -> None:
     plt.close(fig)
 
     for category in CATEGORIES:
-        png = figures / f"{category.lower()}_comparison_grid.png"
+        png = args.mean_dir / f"{category.lower()}_comparison_grid.png"
         jpg = figures / f"{category.lower()}_comparison_grid.jpg"
         with Image.open(png) as image:
             image.convert("RGB").save(jpg, quality=88, optimize=True)
