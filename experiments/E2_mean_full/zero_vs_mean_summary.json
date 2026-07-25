@@ -1,0 +1,49 @@
+{
+  "interpretation_case": "A",
+  "num_tests": 15,
+  "same_direction_count": 10,
+  "positive_same_direction_count": 4,
+  "negative_same_direction_count": 6,
+  "overall_correlation": {
+    "pearson": 0.22960233294497448,
+    "spearman": 0.39999999999999997
+  },
+  "by_category": {
+    "Face": {
+      "pearson": 0.9740082091605017,
+      "spearman": 0.9999999999999999
+    },
+    "Body": {
+      "pearson": 0.41720379862905976,
+      "spearman": 0.3
+    },
+    "Scene": {
+      "pearson": 0.9348788516273132,
+      "spearman": 0.8999999999999998
+    }
+  },
+  "by_metric": {
+    "pixel_corr": {
+      "pearson": 0.8505395829746483,
+      "spearman": 1.0
+    },
+    "ssim": {
+      "pearson": 0.6656207105463794,
+      "spearman": 0.5
+    },
+    "lpips": {
+      "pearson": -0.1585490521286315,
+      "spearman": 0.5
+    },
+    "clip": {
+      "pearson": -0.26963866246499396,
+      "spearman": -0.5
+    },
+    "dino": {
+      "pearson": -0.35860646587831524,
+      "spearman": -0.5
+    }
+  },
+  "zero_corrected_positive_count": 0,
+  "mean_corrected_positive_count": 0
+}

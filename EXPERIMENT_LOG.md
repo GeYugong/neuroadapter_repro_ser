@@ -2691,3 +2691,151 @@ zero_max_abs_delta_non_target: 0.0
 
 本条在任何 mean-mask 结果产生前写入。后续不得根据观察结果修改主要
 样本、ROI overlap 阈值、随机对照、指标、双侧检验或多重校正范围。
+
+## 2026-07-26 E2b mean-mask 完整执行记录
+
+### ROI purity 与 frozen control contamination
+
+使用 `all_roi_overlaps` 和正式 zero plan 完成纯 CPU 审计：
+
+```text
+target parcels: 59
+target/off-target overlap 均 >=0.5: 8
+full controls target overlap >=0.5:
+  Face 0
+  Body 1
+  Scene 4
+```
+
+四档 pure-control 排除阈值下均可构造 5 组对照，但按预注册约束没有替换
+冻结 controls。产物位于 `experiments/E2_overlap_audit/`。
+
+### 统一评价器与 zero recheck
+
+评价器按 PNG SHA 缓存 CLIP/DINO embedding 与 LPIPS pair，并禁止静默
+下载模型。no-mask/repeat 必须在 PNG SHA 和五项指标上完全一致。
+
+重新评价既有正式 zero 输出后：
+
+```text
+recheck passed: true
+max primary excess absolute delta: 4.22e-6
+q crossing 0.05: 0
+sample/condition mismatch: 0
+```
+
+旧正式 zero 结果未覆盖。复核结果位于
+`experiments/E2_zero_full_recheck/`。
+
+### 训练集 mean cache
+
+独立使用 GPU 0 计算 Subject 1 全部 9000 个训练样本的 ParcelMapper
+输出均值，未读取测试/验证样本，也未读取无关刺激图片：
+
+```text
+path: outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt
+shape: [200, 768]
+dtype: float32
+checkpoint step: 100000
+checkpoint SHA: 2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40
+selected indices SHA: 8234686e6cfa686d0a5231605fabee568f27f72a101257c3b6261e66ba572a8a
+cache SHA: 283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e
+token norm mean/std: 126.1008 / 123.6819
+contains NaN/Inf: false / false
+```
+
+缓存采用临时文件、fsync 和 atomic rename 写入。验证后作为只读输入。
+
+### Plan 与 smoke
+
+mean plan 由正式 zero plan 机械转换。等价审计确认三个类别的 dataset
+indices、matching audit、target/random/unrelated indices 完全相同。
+
+smoke 使用 Face/Body/Scene 各第一张正式图片、seed 12345 和完整条件集：
+
+```text
+3/3 images
+39/39 conditions
+max non-target delta: 0.0
+mean target all-zero: false
+zero/mean no-mask SHA mismatch: 0
+unified evaluator: PASS
+```
+
+### 正式 GPU 运行
+
+8 张空闲 A40 并行运行 9 个 category-seed 任务，没有终止或修改其他
+用户进程。GPU 0 在 Face 完成后顺序运行最后一个 Scene 任务。
+
+| Seed | Face | Body | Scene |
+| ---: | ---: | ---: | ---: |
+| 12345 | 1125.36 s | 1637.03 s | 1639.71 s |
+| 23456 | 1129.08 s | 1636.15 s | 1636.23 s |
+| 34567 | 1127.79 s | 1637.18 s | 1619.45 s |
+
+完整性审计：
+
+```text
+9/9 runs
+411/411 determinism checks
+5499/5499 intervention audits
+max_abs_delta_non_target: 0.0
+zero/mean no-mask SHA mismatch: 0
+failures: []
+run commit: da3de7c853f9504cb0dd3eefebcabb2eda6515aa
+```
+
+服务器大输出位于：
+
+```text
+outputs/roi_ablation/E2_top_snr_causal_mean_full
+```
+
+### 正式主要结果
+
+正值表示类别匹配 ROI 的重建损失大于 5 组 matched-random 均值。
+
+| 类别 | 指标 | Mean excess | 95% CI | p | 全局 q |
+| --- | --- | ---: | --- | ---: | ---: |
+| Face | PixCorr | 0.00290 | [0.00040, 0.00572] | 0.0420 | 0.3154 |
+| Face | SSIM | 0.00025 | [-0.00085, 0.00136] | 0.6668 | 0.9631 |
+| Face | LPIPS | -0.00017 | [-0.00175, 0.00164] | 0.8564 | 0.9833 |
+| Face | CLIP | -0.00008 | [-0.00653, 0.00717] | 0.9833 | 0.9833 |
+| Face | DINO | -0.00413 | [-0.01028, 0.00228] | 0.2081 | 0.8046 |
+| Body | PixCorr | -0.00487 | [-0.01530, 0.00505] | 0.3611 | 0.8046 |
+| Body | SSIM | -0.00217 | [-0.00685, 0.00247] | 0.3755 | 0.8046 |
+| Body | LPIPS | 0.00019 | [-0.00427, 0.00489] | 0.9367 | 0.9833 |
+| Body | CLIP | 0.01667 | [0.00363, 0.03025] | 0.0172 | 0.2580 |
+| Body | DINO | 0.00705 | [-0.01545, 0.03037] | 0.5547 | 0.9245 |
+| Scene | PixCorr | -0.00509 | [-0.01501, 0.00473] | 0.3211 | 0.8046 |
+| Scene | SSIM | -0.00322 | [-0.00829, 0.00210] | 0.2427 | 0.8046 |
+| Scene | LPIPS | -0.00178 | [-0.00619, 0.00253] | 0.4390 | 0.8231 |
+| Scene | CLIP | -0.00241 | [-0.01453, 0.00927] | 0.7063 | 0.9631 |
+| Scene | DINO | -0.00161 | [-0.02028, 0.01544] | 0.8637 | 0.9833 |
+
+没有校正显著的正向主要结果。Body equal-k CLIP 出现显著负向 excess，
+方向不支持假设。
+
+### Zero 与 mean 稳健性
+
+```text
+same direction: 10/15
+positive same direction: 4/15
+negative same direction: 6/15
+Pearson: 0.2296
+Spearman: 0.4000
+corrected positive results: zero 0, mean 0
+mean-zero paired differences passing secondary BH: 0
+```
+
+Face、Body、Scene 三张正式 comparison grid 已逐行检查，未发现空白、
+损坏、样本错位或条件列异常。
+
+### 结论与停止点
+
+结果属于预定义情况 A：当前公开 Algonauts ROI 映射、step-100000
+checkpoint 和 zero/mean 两种 parcel 干预均未提供稳健的类别匹配 ROI
+额外因果贡献证据。这不等于这些脑区没有生物学功能。
+
+本阶段在 E2b 正式统计与文档完成后停止，不自动启动 3×3 交互、局部
+指标、dose-response、attention、训练新 checkpoint 或多被试实验。

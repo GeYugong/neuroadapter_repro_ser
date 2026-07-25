@@ -1,0 +1,921 @@
+{
+  "run_root": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/E2_top_snr_causal_full",
+  "metric_direction": {
+    "pixel_corr": "higher_is_better",
+    "ssim": "higher_is_better",
+    "lpips": "lower_is_better",
+    "clip": "higher_is_better",
+    "dino": "higher_is_better"
+  },
+  "causal_loss": "positive means masking degraded reconstruction",
+  "categories": {
+    "Face": {
+      "category": "Face",
+      "num_samples": 37,
+      "num_seeds": 3,
+      "statistical_unit": "image after averaging causal loss across seeds",
+      "conditions": {
+        "Body_unrelated_equal4_zero": {
+          "pixel_corr": 0.016693042483489944,
+          "ssim": 0.28529934314283883,
+          "lpips": 0.7064651814666955,
+          "clip": 0.5536786943405598,
+          "dino": 0.2340941521263606,
+          "causal_loss_mean": {
+            "pixel_corr": -0.003809259627707651,
+            "ssim": 0.003210425168750285,
+            "lpips": -0.0021308128898208205,
+            "clip": -0.004766107410997958,
+            "dino": 0.005231513180308514
+          }
+        },
+        "Face_full_zero": {
+          "pixel_corr": 0.012661580389520746,
+          "ssim": 0.2883513382351483,
+          "lpips": 0.70601998470925,
+          "clip": 0.5473912014617576,
+          "dino": 0.24657637242496283,
+          "causal_loss_mean": {
+            "pixel_corr": 0.00022220246626154794,
+            "ssim": 0.00015843007644073545,
+            "lpips": -0.002576009647266285,
+            "clip": 0.00152138546780423,
+            "dino": -0.007250707118293723
+          }
+        },
+        "Face_random_full_01_zero": {
+          "pixel_corr": 0.01741485888552842,
+          "ssim": 0.2890226731877417,
+          "lpips": 0.7078415214478433,
+          "clip": 0.5487615745346826,
+          "dino": 0.23530576744762896,
+          "causal_loss_mean": {
+            "pixel_corr": -0.004531076029746129,
+            "ssim": -0.0005129048761526069,
+            "lpips": -0.0007544729086729858,
+            "clip": 0.00015101239487931535,
+            "dino": 0.004019897859040144
+          }
+        },
+        "Face_random_full_02_zero": {
+          "pixel_corr": 0.014420364567559976,
+          "ssim": 0.2879621115688824,
+          "lpips": 0.7069322525917947,
+          "clip": 0.5470550103230519,
+          "dino": 0.24070481841897104,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0015365817117776836,
+            "ssim": 0.0005476567427066542,
+            "lpips": -0.0016637417647215698,
+            "clip": 0.0018575766065099218,
+            "dino": -0.0013791531123019554
+          }
+        },
+        "Face_random_full_03_zero": {
+          "pixel_corr": 0.013555218342467767,
+          "ssim": 0.2893592166236436,
+          "lpips": 0.7066368906347601,
+          "clip": 0.5452198415726155,
+          "dino": 0.24343979958998593,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0006714354866854754,
+            "ssim": -0.0008494483120544453,
+            "lpips": -0.001959103721756119,
+            "clip": 0.003692745356946378,
+            "dino": -0.004114134283316834
+          }
+        },
+        "Face_random_full_04_zero": {
+          "pixel_corr": 0.014382592347319546,
+          "ssim": 0.28881093217083265,
+          "lpips": 0.7070723981470675,
+          "clip": 0.5501103892519668,
+          "dino": 0.24690899391331383,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0014988094915372552,
+            "ssim": -0.00030116385924348075,
+            "lpips": -0.001523596209448737,
+            "clip": -0.0011978023224048786,
+            "dino": -0.0075833286066447295
+          }
+        },
+        "Face_random_full_05_zero": {
+          "pixel_corr": 0.01301118363938346,
+          "ssim": 0.2876576686438937,
+          "lpips": 0.7070961906029297,
+          "clip": 0.5466768537555728,
+          "dino": 0.2409640379115805,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0001274007836011683,
+            "ssim": 0.0008520996676953852,
+            "lpips": -0.0014998037535865027,
+            "clip": 0.002235733173988961,
+            "dino": -0.0016383726049113917
+          }
+        },
+        "no_mask": {
+          "pixel_corr": 0.012883782855782292,
+          "ssim": 0.2885097683115891,
+          "lpips": 0.7085959943565162,
+          "clip": 0.5489125869295619,
+          "dino": 0.2393256653066691
+        },
+        "no_mask_repeat": {
+          "pixel_corr": 0.012883782855782292,
+          "ssim": 0.2885097683115891,
+          "lpips": 0.7085959943565162,
+          "clip": 0.5489125869295619,
+          "dino": 0.2393256653066691
+        }
+      },
+      "target_vs_matched_random": {
+        "full": {
+          "target": "Face_full_zero",
+          "random_conditions": [
+            "Face_random_full_01_zero",
+            "Face_random_full_02_zero",
+            "Face_random_full_03_zero",
+            "Face_random_full_04_zero",
+            "Face_random_full_05_zero"
+          ],
+          "metrics": {
+            "pixel_corr": {
+              "target_causal_loss_mean": 0.00022220246626154786,
+              "random_causal_loss_mean": -0.001673060700669542,
+              "target_minus_random_mean": 0.0018952631669310908,
+              "ci95": [
+                -0.0009741353213702104,
+                0.0047984401201920605
+              ],
+              "sign_flip_p": 0.21883905804709763,
+              "bh_q_within_design": 0.5825958702064897,
+              "bh_q_primary_15_tests": 0.6016842015042104
+            },
+            "ssim": {
+              "target_causal_loss_mean": 0.00015843007644073545,
+              "random_causal_loss_mean": -5.275212740969857e-05,
+              "target_minus_random_mean": 0.00021118220385043404,
+              "ci95": [
+                -0.0010205256131934426,
+                0.0014272929339644268
+              ],
+              "sign_flip_p": 0.7417629118544072,
+              "bh_q_within_design": 0.927203639818009,
+              "bh_q_primary_15_tests": 0.7947459769868649
+            },
+            "lpips": {
+              "target_causal_loss_mean": -0.002576009647266285,
+              "random_causal_loss_mean": -0.0014801436716371829,
+              "target_minus_random_mean": -0.001095865975629102,
+              "ci95": [
+                -0.0028281875666197353,
+                0.0006784596287452418
+              ],
+              "sign_flip_p": 0.23303834808259588,
+              "bh_q_within_design": 0.5825958702064897,
+              "bh_q_primary_15_tests": 0.6016842015042104
+            },
+            "clip": {
+              "target_causal_loss_mean": 0.001521385467804229,
+              "random_causal_loss_mean": 0.0013478530419839395,
+              "target_minus_random_mean": 0.00017353242582028995,
+              "ci95": [
+                -0.007732563006716808,
+                0.008013031149769685
+              ],
+              "sign_flip_p": 0.9662016899155043,
+              "bh_q_within_design": 0.9662016899155044,
+              "bh_q_primary_15_tests": 0.9662016899155043
+            },
+            "dino": {
+              "target_causal_loss_mean": -0.007250707118293725,
+              "random_causal_loss_mean": -0.0021390181496269527,
+              "target_minus_random_mean": -0.005111688968666772,
+              "ci95": [
+                -0.01607454731945066,
+                0.0070118787793258
+              ],
+              "sign_flip_p": 0.4182790860456977,
+              "bh_q_within_design": 0.6971318100761628,
+              "bh_q_primary_15_tests": 0.6596942880128721
+            }
+          }
+        }
+      }
+    },
+    "Body": {
+      "category": "Body",
+      "num_samples": 50,
+      "num_seeds": 3,
+      "statistical_unit": "image after averaging causal loss across seeds",
+      "conditions": {
+        "Body_equal4_zero": {
+          "pixel_corr": 0.04786015595076133,
+          "ssim": 0.30883294292235564,
+          "lpips": 0.6917851122220358,
+          "clip": 0.5872326965133349,
+          "dino": 0.26508524430915714,
+          "causal_loss_mean": {
+            "pixel_corr": -0.004626683333769561,
+            "ssim": -0.0009852155643700878,
+            "lpips": -0.0008859161535898845,
+            "clip": -0.003909736375013987,
+            "dino": -0.005767618119716644
+          }
+        },
+        "Body_full_zero": {
+          "pixel_corr": 0.04814220144824432,
+          "ssim": 0.31210911722160345,
+          "lpips": 0.6975538686911265,
+          "clip": 0.5759272913138072,
+          "dino": 0.2562976597559949,
+          "causal_loss_mean": {
+            "pixel_corr": -0.004908728831252559,
+            "ssim": -0.004261389863617855,
+            "lpips": 0.004882840315500895,
+            "clip": 0.0073956688245137535,
+            "dino": 0.0030199664334456125
+          }
+        },
+        "Body_random_equal4_01_zero": {
+          "pixel_corr": 0.0464397977291471,
+          "ssim": 0.3065881201941638,
+          "lpips": 0.6916171495119731,
+          "clip": 0.5807927263776461,
+          "dino": 0.2576709666320433,
+          "causal_loss_mean": {
+            "pixel_corr": -0.003206325112155338,
+            "ssim": 0.0012596071638217795,
+            "lpips": -0.0010538788636525471,
+            "clip": 0.0025302337606747946,
+            "dino": 0.0016466595573971668
+          }
+        },
+        "Body_random_equal4_02_zero": {
+          "pixel_corr": 0.045341672540457616,
+          "ssim": 0.307676430690404,
+          "lpips": 0.6926073702176412,
+          "clip": 0.5869118897120158,
+          "dino": 0.2690200249198824,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0021081999234658527,
+            "ssim": 0.0001712966675815784,
+            "lpips": -6.365815798441569e-05,
+            "clip": -0.003588929573694865,
+            "dino": -0.009702398730441928
+          }
+        },
+        "Body_random_equal4_03_zero": {
+          "pixel_corr": 0.039712684030026826,
+          "ssim": 0.3070367922387051,
+          "lpips": 0.6958921555678049,
+          "clip": 0.5807934812704723,
+          "dino": 0.25286936447645225,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0035207885869649315,
+            "ssim": 0.0008109351192804955,
+            "lpips": 0.003221127192179362,
+            "clip": 0.0025294788678487143,
+            "dino": 0.006448261712988217
+          }
+        },
+        "Body_random_equal4_04_zero": {
+          "pixel_corr": 0.03316683530438405,
+          "ssim": 0.299572171486919,
+          "lpips": 0.6950003465016683,
+          "clip": 0.5849901787439982,
+          "dino": 0.25980261066307625,
+          "causal_loss_mean": {
+            "pixel_corr": 0.010066637312607707,
+            "ssim": 0.008275555871066601,
+            "lpips": 0.002329318126042684,
+            "clip": -0.0016672186056772868,
+            "dino": -0.000484984473635753
+          }
+        },
+        "Body_random_equal4_05_zero": {
+          "pixel_corr": 0.04433773308394668,
+          "ssim": 0.31006957329265644,
+          "lpips": 0.6969123125076294,
+          "clip": 0.580937627851963,
+          "dino": 0.2536478089975814,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0011042604669549338,
+            "ssim": -0.0022218459346708638,
+            "lpips": 0.004241284132003784,
+            "clip": 0.0023853322863578797,
+            "dino": 0.0056698171918590865
+          }
+        },
+        "Body_random_full_01_zero": {
+          "pixel_corr": 0.04730584846523539,
+          "ssim": 0.30831100111796295,
+          "lpips": 0.6973879190286001,
+          "clip": 0.5719469170769056,
+          "dino": 0.2423419700562954,
+          "causal_loss_mean": {
+            "pixel_corr": -0.004072375848243637,
+            "ssim": -0.0004632737599772845,
+            "lpips": 0.004716890652974447,
+            "clip": 0.011376043061415354,
+            "dino": 0.016975656133145094
+          }
+        },
+        "Body_random_full_02_zero": {
+          "pixel_corr": 0.048803249906467235,
+          "ssim": 0.3095141386373742,
+          "lpips": 0.6976224772135416,
+          "clip": 0.5694259887933731,
+          "dino": 0.2440493912870685,
+          "causal_loss_mean": {
+            "pixel_corr": -0.005569777289475473,
+            "ssim": -0.0016664112793885754,
+            "lpips": 0.004951448837916057,
+            "clip": 0.013896971344947814,
+            "dino": 0.015268234902371962
+          }
+        },
+        "Body_random_full_03_zero": {
+          "pixel_corr": 0.02579130391126073,
+          "ssim": 0.29777810517804953,
+          "lpips": 0.6961106185118358,
+          "clip": 0.5845127548774084,
+          "dino": 0.24926618233943978,
+          "causal_loss_mean": {
+            "pixel_corr": 0.01744216870573103,
+            "ssim": 0.010069622179936117,
+            "lpips": 0.0034395901362101237,
+            "clip": -0.0011897947390874227,
+            "dino": 0.0100514438500007
+          }
+        },
+        "Body_random_full_04_zero": {
+          "pixel_corr": 0.049538676826875065,
+          "ssim": 0.3039505886164516,
+          "lpips": 0.6926945972442627,
+          "clip": 0.5770279456178348,
+          "dino": 0.24760825153440236,
+          "causal_loss_mean": {
+            "pixel_corr": -0.006305204209883322,
+            "ssim": 0.0038971387415340105,
+            "lpips": 2.3568868637084962e-05,
+            "clip": 0.006295014520486196,
+            "dino": 0.011709374655038119
+          }
+        },
+        "Body_random_full_05_zero": {
+          "pixel_corr": 0.0507113332659586,
+          "ssim": 0.3051841442989594,
+          "lpips": 0.6894726284344991,
+          "clip": 0.5872549037138621,
+          "dino": 0.2680510947946459,
+          "causal_loss_mean": {
+            "pixel_corr": -0.007477860648966841,
+            "ssim": 0.002663583059026123,
+            "lpips": -0.0031983999411265055,
+            "clip": -0.003931943575541178,
+            "dino": -0.008733468605205416
+          }
+        },
+        "Scene_unrelated_equal4_zero": {
+          "pixel_corr": 0.04220257349839952,
+          "ssim": 0.3071522830698271,
+          "lpips": 0.698512906630834,
+          "clip": 0.5786522918939591,
+          "dino": 0.25017654442228376,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0010308991185922363,
+            "ssim": 0.0006954442881585139,
+            "lpips": 0.005841878255208334,
+            "clip": 0.004670668244361877,
+            "dino": 0.00914108176715672
+          }
+        },
+        "no_mask": {
+          "pixel_corr": 0.043233472616991765,
+          "ssim": 0.30784772735798555,
+          "lpips": 0.6926710283756257,
+          "clip": 0.583322960138321,
+          "dino": 0.2593176261894405
+        },
+        "no_mask_repeat": {
+          "pixel_corr": 0.043233472616991765,
+          "ssim": 0.30784772735798555,
+          "lpips": 0.6926710283756257,
+          "clip": 0.583322960138321,
+          "dino": 0.2593176261894405
+        }
+      },
+      "target_vs_matched_random": {
+        "equal4": {
+          "target": "Body_equal4_zero",
+          "random_conditions": [
+            "Body_random_equal4_01_zero",
+            "Body_random_equal4_02_zero",
+            "Body_random_equal4_03_zero",
+            "Body_random_equal4_04_zero",
+            "Body_random_equal4_05_zero"
+          ],
+          "metrics": {
+            "pixel_corr": {
+              "target_causal_loss_mean": -0.00462668333376956,
+              "random_causal_loss_mean": 0.0014337280793993025,
+              "target_minus_random_mean": -0.006060411413168863,
+              "ci95": [
+                -0.012393027463387203,
+                -0.0002111916365375042
+              ],
+              "sign_flip_p": 0.06219689015549223,
+              "bh_q_within_design": 0.15549222538873056
+            },
+            "ssim": {
+              "target_causal_loss_mean": -0.0009852155643700882,
+              "random_causal_loss_mean": 0.001659109777415918,
+              "target_minus_random_mean": -0.0026443253417860056,
+              "ci95": [
+                -0.005946944497038674,
+                0.0005768429367716512
+              ],
+              "sign_flip_p": 0.11884405779711014,
+              "bh_q_within_design": 0.19807342966185024
+            },
+            "lpips": {
+              "target_causal_loss_mean": -0.0008859161535898843,
+              "random_causal_loss_mean": 0.0017348384857177731,
+              "target_minus_random_mean": -0.002620754639307658,
+              "ci95": [
+                -0.004957706445455551,
+                -0.0004995113015174866
+              ],
+              "sign_flip_p": 0.02439878006099695,
+              "bh_q_within_design": 0.12199390030498475
+            },
+            "clip": {
+              "target_causal_loss_mean": -0.003909736375013988,
+              "random_causal_loss_mean": 0.00043777934710184706,
+              "target_minus_random_mean": -0.004347515722115835,
+              "ci95": [
+                -0.010543797270456949,
+                0.0016377385819951685
+              ],
+              "sign_flip_p": 0.17339133043347832,
+              "bh_q_within_design": 0.2167391630418479
+            },
+            "dino": {
+              "target_causal_loss_mean": -0.005767618119716644,
+              "random_causal_loss_mean": 0.0007154710516333586,
+              "target_minus_random_mean": -0.006483089171350004,
+              "ci95": [
+                -0.01719440514926488,
+                0.003240833292823904
+              ],
+              "sign_flip_p": 0.23073846307684615,
+              "bh_q_within_design": 0.23073846307684615
+            }
+          }
+        },
+        "full": {
+          "target": "Body_full_zero",
+          "random_conditions": [
+            "Body_random_full_01_zero",
+            "Body_random_full_02_zero",
+            "Body_random_full_03_zero",
+            "Body_random_full_04_zero",
+            "Body_random_full_05_zero"
+          ],
+          "metrics": {
+            "pixel_corr": {
+              "target_causal_loss_mean": -0.004908728831252559,
+              "random_causal_loss_mean": -0.0011966098581676471,
+              "target_minus_random_mean": -0.0037121189730849125,
+              "ci95": [
+                -0.01344813616099517,
+                0.006426438327158626
+              ],
+              "sign_flip_p": 0.472076396180191,
+              "bh_q_within_design": 0.6864656767161642,
+              "bh_q_primary_15_tests": 0.6596942880128721
+            },
+            "ssim": {
+              "target_causal_loss_mean": -0.004261389863617856,
+              "random_causal_loss_mean": 0.0029001317882260775,
+              "target_minus_random_mean": -0.0071615216518439336,
+              "ci95": [
+                -0.01148221160761735,
+                -0.0025720574061773513
+              ],
+              "sign_flip_p": 0.002849857507124644,
+              "bh_q_within_design": 0.014249287535623219,
+              "bh_q_primary_15_tests": 0.042747862606869656
+            },
+            "lpips": {
+              "target_causal_loss_mean": 0.004882840315500896,
+              "random_causal_loss_mean": 0.0019866197109222414,
+              "target_minus_random_mean": 0.0028962206045786538,
+              "ci95": [
+                -0.0019570421000321718,
+                0.007648693553606665
+              ],
+              "sign_flip_p": 0.2510874456277186,
+              "bh_q_within_design": 0.6277186140692965,
+              "bh_q_primary_15_tests": 0.6016842015042104
+            },
+            "clip": {
+              "target_causal_loss_mean": 0.0073956688245137535,
+              "random_causal_loss_mean": 0.005289258122444154,
+              "target_minus_random_mean": 0.0021064107020696025,
+              "ci95": [
+                -0.009095669093728066,
+                0.014488707860310864
+              ],
+              "sign_flip_p": 0.7326633668316584,
+              "bh_q_within_design": 0.7326633668316584,
+              "bh_q_primary_15_tests": 0.7947459769868649
+            },
+            "dino": {
+              "target_causal_loss_mean": 0.0030199664334456134,
+              "random_causal_loss_mean": 0.009054248187070095,
+              "target_minus_random_mean": -0.0060342817536244795,
+              "ci95": [
+                -0.025355994738529748,
+                0.013131803024901696
+              ],
+              "sign_flip_p": 0.5491725413729314,
+              "bh_q_within_design": 0.6864656767161642,
+              "bh_q_primary_15_tests": 0.6864656767161642
+            }
+          }
+        }
+      }
+    },
+    "Scene": {
+      "category": "Scene",
+      "num_samples": 50,
+      "num_seeds": 3,
+      "statistical_unit": "image after averaging causal loss across seeds",
+      "conditions": {
+        "Body_unrelated_equal4_zero": {
+          "pixel_corr": 0.11647763589802726,
+          "ssim": 0.3196152935248113,
+          "lpips": 0.7053003172079723,
+          "clip": 0.6147033309936524,
+          "dino": 0.15612302268855274,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0036329625780206687,
+            "ssim": -0.0003729197874945227,
+            "lpips": 0.0028084256251653034,
+            "clip": 0.00011585394541422526,
+            "dino": -0.00771461217974623
+          }
+        },
+        "Scene_equal4_zero": {
+          "pixel_corr": 0.11724365649795289,
+          "ssim": 0.3199551034134668,
+          "lpips": 0.7036934713522593,
+          "clip": 0.6130498937765757,
+          "dino": 0.15267253833512465,
+          "causal_loss_mean": {
+            "pixel_corr": -0.004398983177946272,
+            "ssim": -0.0007127296761500113,
+            "lpips": 0.001201579769452413,
+            "clip": 0.0017692911624908447,
+            "dino": -0.0042641278263181445
+          }
+        },
+        "Scene_full_zero": {
+          "pixel_corr": 0.11791427969740687,
+          "ssim": 0.31856780580296773,
+          "lpips": 0.7074089642365774,
+          "clip": 0.600540420015653,
+          "dino": 0.13186345870917043,
+          "causal_loss_mean": {
+            "pixel_corr": -0.005069606377400267,
+            "ssim": 0.0006745679343490322,
+            "lpips": 0.004917072653770446,
+            "clip": 0.014278764923413595,
+            "dino": 0.016544951799636085
+          }
+        },
+        "Scene_random_equal4_01_zero": {
+          "pixel_corr": 0.1130620033157372,
+          "ssim": 0.31716149743468314,
+          "lpips": 0.7031590781609217,
+          "clip": 0.6195485226313273,
+          "dino": 0.15743524274478357,
+          "causal_loss_mean": {
+            "pixel_corr": -0.00021732999573057928,
+            "ssim": 0.0020808763026336705,
+            "lpips": 0.0006671865781148274,
+            "clip": -0.004729337692260742,
+            "dino": -0.009026832235977054
+          }
+        },
+        "Scene_random_equal4_02_zero": {
+          "pixel_corr": 0.11159781173069087,
+          "ssim": 0.31915995962722965,
+          "lpips": 0.7042754475275675,
+          "clip": 0.617101371884346,
+          "dino": 0.14535562454179551,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0012468615893157168,
+            "ssim": 8.241411008713511e-05,
+            "lpips": 0.0017835559447606404,
+            "clip": -0.002282186945279439,
+            "dino": 0.003052785967011005
+          }
+        },
+        "Scene_random_equal4_03_zero": {
+          "pixel_corr": 0.11443451714751317,
+          "ssim": 0.3193240621056993,
+          "lpips": 0.7051824673016867,
+          "clip": 0.6093121496836345,
+          "dino": 0.14665721862421682,
+          "causal_loss_mean": {
+            "pixel_corr": -0.0015898438275065469,
+            "ssim": -8.168836838254377e-05,
+            "lpips": 0.0026905757188797,
+            "clip": 0.005507035255432129,
+            "dino": 0.001751191884589692
+          }
+        },
+        "Scene_random_equal4_04_zero": {
+          "pixel_corr": 0.11149598723823795,
+          "ssim": 0.3165997140949215,
+          "lpips": 0.7042952032883962,
+          "clip": 0.6194848531484604,
+          "dino": 0.15574514515077073,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0013486860817686626,
+            "ssim": 0.0026426596423952215,
+            "lpips": 0.0018033117055892944,
+            "clip": -0.0046656682093938195,
+            "dino": -0.007336734641964237
+          }
+        },
+        "Scene_random_equal4_05_zero": {
+          "pixel_corr": 0.11143288272838836,
+          "ssim": 0.31270619938204264,
+          "lpips": 0.7063251344362894,
+          "clip": 0.616761999130249,
+          "dino": 0.14303226926674445,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0014117905916182776,
+            "ssim": 0.006536174355274131,
+            "lpips": 0.0038332428534825643,
+            "clip": -0.0019428141911824544,
+            "dino": 0.005376141242062052
+          }
+        },
+        "Scene_random_full_01_zero": {
+          "pixel_corr": 0.10978578287352604,
+          "ssim": 0.31305716555298907,
+          "lpips": 0.7034002695480982,
+          "clip": 0.598134207725525,
+          "dino": 0.13491374688843885,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0030588904464805508,
+            "ssim": 0.006185208184327672,
+            "lpips": 0.0009083779652913411,
+            "clip": 0.016684977213541667,
+            "dino": 0.013494663620367647
+          }
+        },
+        "Scene_random_full_02_zero": {
+          "pixel_corr": 0.10159421242596497,
+          "ssim": 0.3105204936607671,
+          "lpips": 0.7044984922806422,
+          "clip": 0.6050648774703343,
+          "dino": 0.1346414045849815,
+          "causal_loss_mean": {
+            "pixel_corr": 0.01125046089404163,
+            "ssim": 0.008721880076549672,
+            "lpips": 0.0020066006978352864,
+            "clip": 0.009754307468732197,
+            "dino": 0.013767005923825005
+          }
+        },
+        "Scene_random_full_03_zero": {
+          "pixel_corr": 0.11102921458341744,
+          "ssim": 0.318129849404656,
+          "lpips": 0.709873219927152,
+          "clip": 0.614652783870697,
+          "dino": 0.14984429750591516,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0018154587365891484,
+            "ssim": 0.001112524332660724,
+            "lpips": 0.007381328344345093,
+            "clip": 0.0001664010683695475,
+            "dino": -0.0014358869971086582
+          }
+        },
+        "Scene_random_full_04_zero": {
+          "pixel_corr": 0.10442838155436872,
+          "ssim": 0.3138678283879865,
+          "lpips": 0.7060644666353861,
+          "clip": 0.6089275682965914,
+          "dino": 0.13999089676576357,
+          "causal_loss_mean": {
+            "pixel_corr": 0.008416291765637877,
+            "ssim": 0.00537454534933028,
+            "lpips": 0.003572575052579244,
+            "clip": 0.005891616642475128,
+            "dino": 0.008417513743042946
+          }
+        },
+        "Scene_random_full_05_zero": {
+          "pixel_corr": 0.11030157882496584,
+          "ssim": 0.32051262201741887,
+          "lpips": 0.70279066046079,
+          "clip": 0.6036856029431025,
+          "dino": 0.1396886677419146,
+          "causal_loss_mean": {
+            "pixel_corr": 0.0025430944950407884,
+            "ssim": -0.001270248280102065,
+            "lpips": 0.0002987688779830933,
+            "clip": 0.01113358199596405,
+            "dino": 0.008719742766891917
+          }
+        },
+        "no_mask": {
+          "pixel_corr": 0.11284467332000661,
+          "ssim": 0.3192423737373168,
+          "lpips": 0.7024918915828069,
+          "clip": 0.6148191849390666,
+          "dino": 0.14840841050880652
+        },
+        "no_mask_repeat": {
+          "pixel_corr": 0.11284467332000661,
+          "ssim": 0.3192423737373168,
+          "lpips": 0.7024918915828069,
+          "clip": 0.6148191849390666,
+          "dino": 0.14840841050880652
+        }
+      },
+      "target_vs_matched_random": {
+        "equal4": {
+          "target": "Scene_equal4_zero",
+          "random_conditions": [
+            "Scene_random_equal4_01_zero",
+            "Scene_random_equal4_02_zero",
+            "Scene_random_equal4_03_zero",
+            "Scene_random_equal4_04_zero",
+            "Scene_random_equal4_05_zero"
+          ],
+          "metrics": {
+            "pixel_corr": {
+              "target_causal_loss_mean": -0.004398983177946272,
+              "random_causal_loss_mean": 0.0004400328878931064,
+              "target_minus_random_mean": -0.004839016065839378,
+              "ci95": [
+                -0.013055523933763859,
+                0.0015159872652261046
+              ],
+              "sign_flip_p": 0.21948902554872257,
+              "bh_q_within_design": 0.5105744712764362
+            },
+            "ssim": {
+              "target_causal_loss_mean": -0.0007127296761500111,
+              "random_causal_loss_mean": 0.0022520872084015233,
+              "target_minus_random_mean": -0.002964816884551534,
+              "ci95": [
+                -0.005984494843775059,
+                -0.00045965413109810745
+              ],
+              "sign_flip_p": 0.032698365081745916,
+              "bh_q_within_design": 0.16349182540872959
+            },
+            "lpips": {
+              "target_causal_loss_mean": 0.001201579769452413,
+              "random_causal_loss_mean": 0.0021555745601654053,
+              "target_minus_random_mean": -0.0009539947907129924,
+              "ci95": [
+                -0.00340178283850352,
+                0.001280909517407417
+              ],
+              "sign_flip_p": 0.43862806859657016,
+              "bh_q_within_design": 0.5105744712764362
+            },
+            "clip": {
+              "target_causal_loss_mean": 0.0017692911624908447,
+              "random_causal_loss_mean": -0.0016225943565368647,
+              "target_minus_random_mean": 0.003391885519027709,
+              "ci95": [
+                -0.0035071822434663774,
+                0.01037275446951389
+              ],
+              "sign_flip_p": 0.3426328683565822,
+              "bh_q_within_design": 0.5105744712764362
+            },
+            "dino": {
+              "target_causal_loss_mean": -0.004264127826318145,
+              "random_causal_loss_mean": -0.0012366895568557087,
+              "target_minus_random_mean": -0.0030274382694624354,
+              "ci95": [
+                -0.011748632638397006,
+                0.006194601621319693
+              ],
+              "sign_flip_p": 0.5105744712764362,
+              "bh_q_within_design": 0.5105744712764362
+            }
+          }
+        },
+        "full": {
+          "target": "Scene_full_zero",
+          "random_conditions": [
+            "Scene_random_full_01_zero",
+            "Scene_random_full_02_zero",
+            "Scene_random_full_03_zero",
+            "Scene_random_full_04_zero",
+            "Scene_random_full_05_zero"
+          ],
+          "metrics": {
+            "pixel_corr": {
+              "target_causal_loss_mean": -0.0050696063774002655,
+              "random_causal_loss_mean": 0.005416839267557998,
+              "target_minus_random_mean": -0.010486445644958264,
+              "ci95": [
+                -0.024966209761988788,
+                0.003632232908843576
+              ],
+              "sign_flip_p": 0.15799210039498024,
+              "bh_q_within_design": 0.46410179491025444,
+              "bh_q_primary_15_tests": 0.6016842015042104
+            },
+            "ssim": {
+              "target_causal_loss_mean": 0.0006745679343490322,
+              "random_causal_loss_mean": 0.004024781932553257,
+              "target_minus_random_mean": -0.0033502139982042245,
+              "ci95": [
+                -0.010002210579828372,
+                0.003784074319599368
+              ],
+              "sign_flip_p": 0.37128143592820356,
+              "bh_q_within_design": 0.46410179491025444,
+              "bh_q_primary_15_tests": 0.6596942880128721
+            },
+            "lpips": {
+              "target_causal_loss_mean": 0.0049170726537704455,
+              "random_causal_loss_mean": 0.0028335301876068115,
+              "target_minus_random_mean": 0.002083542466163635,
+              "ci95": [
+                -0.0038248545318841937,
+                0.00789106226960818
+              ],
+              "sign_flip_p": 0.4837758112094395,
+              "bh_q_within_design": 0.4837758112094395,
+              "bh_q_primary_15_tests": 0.6596942880128721
+            },
+            "clip": {
+              "target_causal_loss_mean": 0.014278764923413593,
+              "random_causal_loss_mean": 0.008726176877816518,
+              "target_minus_random_mean": 0.005552588045597078,
+              "ci95": [
+                -0.004069852600991724,
+                0.01560005156546831
+              ],
+              "sign_flip_p": 0.2807859607019649,
+              "bh_q_within_design": 0.46410179491025444,
+              "bh_q_primary_15_tests": 0.6016842015042104
+            },
+            "dino": {
+              "target_causal_loss_mean": 0.01654495179963609,
+              "random_causal_loss_mean": 0.008592607811403773,
+              "target_minus_random_mean": 0.007952343988232314,
+              "ci95": [
+                -0.004271962816702824,
+                0.020694477153018413
+              ],
+              "sign_flip_p": 0.22598870056497175,
+              "bh_q_within_design": 0.46410179491025444,
+              "bh_q_primary_15_tests": 0.6016842015042104
+            }
+          }
+        }
+      }
+    }
+  },
+  "model_metadata": {
+    "clip_checkpoint": "/public/home/mty/.cache/clip/RN50.pt",
+    "clip_checkpoint_sha256": "afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762",
+    "dinov2_repo": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/torch_hub/facebookresearch_dinov2_main",
+    "lpips_package_root": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics",
+    "clip_preprocess": "Compose(\n    Resize(size=224, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    <function _convert_image_to_rgb at 0x7fcbdaa1c790>\n    ToTensor()\n    Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711))\n)",
+    "dino_preprocess": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))\n)",
+    "lpips_preprocess": "Compose(\n    Resize(size=(256, 256), interpolation=bilinear, max_size=None, antialias=True)\n    ToTensor()\n    Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))\n)",
+    "torch_version": "2.4.1+cu121"
+  },
+  "primary_multiplicity": {
+    "family": "3 categories x 5 metrics, full-group target vs matched random",
+    "method": "Benjamini-Hochberg",
+    "num_tests": 15
+  },
+  "content_addressed_cache": {
+    "embedding_computations": {
+      "clip": 5225,
+      "dino": 5225
+    },
+    "pair_computations": {
+      "lpips": 5088
+    }
+  }
+}

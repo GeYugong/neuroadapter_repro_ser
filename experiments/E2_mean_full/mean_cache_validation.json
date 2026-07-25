@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "shape": [
+    200,
+    768
+  ],
+  "dtype": "torch.float32",
+  "subject": 1,
+  "split": "train",
+  "num_train_samples": 9000,
+  "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+  "checkpoint_step": 100000,
+  "selected_parcel_idx_sha256": "8234686e6cfa686d0a5231605fabee568f27f72a101257c3b6261e66ba572a8a",
+  "sub_approach": "linear_projection",
+  "intervention_stage": "after_parcel_mapper_before_token_mapper",
+  "token_norm_mean": 126.10078430175781,
+  "token_norm_std": 123.68193817138672,
+  "token_value_mean": 0.002670761663466692,
+  "token_value_std": 6.373633861541748,
+  "contains_nan": false,
+  "contains_inf": false,
+  "passed": true
+}

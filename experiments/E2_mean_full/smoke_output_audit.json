@@ -1,0 +1,49 @@
+{
+  "run_root": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/E2_top_snr_causal_mean_smoke",
+  "plan": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_mean_full/plan/launch_smoke/smoke_plan.json",
+  "passed": true,
+  "runs": [
+    {
+      "seed": 12345,
+      "category": "Face",
+      "images": 1,
+      "conditions": 9,
+      "elapsed_sec": 30.78536890493706,
+      "determinism_checks_passed": 1,
+      "intervention_audits": 9
+    },
+    {
+      "seed": 12345,
+      "category": "Body",
+      "images": 1,
+      "conditions": 15,
+      "elapsed_sec": 31.79746941756457,
+      "determinism_checks_passed": 1,
+      "intervention_audits": 15
+    },
+    {
+      "seed": 12345,
+      "category": "Scene",
+      "images": 1,
+      "conditions": 15,
+      "elapsed_sec": 33.28381913015619,
+      "determinism_checks_passed": 1,
+      "intervention_audits": 15
+    }
+  ],
+  "total_runs": 3,
+  "total_image_seed_pairs": 3,
+  "total_determinism_checks_passed": 3,
+  "total_intervention_audits": 39,
+  "max_abs_delta_non_target": 0.0,
+  "checkpoint_hashes": [
+    "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40"
+  ],
+  "mean_cache_hashes": [
+    "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+  ],
+  "repository_commits": [
+    "2084b29e767d124cf14f3cf5be9c46dd406c2afe"
+  ],
+  "failures": []
+}

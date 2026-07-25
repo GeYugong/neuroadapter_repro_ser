@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "categories": {
+    "Face": {
+      "dataset_indices_identical": true,
+      "matching_audit_identical": true,
+      "condition_count": 9
+    },
+    "Body": {
+      "dataset_indices_identical": true,
+      "matching_audit_identical": true,
+      "condition_count": 15
+    },
+    "Scene": {
+      "dataset_indices_identical": true,
+      "matching_audit_identical": true,
+      "condition_count": 15
+    }
+  },
+  "normalized_plans_identical": true
+}

@@ -4,8 +4,8 @@
 
 ## 当前范围
 
-阶段 A、B、30 图 E2 pilot 和正式 E2 zero-mask 实验均已完成。没有训练
-新模型。
+阶段 A、B、30 图 E2 pilot、正式 E2 zero-mask 和预注册 E2b mean-mask
+稳健性实验均已完成。没有训练新模型。
 附录 P 复现尝试以及已有的 50 样本 zero-mask 输出保留在
 `experiments/roi_ablation/` 下，作为历史性/探索性工作。
 
@@ -152,13 +152,28 @@ conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
   --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
 ```
 
-## 当前阶段：E2b mean-mask 稳健性分析
+## E2b mean-mask 稳健性分析
 
-E2b 已在查看 mean-mask 结果前预注册。它只把 parcel 干预值从全零改为
-Subject 1 训练集在 `ParcelMapper` 输出上的逐 parcel 均值，其他正式
-E2 条件全部冻结。正式 zero-mask 的原始输出、统计与负结论不得覆盖。
+E2b 在查看 mean 结果前预注册，只把 parcel 干预值从全零改为 Subject 1
+的 9000 个训练样本在 `ParcelMapper` 输出上的逐 parcel 均值。
 
-E2b 的主要统计仍以图像为单位，先平均同一图像的 3 个 seed，再对
-3 类别 × 5 指标的 15 项检验统一进行 BH 校正。运行前必须依次通过
-ROI/control overlap 审计、统一评价器 zero recheck、mean cache 验证、
-zero/mean plan 等价审计和 3 图工程 smoke。
+- zero recheck 主要 excess 最大变化 `4.22e-6`，没有 q 值跨越 0.05；
+- mean cache 为 `[200,768]`，无 NaN/Inf，checkpoint 与 selected
+  parcel 哈希验证通过；
+- zero/mean plan 的 dataset、target、random、unrelated indices 完全相同；
+- smoke 3/3 和正式 9/9 runs 通过；
+- 正式完成 411/411 确定性检查和 5499/5499 干预审计；
+- 非目标 parcel 最大变化为 `0.0`；
+- 每个 mean no-mask 与对应 zero no-mask 的 PNG SHA 完全一致。
+
+mean 的 15 项主要检验没有校正显著的正向结果。Face PixCorr 和 Body
+CLIP 的未校正 p 分别约为 0.042 和 0.017，但全局 q 为 0.315 和 0.258。
+Body equal-k CLIP 为校正显著的负向 excess，不支持原假设。
+
+zero 与 mean 有 10/15 项同方向，其中 4 项共同为正、6 项共同为负；
+整体 Pearson 为 `0.230`，Spearman 为 `0.400`。15 项 mean-zero 配对差异
+均未通过次要 BH 校正。
+
+按预定义规则属于情况 A：在当前公开 ROI 映射、当前 checkpoint 和两种
+parcel 干预方式下，没有获得稳健的类别匹配 ROI 额外因果贡献证据。
+这不等于这些脑区没有功能。

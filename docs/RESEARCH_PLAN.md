@@ -26,11 +26,12 @@
 
 ## 当前范围
 
-阶段 A/B、E2 zero-mask pilot 与正式 GPU 解码均已完成。正式实验没有
-发现校正显著的正向类别特异性效应，该负结果永久保留。当前进入预注册的
-E2b mean-mask 稳健性分析；除将全零替换改为训练集 parcel-wise mean
-替换外，样本、checkpoint、parcel、随机对照、seed、扩散参数、指标和
-统计方案均保持不变。本阶段不训练模型。
+阶段 A/B、E2 zero-mask pilot、正式 zero-mask 与预注册 E2b mean-mask
+GPU 解码均已完成。zero 和 mean 均没有发现校正显著的正向类别特异性
+效应，两个结果均永久保留。E2b 除将全零替换改为训练集 parcel-wise
+mean 外，样本、checkpoint、parcel、随机对照、seed、扩散参数、指标和
+统计方案保持不变。本阶段停止，不自动进入 3×3 交互、局部指标、剂量
+响应、attention 分析、新 checkpoint 训练或多被试实验。
 
 E0 发现所有通过公开数据映射出的功能 ROI 均有 100% 的保留率。因此，
 计划中的 ROI-balanced-200 训练对比已暂停：主映射结果不支持原先所假设

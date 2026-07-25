@@ -24,8 +24,8 @@ docs/DECISIONS.md
 
 ## 当前阶段结果
 
-阶段 A/B、30 图 E2 pilot 和正式 E2 zero-mask 实验均已完成，没有训练
-新模型。
+阶段 A/B、30 图 E2 pilot、正式 E2 zero-mask 和 E2b mean-mask
+稳健性实验均已完成，没有训练新模型。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
 - 服务器单元测试结果为 `23 passed`；
@@ -42,8 +42,13 @@ docs/DECISIONS.md
 - 正式实验完成 411 个 image-seed pairs 和 5499 个条件干预，所有确定性
   与非目标 token 审计通过；
 - 正式 15 项主要检验没有校正显著的正向结果，pilot 信号未复现。
-- 正式 zero-mask 结果作为不可覆盖的负结果保留；当前已预注册 E2b
-  mean-mask 稳健性分析，用于检验该负结果是否依赖分布外的全零替换。
+- E2b 完成 411 个 image-seed pairs 和 5499 个 mean 干预审计，全部
+  工程门禁通过；
+- mean-mask 的 15 项主要检验同样没有校正显著的正向结果；
+- zero 与 mean 的 15 项效应有 10 项同方向，但整体相关性有限
+  （Pearson `0.230`，Spearman `0.400`）；
+- 因此正式结论是：当前公开 ROI 映射、100k checkpoint 与两种 parcel
+  干预均未提供稳健的类别匹配 ROI 额外因果贡献证据。
 
 详细证据、图表、限制和下一步门槛见 `docs/CURRENT_STATE.md`。
 
