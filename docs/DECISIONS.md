@@ -68,3 +68,25 @@ parcel 数量、半球、SNR 和大小匹配的随机对照比较。
 causal loss 求平均，再进行 bootstrap CI 和 sign-flip 检验。主要检验包含
 3 类 × 5 指标共 15 项，统一进行 Benjamini-Hochberg 校正。Body/Scene 的
 equal-k=4 结果只作为次要敏感性分析，不能替代主要 full-group 结果。
+
+## D010：E2b mean-mask 稳健性实验
+
+正式 zero-mask 的 15 项主要检验没有提供校正显著的正向证据。由于全零
+parcel token 可能偏离训练分布，E2b 使用训练集 parcel-wise mean 进行
+替换，以判断正式负结果是否依赖干预定义。
+
+mean token 定义为 Subject 1 训练集中每个样本经过 `ParcelMapper` 后所得
+`[200, 768]` token 在样本维度上的均值。干预位置固定为
+`after_parcel_mapper_before_token_mapper`，不得使用测试集、验证集、
+condition token、decoder query 或重建输出计算均值。
+
+E2b 与正式 zero-mask 使用相同 checkpoint、测试图、dataset indices、
+目标 ROI、5 组 matched-random controls、unrelated ROI、3 个 seed、
+扩散参数、latent/noise 配对、五项指标及统计单位。主要检验仍是
+3 类别 × 5 指标，共 15 项全局 BH 校正；不得根据结果调整范围或改用
+单侧检验。
+
+zero 与 mean 均无校正显著正向结果时，只能认为当前映射、checkpoint 和
+两种干预均未提供稳健证据。仅 mean 出现正向结果时，应解释为对干预方式
+敏感的候选效应；二者方向相反时不得形成稳健功能解释。正式 zero 结果
+不可覆盖、删除或重新选择性分析。

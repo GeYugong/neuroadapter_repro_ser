@@ -28,7 +28,7 @@ docs/DECISIONS.md
 新模型。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
-- 服务器单元测试结果为 `15 passed`；
+- 服务器单元测试结果为 `23 passed`；
 - E0 全 1000 parcel inventory 显示，公开映射得到的 97 个功能 ROI
   parcel 全部进入 top-SNR-200，因此没有观察到 Face、Word、V4
   覆盖不足；
@@ -42,6 +42,8 @@ docs/DECISIONS.md
 - 正式实验完成 411 个 image-seed pairs 和 5499 个条件干预，所有确定性
   与非目标 token 审计通过；
 - 正式 15 项主要检验没有校正显著的正向结果，pilot 信号未复现。
+- 正式 zero-mask 结果作为不可覆盖的负结果保留；当前已预注册 E2b
+  mean-mask 稳健性分析，用于检验该负结果是否依赖分布外的全零替换。
 
 详细证据、图表、限制和下一步门槛见 `docs/CURRENT_STATE.md`。
 

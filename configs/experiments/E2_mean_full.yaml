@@ -1,0 +1,33 @@
+name: E2_top_snr_causal_mean_full
+subject: 1
+checkpoint_step: 100000
+categories:
+  Face: 37
+  Body: 50
+  Scene: 50
+mask_modes: [mean]
+designs:
+  - full_group
+  - equal_k
+  - matched_random
+matched_random_controls: 5
+equal_k: 4
+seeds:
+  - 12345
+  - 23456
+  - 34567
+denoising_steps: 50
+noise_factor: 4.0
+condition_batch_size: 8
+primary_analysis: full_target_minus_mean_of_five_full_matched_random
+statistical_unit: image
+seed_aggregation: mean_causal_loss_per_image
+metrics:
+  - pixel_corr
+  - ssim
+  - lpips
+  - clip
+  - dino
+multiplicity: benjamini_hochberg_across_15_category_metric_tests
+source_zero_plan: outputs/e2/E2_top_snr_causal_full/plan/e2_pilot_plan.json
+mean_token_cache: outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt

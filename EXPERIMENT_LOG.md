@@ -2649,3 +2649,45 @@ Face PixCorr 和 Scene DINO 正向信号均未在正式样本与 3 seeds 中复�
 
 下一步先与合作者讨论该负结果，再决定是否预注册 mean-mask 稳健性分析。
 在此之前不根据结果反复改变 ROI、指标或样本集合。
+
+## 2026-07-26 E2b mean-mask 稳健性分析预注册与基线核验
+
+正式 zero-mask 负结果保持不变并禁止覆盖。为检验全零 token 是否属于
+训练分布外干预，启动 `E2b_top_snr_causal_mean_full`。唯一主要变化是
+把 zero replacement 改为 Subject 1 训练集 `ParcelMapper` 输出的
+parcel-wise mean replacement；测试图片、dataset indices、目标与随机
+parcel、unrelated control、checkpoint、3 个 seed、扩散参数、评价指标
+及 15 项全局 BH 校正范围全部冻结。
+
+本地从以下基线创建开发分支：
+
+```text
+baseline: d270682ae6166f8220dbe92320d5372261b88ae8
+branch: feat/e2b-mean-mask-robustness
+```
+
+服务器基线门禁重新执行：
+
+```bash
+PYTHONPATH="$PROJECT_ROOT/tools/test-deps:src" \
+  conda run -n neuroadapter python -m pytest -q
+python scripts/validate_stage_ab_artifacts.py
+conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
+  --checkpoint "$PROJECT_ROOT/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt" \
+  --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
+```
+
+结果：
+
+```text
+23 passed
+Stage A/B artifact validation: PASS
+checkpoint_step: 100000
+sub_approach: linear_projection
+parcel_token_shape: [1, 200, 768]
+no_mask_matches_reference: true
+zero_max_abs_delta_non_target: 0.0
+```
+
+本条在任何 mean-mask 结果产生前写入。后续不得根据观察结果修改主要
+样本、ROI overlap 阈值、随机对照、指标、双侧检验或多重校正范围。

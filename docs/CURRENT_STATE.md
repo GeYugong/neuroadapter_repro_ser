@@ -18,7 +18,7 @@
   parcel 在比特级完全不变，并记录 token norm 审计结果。
 - 均值替换使用训练集上的 ParcelMapper 输出，而不是 decoder query。
 - 未修改上游 NeuroAdapter checkout。
-- 服务器验证结果：`15 passed`。
+- 服务器验证结果：`23 passed`。
 - 真实 step-100000 checkpoint 的 smoke test 已通过。其 `sub_approach`
   为 `linear_projection`：fMRI `[1, 200, 626]` 被映射为
   `[1, 200, 768]` 的 parcel token 和 condition token，不经过
@@ -152,5 +152,13 @@ conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
   --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
 ```
 
-下一步应先与合作者讨论“正式 E2 未支持原假设”的科研含义，再决定是否
-把 mean-mask 作为预注册稳健性分析，或转向新的研究问题。
+## 当前阶段：E2b mean-mask 稳健性分析
+
+E2b 已在查看 mean-mask 结果前预注册。它只把 parcel 干预值从全零改为
+Subject 1 训练集在 `ParcelMapper` 输出上的逐 parcel 均值，其他正式
+E2 条件全部冻结。正式 zero-mask 的原始输出、统计与负结论不得覆盖。
+
+E2b 的主要统计仍以图像为单位，先平均同一图像的 3 个 seed，再对
+3 类别 × 5 指标的 15 项检验统一进行 BH 校正。运行前必须依次通过
+ROI/control overlap 审计、统一评价器 zero recheck、mean cache 验证、
+zero/mean plan 等价审计和 3 图工程 smoke。

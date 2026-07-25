@@ -33,8 +33,13 @@ parcel 的 ParcelMapper 输出在训练集上的均值。
 Face、Body 和 Scene 属于确认性分析。Word 保持探索性分析，除非至少有
 20 个经过审查的刺激可用。
 
-当前 E2 pilot 先只执行 zero-mask。训练集均值替换保留为后续稳健性分析，
-不属于本轮 30 图 pilot 的运行条件。
+30 图 pilot 和正式 E2 已按 zero-mask 完成。E2b 是独立预注册的
+mean-mask 稳健性分析；它必须复用正式 zero plan 中的样本和全部 parcel
+indices，只允许替换干预模式与条件名后缀。正式 zero 结果不可覆盖。
+
+E2b 的主要统计单位仍为图像。同一图像先平均 3 个 seed 的 causal loss，
+再计算双侧 sign-flip p、bootstrap 95% CI，并对 3 类别 × 5 指标共
+15 项主要检验统一进行 Benjamini-Hochberg 校正。
 
 ## 来源与可追溯性
 
