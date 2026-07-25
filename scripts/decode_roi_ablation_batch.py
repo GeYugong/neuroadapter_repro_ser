@@ -40,7 +40,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--condition-spec", type=Path, required=True)
     parser.add_argument("--run-name", required=True)
-    parser.add_argument("--num-samples", type=int, default=50)
+    parser.add_argument(
+        "--num-samples",
+        type=int,
+        help=(
+            "Optional sample limit. Defaults to 50 for contiguous ranges and "
+            "to all indices when --dataset-indices-file is used."
+        ),
+    )
     parser.add_argument("--start-idx", type=int, default=0)
     parser.add_argument(
         "--dataset-indices-file",
@@ -191,9 +198,10 @@ def run_diffusion_conditions(
 
 def load_dataset_indices(args: argparse.Namespace, dataset_size: int) -> list[int]:
     if args.dataset_indices_file is None:
-        if args.num_samples <= 0 or args.start_idx < 0:
+        num_samples = 50 if args.num_samples is None else args.num_samples
+        if num_samples <= 0 or args.start_idx < 0:
             raise ValueError("Sample count must be positive and start index non-negative")
-        indices = list(range(args.start_idx, args.start_idx + args.num_samples))
+        indices = list(range(args.start_idx, args.start_idx + num_samples))
     else:
         payload = json.loads(args.dataset_indices_file.read_text(encoding="utf-8"))
         indices = payload["dataset_indices"] if isinstance(payload, dict) else payload
@@ -202,6 +210,10 @@ def load_dataset_indices(args: argparse.Namespace, dataset_size: int) -> list[in
             raise ValueError("Explicit dataset index list must not be empty")
         if len(indices) != len(set(indices)):
             raise ValueError("Explicit dataset indices must be unique")
+        if args.num_samples is not None:
+            if args.num_samples <= 0:
+                raise ValueError("Sample limit must be positive")
+            indices = indices[: args.num_samples]
     if min(indices) < 0 or max(indices) >= dataset_size:
         raise ValueError(
             f"Requested dataset indices must be within [0, {dataset_size - 1}]"
