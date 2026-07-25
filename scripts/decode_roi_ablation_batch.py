@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -31,6 +32,7 @@ from brain_adapter.model import GuidanceGenerator
 from neuro_roi_causal.decoding import sample_seed
 from neuro_roi_causal.diffusion_pairing import shared_state_audit
 from neuro_roi_causal.interventions import apply_parcel_intervention
+from neuro_roi_causal.mean_cache import file_sha256, load_validated_cache
 from neuro_roi_causal.model_wrapper import map_fmri_to_parcel_tokens, parcel_tokens_to_condition
 from decode_limited import BrainIPAdapter, load_diffusion_models, setup_ip_adapter_modules
 
@@ -94,50 +96,20 @@ def make_dataset(tokenizer, checkpoint: dict, split: str, project_root: Path):
     )
 
 
-def compute_mean_tokens(guidance, dataset, device, dtype, batch_size, path: Path) -> torch.Tensor:
-    if path.exists():
-        cached = torch.load(path, map_location="cpu")
-        if "mean_parcel_tokens" not in cached:
-            raise ValueError(
-                f"{path} is a legacy condition-token mean cache; "
-                "parcel-level mean masking requires regeneration"
-            )
-        return cached["mean_parcel_tokens"].to(device=device, dtype=dtype)
-    total, count = None, 0
-    # Reading `dataset[idx]` also opens and resizes an NSD stimulus image.  The
-    # mean intervention only needs fMRI, so construct its parcel tensors from
-    # the HDF5 betas directly and avoid thousands of unrelated image reads.
-    base = dataset.base_dataset
-    brain_batches = []
-    for index in tqdm(range(len(dataset)), desc="mean tokens"):
-        data_indices = base.img_to_runs[index]
-        lh = torch.from_numpy(base.betas[0][data_indices]).mean(dim=0)
-        rh = torch.from_numpy(base.betas[1][data_indices]).mean(dim=0)
-        brain_batches.append(torch.cat([
-            dataset.extract_and_pad(lh, hemi="lh"),
-            dataset.extract_and_pad(rh, hemi="rh"),
-        ], dim=0))
-        if len(brain_batches) < batch_size and index + 1 < len(dataset):
-            continue
-        brain = torch.stack(brain_batches).to(device=device, dtype=dtype)
-        with torch.no_grad():
-            tokens = map_fmri_to_parcel_tokens(
-                guidance, brain, guidance.parcel_mapper.num_parcels
-            )
-        summed = tokens.float().sum(0)
-        total = summed if total is None else total + summed
-        count += tokens.shape[0]
-        brain_batches.clear()
-    if total is None:
-        raise RuntimeError("No training examples available to calculate mean tokens")
-    mean = total / count
-    path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({
-        "mean_parcel_tokens": mean.cpu(),
-        "num_train_samples": count,
-        "intervention_stage": "after_parcel_mapper_before_token_mapper",
-    }, path)
-    return mean.to(device=device, dtype=dtype)
+def load_mean_tokens(
+    path: Path,
+    checkpoint: dict,
+    checkpoint_path: Path,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> tuple[torch.Tensor, dict]:
+    cache = load_validated_cache(
+        path,
+        checkpoint_sha256=file_sha256(checkpoint_path),
+        selected_parcel_idx=checkpoint["selected_parcel_idx"],
+        subject=1,
+    )
+    return cache["mean_parcel_tokens"].to(device=device, dtype=dtype), cache
 
 
 def prepare_shared_diffusion_state(base_image, models, seed: int):
@@ -272,6 +244,7 @@ def main() -> None:
     for path in condition_dirs.values():
         path.mkdir()
     checkpoint = torch.load(args.checkpoint, map_location="cpu")
+    checkpoint_sha256 = file_sha256(args.checkpoint)
     config = checkpoint["config"]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dtype = torch.float16 if device.type == "cuda" else torch.float32
@@ -288,15 +261,16 @@ def main() -> None:
     test_dataset = make_dataset(tokenizer, checkpoint, "test", project_root)
     indices = load_dataset_indices(args, len(test_dataset))
     mean_tokens = None
+    mean_cache = None
     if requires_mean:
-        mean_tokens = compute_mean_tokens(
-            guidance,
-            make_dataset(tokenizer, checkpoint, "train", project_root),
+        mean_tokens, mean_cache = load_mean_tokens(
+            args.mean_token_path,
+            checkpoint,
+            args.checkpoint,
             device,
             dtype,
-            args.mean_batch_size,
-            args.mean_token_path,
         )
+    mean_cache_sha256 = file_sha256(args.mean_token_path) if requires_mean else None
 
     records = {name: [] for name in names}
     intervention_audits = {name: [] for name in names}
@@ -380,7 +354,7 @@ def main() -> None:
             grid.paste(image, (0, 256 * row))
         grid_path = condition_dirs[name] / "grid_gt_pred.png"
         grid.save(grid_path)
-        summary = {"run_name": args.run_name, "condition": condition, "checkpoint": str(args.checkpoint), "checkpoint_step": int(checkpoint["step"]), "sub_approach": config["sub_approach"], "seed": args.seed, "seed_strategy": "shared seed + dataset_idx; one latent/noise draw reused across all condition batches", "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "intervention_stage": "after_parcel_mapper_before_token_mapper", "intervention_audits": intervention_audits[name], "records": records[name], "grid": str(grid_path)}
+        summary = {"run_name": args.run_name, "condition": condition, "checkpoint": str(args.checkpoint), "checkpoint_sha256": checkpoint_sha256, "checkpoint_step": int(checkpoint["step"]), "sub_approach": config["sub_approach"], "seed": args.seed, "seed_strategy": "shared seed + dataset_idx; one latent/noise draw reused across all condition batches", "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "intervention_stage": "after_parcel_mapper_before_token_mapper", "mean_token_cache": str(args.mean_token_path) if requires_mean else None, "mean_token_cache_sha256": mean_cache_sha256, "intervention_audits": intervention_audits[name], "records": records[name], "grid": str(grid_path)}
         (condition_dirs[name] / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     determinism_checks = []
     if "no_mask" in condition_dirs and "no_mask_repeat" in condition_dirs:
@@ -400,7 +374,7 @@ def main() -> None:
                 raise RuntimeError(
                     f"Determinism check failed for dataset index {dataset_idx}"
                 )
-    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "condition_batch_size": args.condition_batch_size, "condition_batches_padded_to_fixed_size": True, "seed": args.seed, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
+    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "condition_batches_padded_to_fixed_size": True, "seed": args.seed, "repository_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPRO_ROOT, text=True).strip(), "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"), "gpu_name": torch.cuda.get_device_name(device) if device.type == "cuda" else None, "max_gpu_memory_bytes": int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0, "checkpoint": str(args.checkpoint), "checkpoint_sha256": checkpoint_sha256, "mean_token_cache": str(args.mean_token_path) if requires_mean else None, "mean_token_cache_sha256": mean_cache_sha256, "mean_token_cache_metadata": {key: mean_cache[key] for key in ("schema_version", "subject", "split", "num_train_samples", "checkpoint_step", "selected_parcel_idx_sha256", "intervention_stage")} if requires_mean else None, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
     (root / "run_summary.json").write_text(json.dumps(root_summary, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(root_summary, indent=2, ensure_ascii=False))
 
