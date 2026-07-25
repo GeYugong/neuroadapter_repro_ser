@@ -1,10 +1,11 @@
 # 当前研究状态
 
-最后更新：2026-07-24
+最后更新：2026-07-25
 
 ## 当前范围
 
-阶段 A 和 B 已完成。尚未启动扩散模型 pilot、完整 E2 解码或模型训练。
+阶段 A、B 和 30 图 E2 zero-mask pilot 已完成。尚未启动完整 E2 解码
+或新模型训练。
 附录 P 复现尝试以及已有的 50 样本 zero-mask 输出保留在
 `experiments/roi_ablation/` 下，作为历史性/探索性工作。
 
@@ -94,18 +95,29 @@ experiments/E1_stimulus_manifest/
   manifest_metadata.json
 ```
 
-## E2 开始前的待解决问题
+## E2 zero-mask pilot
 
-1. 旧版批量解码器只接受连续的 `start_idx` 范围，目前无法读取按类别筛选
-   后不连续的数据集索引。
-2. E2 新随机对照生成器需要通过服务器 dry-run 验证新 E0 数据结构、
-   zero-mask 条件和匹配距离记录。mean-mask 已延期，不属于当前 pilot。
-3. E2 仍需一次确定性 dry-run，证明同一张图像的所有实验条件在不同条件
-   batch 之间共享相同的 latent/noise。
-4. Face 只有 37 个已审查样本，因此最终统计效能必须使用真实样本量，
-   不能假设有 50 个样本。
+已完成 Face、Body、Scene 各 10 张图、seed 12345、50 步扩散的 zero-mask
+pilot。新运行器可读取非连续 manifest 索引；随机对照按数量、半球、SNR
+和 parcel 大小匹配；初始及逐步 DDPM 噪声均在条件间共享。
 
-在解决第 1 至 3 项之前，不得把当前旧版解码器用于 E2 pilot。
+- 完整测试：`23 passed`；
+- 30/30 个 no-mask 跨 batch 重复图像 SHA-256 一致；
+- 非目标 parcel 最大变化量：`0.0`；
+- Face PixCorr 正向信号：excess `0.00696`，`q=0.091`；
+- Scene full DINO 正向信号：excess `0.04394`，`q=0.060`；
+- Body 没有跨指标一致证据；
+- 没有结果达到 `q<0.05`。
+
+详细指标和视觉对比见 `experiments/E2_zero_pilot/`。pilot 证明实验管线
+可用，但样本量不足以形成正式功能特异性结论。
+
+## 正式 E2 前的待解决问题
+
+1. 正式样本量使用 Face 37、Body 50、Scene 50，不得假设 Face 有 50 张；
+2. 使用 3 个预先固定的 seed，并保持当前完整配对噪声机制；
+3. mean-mask 继续延期，只运行 zero-mask；
+4. 正式统计需预先固定多重比较范围，不能根据 pilot 结果挑选指标。
 
 ## 下一步准确命令
 
@@ -123,6 +135,5 @@ conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
   --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
 ```
 
-下一项开发任务是实现能够读取刺激清单的 pilot runner，使
-`configs/experiments/E2_pilot.yaml` 可以实际执行。完整 GPU 解码仍不在
-当前授权范围内。
+下一项工作是固定正式 E2 的 3 个 seed 和统计方案，然后将当前已经验证的
+zero-mask 流程扩大到 Face 37、Body 50、Scene 50。

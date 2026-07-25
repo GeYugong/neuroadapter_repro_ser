@@ -2250,3 +2250,252 @@ mask_modes: [zero]
 
 本次只是代码与配置调整，没有使用 GPU。下一步重新生成 E2 plan，并在
 服务器运行测试和最小 GPU dry-run。
+
+## 2026-07-25 E2 zero-mask 真实 GPU smoke
+
+### 测试与计划
+
+E2 manifest runner、随机匹配和共享状态工具同步服务器后，完整测试结果：
+
+```text
+21 passed
+```
+
+加入五指标评估和多重比较测试后的最终结果：
+
+```text
+23 passed
+```
+
+zero-only 计划：
+
+| 类别 | 图片 | 条件/图 | Full ROI parcel | Equal-k |
+| --- | ---: | ---: | ---: | ---: |
+| Face | 10 | 9 | 4 | 4 |
+| Body | 10 | 15 | 24 | 4 |
+| Scene | 10 | 15 | 31 | 4 |
+
+随机对照从 top-SNR-200 中排除目标 ROI 后进行匹配。与最初强制只用
+`Unlabeled` parcel 相比，放宽候选池显著改善了 SNR/大小匹配；每个控制
+parcel 的原 ROI 仍完整记录在 matching audit 中。
+
+### Smoke v1：失败
+
+配置：
+
+```text
+Face dataset_idx: 973
+conditions: 9
+condition batch size: 8
+seed: 12345
+denoising steps: 50
+GPU: A40 index 0
+```
+
+输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/
+E2_zero_smoke_20260725/Face
+```
+
+结果：`no_mask` 与 `no_mask_repeat` PNG SHA-256 不一致，程序按准入规则
+主动失败。初步怀疑末批 batch size 1 与首批 batch size 8 的 CUDA kernel
+差异。
+
+### Smoke v2：失败
+
+修复：末尾不足 8 个条件时用重复 token 填充，使所有 diffusion call 的
+batch shape 固定为 8。填充输出不保存、不进入指标。
+
+输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/
+E2_zero_smoke_20260725_v2/Face
+```
+
+结果仍失败。两张 no-mask 预测图最大像素差 240，平均差 53.21，
+781800/786432 个通道值发生变化，说明不是普通浮点尾差。
+
+### 根因
+
+解码使用 `DDPMScheduler`。除了初始 diffusion noise，
+`scheduler.step()` 在反向扩散过程中还会继续随机生成方差噪声。旧代码
+没有给 `scheduler.step()` 传 generator，因此：
+
+- 同一 condition batch 内的各条件使用不同逐步噪声；
+- 不同 condition batch 使用不同随机序列；
+- 即使初始 latent/noise 完全相同，最终图片也无法配对比较。
+
+修复：
+
+- 为每个 condition 建立独立 generator；
+- 所有 generator 使用同一 `ddpm_denoising_seed`；
+- 每个 timestep 的随机序列在所有条件间完全一致；
+- 每个 condition batch 重新建立同 seed generator 列表；
+- 继续固定 condition batch shape。
+
+相关提交：
+
+```text
+9721d68 fix(e2): stabilize condition batch shapes
+f0b9679 fix(e2): pair DDPM variance noise across conditions
+```
+
+### Smoke v3：通过
+
+输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/
+E2_zero_smoke_20260725_v3/Face
+```
+
+运行时长：35.12 秒。GPU：A40 index 0，约 13 GB 显存。
+
+共享状态：
+
+```text
+sample_seed: 13318
+initial_latent_sha256:
+2c9a55f1efa76fc87e5472930fd43e5f692b58098c8b94b914e1a8b10759d503
+diffusion_noise_sha256:
+385916f8fa62b22fff07f1d70ace5d279ff45ac061fa11187c1707e2d35e58c8
+ddpm_denoising_seed: 1013318
+```
+
+确定性检查：
+
+```text
+no_mask_sha256:
+e0cd139c0fcd6a048a20d3e1db4de09979c4a045b59ae4326f30de30578e49ed
+no_mask_repeat_sha256:
+e0cd139c0fcd6a048a20d3e1db4de09979c4a045b59ae4326f30de30578e49ed
+passed: true
+```
+
+Token 审计：
+
+```text
+max_abs_delta_non_target: 0.0
+changed_indices == masked_indices: true
+```
+
+视觉检查确认 no-mask、Face-zero、随机 zero 均生成正常图像；Face-zero
+相对 no-mask 预测半图平均像素差约 1.23，随机对照 01 约 9.37。单图仅
+用于确认干预进入生成路径，不作为功能结论。
+
+## 2026-07-25 E2 30 图 zero-mask pilot
+
+### 运行配置
+
+正式启动 Face、Body、Scene 各 10 张确认性图片：
+
+```text
+checkpoint: step 100000
+seed: 12345
+denoising steps: 50
+guidance/noise factor: 4.0
+condition batch size: 8
+mask mode: zero
+GPU: A40 index 0 / 1 / 2，三类并行
+```
+
+服务器输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/roi_ablation/
+E2_top_snr_causal_pilot/seed_12345
+```
+
+日志：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/logs/e2/
+E2_pilot_face.log
+E2_pilot_body.log
+E2_pilot_scene.log
+```
+
+### 运行结果
+
+| 类别 | 样本 | 条件 | 运行时长 |
+| --- | ---: | ---: | ---: |
+| Face | 10 | 9 | 310.35 秒 |
+| Body | 10 | 15 | 333.08 秒 |
+| Scene | 10 | 15 | 333.23 秒 |
+
+完整性检查：
+
+- 三个进程均正常退出；
+- Face 9/9、Body 15/15、Scene 15/15 条件摘要完整；
+- 30/30 个 no-mask/no-mask-repeat PNG SHA-256 完全一致；
+- 所有干预的非目标 parcel 最大变化量为 `0.0`；
+- 所有 `changed_indices` 与 `masked_indices` 完全一致；
+- 生成图视觉检查未发现空白图、损坏图或明显程序错误。
+
+### 五指标评估
+
+使用：
+
+- PixCorr；
+- SSIM；
+- LPIPS 0.1.4 / AlexNet；
+- OpenAI CLIP RN50；
+- DINOv2 ViT-B/14。
+
+LPIPS 安装在项目目录：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics
+```
+
+未修改共享 conda 环境。CLIP 和 DINO 权重使用服务器已有缓存。
+
+统一 causal loss：
+
+```text
+PixCorr / SSIM / CLIP / DINO:
+baseline score - masked score
+
+LPIPS:
+masked distance - baseline distance
+```
+
+正值均表示屏蔽使重建变差。目标 ROI 的每图 causal loss 与 5 组匹配随机
+对照的每图平均 causal loss 比较，使用 bootstrap 95% CI、sign-flip p
+和同一设计内 5 指标 Benjamini-Hochberg q。
+
+各设计最强的未校正结果：
+
+| 类别 | 设计 | 指标 | Target-random excess | 95% CI | p | q |
+| --- | --- | --- | ---: | --- | ---: | ---: |
+| Face | full=4 | PixCorr | 0.00696 | [0.00220, 0.01227] | 0.0182 | 0.0910 |
+| Body | equal-k=4 | SSIM | -0.00926 | [-0.01656, -0.00254] | 0.0332 | 0.1660 |
+| Scene | full=31 | DINO | 0.04394 | [0.01465, 0.08386] | 0.0120 | 0.0600 |
+
+没有结果达到 `q < 0.05`。Face 多数指标方向为正，但效应小且校正后不显著。
+Scene full 在 DINO 上出现当前最强正向信号，视觉图中也可见部分场景结构
+变化，但仍不足以作为正式结论。Body 没有跨指标一致的目标 ROI 优势。
+
+### 小型 Git 产物
+
+```text
+experiments/E2_zero_pilot/e2_metrics_summary.json
+experiments/E2_zero_pilot/*_per_sample_metrics.csv
+experiments/E2_zero_pilot/figures/*_comparison_grid.png
+```
+
+### 当前结论
+
+工程验收全部通过，说明 E2 配对消融管线可以扩大。科研上只能得出：
+
+- Face 和 Scene 存在值得用正式样本量验证的初步信号；
+- Body 当前没有稳定信号；
+- pilot 的 10 张/类、1 个 seed 不足以证明类别特异性；
+- 不应根据 pilot 只挑选 PixCorr 或 DINO，正式实验仍需保留预先规定的
+  全部五指标和多重比较。
+
+下一步：使用 Face 37、Body 50、Scene 50 和 3 个固定 seed 扩大
+zero-mask 实验；mean-mask 继续延期。

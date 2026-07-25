@@ -24,7 +24,8 @@ docs/DECISIONS.md
 
 ## 当前阶段结果
 
-阶段 A/B 已完成，尚未启动 E2 扩散消融或新模型训练。
+阶段 A/B 和 30 图 E2 zero-mask pilot 已完成，尚未启动完整 E2 或新模型
+训练。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
 - 服务器单元测试结果为 `15 passed`；
@@ -34,6 +35,10 @@ docs/DECISIONS.md
 - E1 最终选择 37 张 Face、50 张 Body、50 张 Scene 确认性刺激；
 - 24 张 Word 候选中有 21 张不与确认性集合重叠；因缺少 OCR 证据，
   仍只保留为 exploratory。
+- E2 pilot 的 30/30 个确定性检查通过，非目标 parcel 最大变化量为
+  `0.0`；
+- Face PixCorr 和 Scene DINO 出现初步正向信号，但多重比较校正后均未
+  达到 `q<0.05`，不能作为正式结论。
 
 详细证据、图表、限制和下一步门槛见 `docs/CURRENT_STATE.md`。
 
