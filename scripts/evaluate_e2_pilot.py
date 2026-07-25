@@ -95,6 +95,17 @@ def sign_flip_pvalue(values: np.ndarray, seed: int, draws: int = 20000) -> float
     return float((np.count_nonzero(null >= observed) + 1) / (draws + 1))
 
 
+def benjamini_hochberg(pvalues: list[float]) -> list[float]:
+    values = np.asarray(pvalues, dtype=np.float64)
+    order = np.argsort(values)
+    ranked = values[order]
+    adjusted = ranked * len(values) / np.arange(1, len(values) + 1)
+    adjusted = np.minimum.accumulate(adjusted[::-1])[::-1]
+    output = np.empty_like(adjusted)
+    output[order] = np.minimum(adjusted, 1.0)
+    return [float(value) for value in output]
+
+
 def causal_loss(metric: str, baseline: float, masked: float) -> float:
     if metric in HIGHER_IS_BETTER:
         return baseline - masked
@@ -325,6 +336,14 @@ def summarize_category(
                     6000 + metric_index + len(category) + len(design),
                 ),
             }
+        qvalues = benjamini_hochberg(
+            [
+                comparison["metrics"][metric]["sign_flip_p"]
+                for metric in METRICS
+            ]
+        )
+        for metric, qvalue in zip(METRICS, qvalues):
+            comparison["metrics"][metric]["bh_q_within_design"] = qvalue
         comparisons[design] = comparison
     return {
         "category": category,

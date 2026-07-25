@@ -16,3 +16,8 @@ def test_causal_loss_uses_metric_direction():
     assert MODULE.causal_loss("clip", 0.5, 0.4) == pytest.approx(0.1)
     assert MODULE.causal_loss("dino", 0.5, 0.4) == pytest.approx(0.1)
     assert MODULE.causal_loss("lpips", 0.4, 0.5) == pytest.approx(0.1)
+
+
+def test_benjamini_hochberg_is_monotonic_in_rank():
+    qvalues = MODULE.benjamini_hochberg([0.01, 0.04, 0.03, 0.20])
+    assert qvalues == pytest.approx([0.04, 0.0533333333, 0.0533333333, 0.20])
