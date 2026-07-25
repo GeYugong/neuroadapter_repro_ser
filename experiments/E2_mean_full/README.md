@@ -37,3 +37,19 @@ zero/mean 两种 parcel 干预下，没有获得稳健的类别匹配 ROI 额外
 
 详细数字见 `primary_results.csv`、`secondary_equal_k_results.csv`、
 `zero_vs_mean_robustness.csv` 和 `zero_vs_mean_summary.json`。
+
+## 图表
+
+![Mean-mask 主要效应与置信区间](figures/primary_effect_forest_plot.png)
+
+![Zero 与 mean 效应比较](figures/zero_vs_mean_effect_scatter.png)
+
+![目标 ROI overlap](figures/target_roi_purity_plot.png)
+
+![随机对照污染分布](figures/control_contamination_plot.png)
+
+![Face 正式重建对比](figures/face_comparison_grid.jpg)
+
+![Body 正式重建对比](figures/body_comparison_grid.jpg)
+
+![Scene 正式重建对比](figures/scene_comparison_grid.jpg)
