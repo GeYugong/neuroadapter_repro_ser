@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -120,6 +121,20 @@ def load_models(args: argparse.Namespace):
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ]
     )
+    dino_checkpoint = (
+        Path(torch.hub.get_dir()) / "checkpoints" / "dinov2_vitb14_pretrain.pth"
+    )
+    alexnet_checkpoint = (
+        Path(torch.hub.get_dir()) / "checkpoints" / "alexnet-owt-7be5be79.pth"
+    )
+    lpips_checkpoint = (
+        args.lpips_package_root / "lpips" / "weights" / "v0.1" / "alex.pth"
+        if args.lpips_package_root is not None
+        else None
+    )
+    for required in (dino_checkpoint, alexnet_checkpoint, lpips_checkpoint):
+        if required is None or not required.exists():
+            raise FileNotFoundError(f"Metric checkpoint is missing: {required}")
     return {
         "device": device,
         "clip": clip_model,
@@ -132,11 +147,23 @@ def load_models(args: argparse.Namespace):
             "clip_checkpoint": str(args.clip_checkpoint.resolve()),
             "clip_checkpoint_sha256": file_sha256(args.clip_checkpoint),
             "dinov2_repo": str(args.dinov2_repo.resolve()),
+            "dinov2_repo_commit": subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=args.dinov2_repo,
+                text=True,
+            ).strip(),
+            "dinov2_checkpoint": str(dino_checkpoint),
+            "dinov2_checkpoint_sha256": file_sha256(dino_checkpoint),
             "lpips_package_root": (
                 str(args.lpips_package_root.resolve())
                 if args.lpips_package_root is not None
                 else None
             ),
+            "lpips_version": "0.1.4",
+            "lpips_checkpoint": str(lpips_checkpoint),
+            "lpips_checkpoint_sha256": file_sha256(lpips_checkpoint),
+            "alexnet_checkpoint": str(alexnet_checkpoint),
+            "alexnet_checkpoint_sha256": file_sha256(alexnet_checkpoint),
             "clip_preprocess": repr(clip_preprocess),
             "dino_preprocess": repr(dino_preprocess),
             "lpips_preprocess": repr(lpips_preprocess),
