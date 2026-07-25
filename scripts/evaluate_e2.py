@@ -83,13 +83,11 @@ def load_models(args: argparse.Namespace):
             raise FileNotFoundError(f"Required local model asset is missing: {required}")
     device = torch.device(args.device)
     original_download = torch.hub.download_url_to_file
-    original_load_url = torch.hub.load_state_dict_from_url
 
     def reject_download(*_args, **_kwargs):
         raise RuntimeError("Evaluator is forbidden from downloading model weights")
 
     torch.hub.download_url_to_file = reject_download
-    torch.hub.load_state_dict_from_url = reject_download
     try:
         clip_model, clip_preprocess = clip.load(
             str(args.clip_checkpoint), device=device, jit=False
@@ -104,7 +102,6 @@ def load_models(args: argparse.Namespace):
         ).to(device).eval()
     finally:
         torch.hub.download_url_to_file = original_download
-        torch.hub.load_state_dict_from_url = original_load_url
     dino_preprocess = transforms.Compose(
         [
             transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
