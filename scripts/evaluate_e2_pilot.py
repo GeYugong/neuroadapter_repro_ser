@@ -272,8 +272,20 @@ def summarize_category(
 ) -> dict:
     by_condition = defaultdict(dict)
     for row in rows:
-        by_condition[row["condition"]][row["dataset_idx"]] = row
+        key = (int(row["seed"]), int(row["dataset_idx"]))
+        by_condition[row["condition"]][key] = row
     baseline = by_condition["no_mask"]
+    observation_keys = sorted(baseline)
+
+    def aggregate_seeds(values: np.ndarray) -> np.ndarray:
+        grouped = defaultdict(list)
+        for (_, dataset_idx), value in zip(observation_keys, values):
+            grouped[dataset_idx].append(float(value))
+        return np.asarray(
+            [np.mean(grouped[index]) for index in sorted(grouped)],
+            dtype=np.float64,
+        )
+
     condition_summary = {}
     losses = {}
     for condition, values_by_index in by_condition.items():
@@ -289,10 +301,10 @@ def summarize_category(
                 [
                     causal_loss(
                         metric,
-                        baseline[index][metric],
-                        values_by_index[index][metric],
+                        baseline[key][metric],
+                        values_by_index[key][metric],
                     )
-                    for index in sorted(baseline)
+                    for key in observation_keys
                 ]
             )
             for metric in METRICS
@@ -321,10 +333,12 @@ def summarize_category(
                 np.stack([losses[name][metric] for name in random_names]),
                 axis=0,
             )
-            excess = losses[target][metric] - random_mean_per_image
+            target_by_image = aggregate_seeds(losses[target][metric])
+            random_by_image = aggregate_seeds(random_mean_per_image)
+            excess = target_by_image - random_by_image
             comparison["metrics"][metric] = {
-                "target_causal_loss_mean": float(losses[target][metric].mean()),
-                "random_causal_loss_mean": float(random_mean_per_image.mean()),
+                "target_causal_loss_mean": float(target_by_image.mean()),
+                "random_causal_loss_mean": float(random_by_image.mean()),
                 "target_minus_random_mean": float(excess.mean()),
                 "ci95": bootstrap_ci(
                     excess,
@@ -347,7 +361,9 @@ def summarize_category(
         comparisons[design] = comparison
     return {
         "category": category,
-        "num_samples": len(baseline),
+        "num_samples": len({dataset_idx for _, dataset_idx in baseline}),
+        "num_seeds": len({seed for seed, _ in baseline}),
+        "statistical_unit": "image after averaging causal loss across seeds",
         "conditions": condition_summary,
         "target_vs_matched_random": comparisons,
     }
@@ -372,43 +388,81 @@ def main() -> None:
         "causal_loss": "positive means masking degraded reconstruction",
         "categories": {},
     }
+    if (args.run_root / "Face").is_dir():
+        seed_roots = [args.run_root]
+    else:
+        seed_roots = sorted(
+            path
+            for path in args.run_root.glob("seed_*")
+            if path.is_dir()
+        )
+    if not seed_roots:
+        raise ValueError(f"No category or seed directories under {args.run_root}")
+
     for category in ("Face", "Body", "Scene"):
-        category_root = args.run_root / category
-        records, metadata = load_records(category_root)
         rows = []
         pairs = []
-        for condition, condition_records in records.items():
-            for dataset_idx, record in sorted(condition_records.items()):
-                gt_path, pred_path = Path(record["gt"]), Path(record["pred"])
-                gt, pred = load_rgb(gt_path, 425), load_rgb(pred_path, 425)
-                rows.append(
-                    {
-                        "category": category,
-                        "condition": condition,
-                        "dataset_idx": dataset_idx,
-                        "pixel_corr": pixel_corr(gt, pred),
-                        "ssim": ssim_gray(gt, pred),
-                    }
-                )
-                pairs.append((gt_path, pred_path))
+        visual_records = None
+        metadata = None
+        for seed_root in seed_roots:
+            seed_text = seed_root.name.removeprefix("seed_")
+            seed = int(seed_text) if seed_text.isdigit() else 0
+            records, current_metadata = load_records(seed_root / category)
+            if metadata is None:
+                metadata = current_metadata
+                visual_records = records
+            elif current_metadata != metadata:
+                raise ValueError(f"Condition metadata differs across seeds for {category}")
+            for condition, condition_records in records.items():
+                for dataset_idx, record in sorted(condition_records.items()):
+                    gt_path, pred_path = Path(record["gt"]), Path(record["pred"])
+                    gt, pred = load_rgb(gt_path, 425), load_rgb(pred_path, 425)
+                    rows.append(
+                        {
+                            "category": category,
+                            "condition": condition,
+                            "seed": seed,
+                            "dataset_idx": dataset_idx,
+                            "pixel_corr": pixel_corr(gt, pred),
+                            "ssim": ssim_gray(gt, pred),
+                        }
+                    )
+                    pairs.append((gt_path, pred_path))
         neural = representation_metrics(pairs, models, args.batch_size)
         for row, values in zip(rows, neural):
             row.update(values)
         with (output_root / f"{category.lower()}_per_sample_metrics.csv").open(
             "w", newline="", encoding="utf-8"
         ) as handle:
-            writer = csv.DictWriter(handle, fieldnames=["category", "condition", "dataset_idx", *METRICS])
+            writer = csv.DictWriter(handle, fieldnames=["category", "condition", "seed", "dataset_idx", *METRICS])
             writer.writeheader()
             writer.writerows(rows)
         all_summary["categories"][category] = summarize_category(
             category, rows, metadata, args.bootstrap_draws
         )
         make_visual_grid(
-            category_root,
-            records,
+            seed_roots[0] / category,
+            visual_records,
             metadata,
             output_root / f"{category.lower()}_comparison_grid.png",
         )
+    primary_refs = []
+    for category in ("Face", "Body", "Scene"):
+        metrics = all_summary["categories"][category][
+            "target_vs_matched_random"
+        ]["full"]["metrics"]
+        for metric in METRICS:
+            primary_refs.append((category, metric, metrics[metric]))
+    primary_qvalues = benjamini_hochberg(
+        [item["sign_flip_p"] for _, _, item in primary_refs]
+    )
+    for (_, _, item), qvalue in zip(primary_refs, primary_qvalues):
+        item["bh_q_primary_15_tests"] = qvalue
+    all_summary["primary_multiplicity"] = {
+        "family": "3 categories x 5 metrics, full-group target vs matched random",
+        "method": "Benjamini-Hochberg",
+        "num_tests": 15,
+    }
     (output_root / "e2_metrics_summary.json").write_text(
         json.dumps(all_summary, indent=2, ensure_ascii=False),
         encoding="utf-8",
