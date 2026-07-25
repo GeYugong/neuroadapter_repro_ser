@@ -164,13 +164,13 @@ def main() -> None:
     summary = {
         "interpretation_case": "A",
         "num_tests": 15,
-        "same_direction_count": sum(row["same_direction"] for row in robustness),
-        "positive_same_direction_count": sum(
+        "same_direction_count": int(sum(row["same_direction"] for row in robustness)),
+        "positive_same_direction_count": int(sum(
             row["same_direction"] and row["zero_excess"] > 0 for row in robustness
-        ),
-        "negative_same_direction_count": sum(
+        )),
+        "negative_same_direction_count": int(sum(
             row["same_direction"] and row["zero_excess"] < 0 for row in robustness
-        ),
+        )),
         "overall_correlation": correlation(zero_values, mean_values),
         "by_category": {
             category: correlation(
@@ -186,12 +186,12 @@ def main() -> None:
             )
             for metric in METRICS
         },
-        "zero_corrected_positive_count": sum(
+        "zero_corrected_positive_count": int(sum(
             row["zero_q"] < 0.05 and row["zero_excess"] > 0 for row in robustness
-        ),
-        "mean_corrected_positive_count": sum(
+        )),
+        "mean_corrected_positive_count": int(sum(
             row["mean_q"] < 0.05 and row["mean_excess"] > 0 for row in robustness
-        ),
+        )),
     }
     (args.mean_dir / "zero_vs_mean_summary.json").write_text(
         json.dumps(summary, indent=2), encoding="utf-8"
