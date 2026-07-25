@@ -1,0 +1,27 @@
+{
+  "inventory": "experiments/E0_mapping/algonauts_top200_mapping_subj01.csv",
+  "zero_plan": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_full/plan/e2_pilot_plan.json",
+  "target_parcels": 59,
+  "matched_control_parcel_records": 335,
+  "target_dual_high_overlap_count": 8,
+  "full_control_contamination": {
+    "Face": {
+      "ge_0.10": 3,
+      "ge_0.25": 1,
+      "ge_0.40": 1,
+      "ge_0.50": 0
+    },
+    "Body": {
+      "ge_0.10": 14,
+      "ge_0.25": 6,
+      "ge_0.40": 2,
+      "ge_0.50": 1
+    },
+    "Scene": {
+      "ge_0.10": 17,
+      "ge_0.25": 11,
+      "ge_0.40": 7,
+      "ge_0.50": 4
+    }
+  }
+}
