@@ -172,6 +172,7 @@ def run_diffusion_conditions(
     models,
     denoising_steps,
     noise_factor,
+    denoising_seed,
 ):
     """Generate a condition batch from precomputed shared latent and noise."""
     tokenizer = models["tokenizer"]
@@ -188,9 +189,18 @@ def run_diffusion_conditions(
     latents = base_latents.repeat(batch_size, 1, 1, 1)
     scheduler.set_timesteps(denoising_steps)
     latents = scheduler.add_noise(latents, noise.repeat(batch_size, 1, 1, 1), scheduler.timesteps[:1])
+    denoising_generators = [
+        torch.Generator(device=device).manual_seed(denoising_seed)
+        for _ in range(batch_size)
+    ]
     for timestep in scheduler.timesteps:
         uncond, cond = brain_adapter(latents, timestep, text_states, condition_tokens)
-        latents = scheduler.step(uncond + noise_factor * (cond - uncond), timestep, latents).prev_sample
+        latents = scheduler.step(
+            uncond + noise_factor * (cond - uncond),
+            timestep,
+            latents,
+            generator=denoising_generators,
+        ).prev_sample
     images = vae.decode(latents / vae.config.scaling_factor).sample
     images = (images / 2 + 0.5).clamp(0, 1).cpu().permute(0, 2, 3, 1).numpy()
     return (images * 255).round().astype("uint8")
@@ -306,12 +316,20 @@ def main() -> None:
             gt.save(gt_path)
             base_image = torch.zeros_like(batch["img_ipadapter"].to(device=device, dtype=dtype))
             state_seed = sample_seed(args.seed, dataset_idx)
+            denoising_seed = state_seed + 1_000_000
             base_latents, noise, state_audit = prepare_shared_diffusion_state(
                 base_image,
                 models,
                 state_seed,
             )
-            shared_state_audits.append({"dataset_idx": dataset_idx, **state_audit})
+            shared_state_audits.append({
+                "dataset_idx": dataset_idx,
+                **state_audit,
+                "ddpm_denoising_seed": denoising_seed,
+                "ddpm_noise_strategy": (
+                    "one generator per condition, identical seed and sequence"
+                ),
+            })
             for start in range(0, len(conditions), args.condition_batch_size):
                 chunk = conditions[start:start + args.condition_batch_size]
                 token_batch = []
@@ -344,6 +362,7 @@ def main() -> None:
                     models,
                     args.denoising_steps,
                     args.noise_factor,
+                    denoising_seed,
                 )[:actual_count]
                 for condition, image in zip(chunk, generated):
                     name = condition["name"]
