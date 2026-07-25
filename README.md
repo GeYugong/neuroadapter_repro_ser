@@ -28,7 +28,7 @@ docs/DECISIONS.md
 稳健性实验均已完成，没有训练新模型。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
-- 服务器单元测试结果为 `23 passed`；
+- 服务器单元测试结果为 `35 passed`（原 23 项全部保留）；
 - E0 全 1000 parcel inventory 显示，公开映射得到的 97 个功能 ROI
   parcel 全部进入 top-SNR-200，因此没有观察到 Face、Word、V4
   覆盖不足；

@@ -2839,3 +2839,5 @@ checkpoint 和 zero/mean 两种 parcel 干预均未提供稳健的类别匹配 R
 
 本阶段在 E2b 正式统计与文档完成后停止，不自动启动 3×3 交互、局部
 指标、dose-response、attention、训练新 checkpoint 或多被试实验。
+
+最终回归测试结果为 `35 passed`，原有 23 项测试全部继续通过。

@@ -1,6 +1,6 @@
 # 当前研究状态
 
-最后更新：2026-07-25
+最后更新：2026-07-26
 
 ## 当前范围
 
@@ -18,7 +18,7 @@
   parcel 在比特级完全不变，并记录 token norm 审计结果。
 - 均值替换使用训练集上的 ParcelMapper 输出，而不是 decoder query。
 - 未修改上游 NeuroAdapter checkout。
-- 服务器验证结果：`23 passed`。
+- 当前服务器验证结果：`35 passed`，原 23 项测试全部保留。
 - 真实 step-100000 checkpoint 的 smoke test 已通过。其 `sub_approach`
   为 `linear_projection`：fMRI `[1, 200, 626]` 被映射为
   `[1, 200, 768]` 的 parcel token 和 condition token，不经过
