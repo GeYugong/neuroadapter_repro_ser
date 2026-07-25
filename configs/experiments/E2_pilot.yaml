@@ -2,7 +2,6 @@ name: E2_top_snr_causal_pilot
 subject: 1
 checkpoint_step: 100000
 checkpoint: outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt
-mean_token_path: checkpoints/roi_ablation/parcel_mean_tokens_step100000.pt
 mapping: experiments/E0_mapping/mapping_metadata.json
 mapping_inventory: experiments/E0_mapping/algonauts_top200_mapping_subj01.csv
 stimulus_manifest: experiments/E1_stimulus_manifest/confirmatory_manifest.csv
@@ -12,7 +11,7 @@ categories:
   Face: 10
   Body: 10
   Scene: 10
-mask_modes: [zero, mean]
+mask_modes: [zero]
 designs: [full_group, equal_k, matched_random]
 matched_random_controls: 5
 equal_k: 4

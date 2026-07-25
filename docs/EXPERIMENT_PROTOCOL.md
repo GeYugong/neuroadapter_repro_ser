@@ -33,6 +33,9 @@ parcel 的 ParcelMapper 输出在训练集上的均值。
 Face、Body 和 Scene 属于确认性分析。Word 保持探索性分析，除非至少有
 20 个经过审查的刺激可用。
 
+当前 E2 pilot 先只执行 zero-mask。训练集均值替换保留为后续稳健性分析，
+不属于本轮 30 图 pilot 的运行条件。
+
 ## 来源与可追溯性
 
 每次运行都必须记录：仓库 commit、checkpoint 及其哈希、映射及其哈希、

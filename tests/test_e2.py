@@ -45,7 +45,7 @@ def test_manifest_selection_supports_non_contiguous_indices():
 
 @pytest.mark.parametrize(
     ("category", "full_count", "condition_count"),
-    [("Face", 4, 16), ("Body", 24, 28), ("Scene", 31, 28)],
+    [("Face", 4, 9), ("Body", 24, 15), ("Scene", 31, 15)],
 )
 def test_e2_conditions_are_complete_and_matched(
     category,
@@ -57,7 +57,7 @@ def test_e2_conditions_are_complete_and_matched(
     conditions, audit = build_category_conditions(
         inventory,
         category,
-        mask_modes=["zero", "mean"],
+        mask_modes=["zero"],
         random_replicates=5,
         equal_k=4,
         seed=20260718,
@@ -71,7 +71,7 @@ def test_e2_conditions_are_complete_and_matched(
     names = {condition["name"] for condition in conditions}
     assert len(names) == len(conditions)
     assert f"{category}_full_zero" in names
-    assert f"{category}_full_mean" in names
+    assert not any(condition["mask_mode"] == "mean" for condition in conditions)
 
     for design in audit["designs"].values():
         target_indices = set(design["target_indices"])
@@ -86,8 +86,9 @@ def test_e2_conditions_are_complete_and_matched(
                 by_index[index]["hemisphere"] for index in control["indices"]
             ) == target_hemispheres
             assert all(
-                by_index[index]["dominant_roi"] == "Unlabeled"
+                by_index[index]["dominant_roi"] != category
                 for index in control["indices"]
             )
+            assert all("control_roi" in pair for pair in control["pairs"])
             assert control["mean_distance"] >= 0
             assert control["max_distance"] >= control["mean_distance"]

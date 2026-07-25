@@ -117,7 +117,7 @@ def execute_plan(
     output_dir: Path,
     project_root: Path,
     checkpoint: Path,
-    mean_token_path: Path,
+    mean_token_path: Path | None,
 ) -> None:
     decoder = REPRO_ROOT / "scripts" / "decode_roi_ablation_batch.py"
     for seed in plan["seeds"]:
@@ -141,11 +141,18 @@ def execute_plan(
                 str(plan["noise_factor"]),
                 "--condition-batch-size",
                 str(plan["condition_batch_size"]),
-                "--mean-token-path",
-                str(mean_token_path),
                 "--project-root",
                 str(project_root),
             ]
+            if any(
+                condition["mask_mode"] == "mean"
+                for condition in plan["categories"][category]["conditions"]
+            ):
+                if mean_token_path is None:
+                    raise ValueError(
+                        f"{category} contains mean conditions but no mean-token path"
+                    )
+                command.extend(["--mean-token-path", str(mean_token_path)])
             subprocess.run(command, cwd=REPRO_ROOT, check=True)
 
 
@@ -159,7 +166,7 @@ def main() -> None:
     parser.add_argument(
         "--plan-output-dir",
         type=Path,
-        default=REPRO_ROOT / "experiments" / "E2_pilot",
+        default=REPRO_ROOT / ".audit" / "E2_pilot",
     )
     parser.add_argument("--execute", action="store_true")
     parser.add_argument(
@@ -183,16 +190,14 @@ def main() -> None:
     mean_token_path = args.mean_token_path
     if mean_token_path is None and config.get("mean_token_path"):
         mean_token_path = args.project_root / config["mean_token_path"]
-    if checkpoint is None or mean_token_path is None:
-        raise ValueError(
-            "--execute requires checkpoint and mean-token paths from CLI or config"
-        )
+    if checkpoint is None:
+        raise ValueError("--execute requires a checkpoint path from CLI or config")
     execute_plan(
         plan,
         args.plan_output_dir,
         args.project_root.resolve(),
         checkpoint.resolve(),
-        mean_token_path.resolve(),
+        mean_token_path.resolve() if mean_token_path is not None else None,
     )
 
 

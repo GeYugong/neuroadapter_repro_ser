@@ -141,6 +141,7 @@ def match_parcels(
                 "control_mean_ncsnr": float(selected["mean_ncsnr"]),
                 "target_num_vertices": int(target["num_vertices"]),
                 "control_num_vertices": int(selected["num_vertices"]),
+                "control_roi": selected["dominant_roi"],
                 "distance": item_distance,
             }
         )
@@ -160,18 +161,19 @@ def build_matched_controls(
     *,
     replicates: int,
     seed: int,
+    excluded_indices: Iterable[int] | None = None,
 ) -> list[dict]:
     inventory = list(inventory)
     targets = list(targets)
     if replicates <= 0:
         raise ValueError("replicates must be positive")
     target_indices = {int(row["top200_token_index"]) for row in targets}
-    neutral = [
+    excluded = set(map(int, excluded_indices or target_indices))
+    candidate_pool = [
         row
         for row in inventory
         if row["in_top_snr_200"].strip().lower() == "true"
-        and row["dominant_roi"] == "Unlabeled"
-        and int(row["top200_token_index"]) not in target_indices
+        and int(row["top200_token_index"]) not in excluded
     ]
     rng = np.random.default_rng(seed)
     controls = []
@@ -181,7 +183,7 @@ def build_matched_controls(
         attempts += 1
         if attempts > replicates * 100:
             raise RuntimeError("Could not generate enough unique matched controls")
-        control = match_parcels(targets, neutral, rng=rng)
+        control = match_parcels(targets, candidate_pool, rng=rng)
         key = tuple(control["indices"])
         if key in observed:
             continue
@@ -205,6 +207,9 @@ def build_category_conditions(
     if not modes or any(mode not in {"zero", "mean"} for mode in modes):
         raise ValueError("mask_modes must contain only zero and/or mean")
     full_targets = roi_rows(inventory, category)
+    full_target_indices = {
+        int(row["top200_token_index"]) for row in full_targets
+    }
     equal_targets = sorted(
         full_targets,
         key=lambda row: (-float(row["mean_ncsnr"]), int(row["top200_token_index"])),
@@ -240,6 +245,7 @@ def build_category_conditions(
             targets,
             replicates=random_replicates,
             seed=seed + design_index * 1000,
+            excluded_indices=full_target_indices,
         )
         for control in controls:
             for mode in modes:

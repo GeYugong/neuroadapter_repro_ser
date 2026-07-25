@@ -28,6 +28,7 @@ __pycache__/
 .pytest_cache/
 .audit/
 .tmp/
+experiments/E2_pilot/
 
 # Local env
 .env

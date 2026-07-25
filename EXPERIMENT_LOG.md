@@ -2222,3 +2222,31 @@ No module named pytest
    no-mask 跨 batch PNG 哈希和非目标 token 审计；
 4. 最小运行通过后再启动 30 图 pilot；
 5. 计算 PixCorr、SSIM、LPIPS、CLIP 和 DINO 指标并追加到本日志。
+
+## 2026-07-25 E2 pilot 范围调整：当前只做 zero-mask
+
+在检查 E2 条件规模后，决定当前 pilot 以 zero-mask 为主，暂不运行
+mean-mask。此前日志中记录的 mean 条件属于开发时的初始设计，本条记录
+对后续实际运行范围作出更新，不删除或覆盖原记录。
+
+调整后：
+
+- 保留 mean replacement 的代码能力，但当前配置不生成 mean 条件；
+- 不计算或加载训练集 parcel mean cache；
+- Face 每张图运行 9 个条件；
+- Body 每张图运行 15 个条件；
+- Scene 每张图运行 15 个条件；
+- full-group、equal-k=4、5 组匹配随机对照、无关 ROI 对照均只做 zero；
+- `no_mask` 和跨 condition batch 的 `no_mask_repeat` 继续保留。
+
+配置变更：
+
+```yaml
+mask_modes: [zero]
+```
+
+原因：先用最直接、最容易解释的 zero-mask 验证实验流程和因果效应，再
+决定是否有必要投入额外算力做 mean-mask 稳健性分析。
+
+本次只是代码与配置调整，没有使用 GPU。下一步重新生成 E2 plan，并在
+服务器运行测试和最小 GPU dry-run。

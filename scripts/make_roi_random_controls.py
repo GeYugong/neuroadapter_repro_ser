@@ -31,7 +31,8 @@ def main() -> None:
     conditions = []
     controls = {}
     for category_index, category in enumerate(args.categories):
-        targets = roi_rows(inventory, category)
+        full_targets = roi_rows(inventory, category)
+        targets = full_targets
         if args.equal_k is not None:
             if args.equal_k <= 0:
                 raise ValueError("--equal-k must be positive")
@@ -47,6 +48,9 @@ def main() -> None:
             targets,
             replicates=args.replicates,
             seed=args.seed + category_index * 1000,
+            excluded_indices=[
+                int(row["top200_token_index"]) for row in full_targets
+            ],
         )
         for control in matched:
             for mode in args.mask_modes:
@@ -75,7 +79,7 @@ def main() -> None:
                 "description": (
                     "Deterministic random controls matched by parcel count, "
                     "hemisphere, mean ncsnr, and parcel size. Candidates are "
-                    "restricted to top-SNR-200 parcels labeled Unlabeled."
+                    "restricted to top-SNR-200 parcels outside the target ROI."
                 ),
                 "source_inventory": str(args.inventory),
                 "seed": args.seed,

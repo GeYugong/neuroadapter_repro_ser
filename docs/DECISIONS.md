@@ -51,3 +51,9 @@ top-SNR-200。Face、Word 和 V4 的保留率均为 100%。因此，在主要公
 也无法读取 E0 的数据结构。因此二者当前都不能直接作为 E2 runner。
 阶段 C 必须先实现基于清单的数据选择，以及经过验证的 zero/mean 匹配
 随机对照。
+
+## D008：E2 pilot 以 zero-mask 为主
+
+当前 E2 pilot 只运行 zero-mask，不生成 mean-mask 条件，也不计算训练集
+parcel mean。mean replacement 的代码能力予以保留，待 zero-mask pilot
+完成并证明实验流程与效应方向值得继续后，再作为稳健性分析单独启用。

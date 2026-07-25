@@ -98,8 +98,8 @@ experiments/E1_stimulus_manifest/
 
 1. 旧版批量解码器只接受连续的 `start_idx` 范围，目前无法读取按类别筛选
    后不连续的数据集索引。
-2. 旧版随机对照生成器要求旧映射列名，并且只生成 zero-mask 对照。需要
-   使其兼容 E0 数据结构，同时生成 zero/mean 条件，并记录匹配距离。
+2. E2 新随机对照生成器需要通过服务器 dry-run 验证新 E0 数据结构、
+   zero-mask 条件和匹配距离记录。mean-mask 已延期，不属于当前 pilot。
 3. E2 仍需一次确定性 dry-run，证明同一张图像的所有实验条件在不同条件
    batch 之间共享相同的 latent/noise。
 4. Face 只有 37 个已审查样本，因此最终统计效能必须使用真实样本量，
