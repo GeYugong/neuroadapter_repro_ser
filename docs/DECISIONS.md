@@ -57,3 +57,14 @@ top-SNR-200。Face、Word 和 V4 的保留率均为 100%。因此，在主要公
 当前 E2 pilot 只运行 zero-mask，不生成 mean-mask 条件，也不计算训练集
 parcel mean。mean replacement 的代码能力予以保留，待 zero-mask pilot
 完成并证明实验流程与效应方向值得继续后，再作为稳健性分析单独启用。
+
+## D009：正式 E2 统计方案
+
+正式 E2 使用 Face 37、Body 50、Scene 50 张图和 3 个固定 seed：
+`12345`、`23456`、`34567`。主要分析使用各类别完整 ROI，并与 5 组相同
+parcel 数量、半球、SNR 和大小匹配的随机对照比较。
+
+统计单位是图像，不把 3 个 seed 当作独立样本。先对每张图的 3 个 seed
+causal loss 求平均，再进行 bootstrap CI 和 sign-flip 检验。主要检验包含
+3 类 × 5 指标共 15 项，统一进行 Benjamini-Hochberg 校正。Body/Scene 的
+equal-k=4 结果只作为次要敏感性分析，不能替代主要 full-group 结果。

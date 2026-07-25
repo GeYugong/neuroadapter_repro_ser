@@ -1,0 +1,32 @@
+name: E2_top_snr_causal_full
+subject: 1
+checkpoint_step: 100000
+checkpoint: outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt
+mapping: experiments/E0_mapping/mapping_metadata.json
+mapping_inventory: experiments/E0_mapping/algonauts_top200_mapping_subj01.csv
+stimulus_manifest: experiments/E1_stimulus_manifest/confirmatory_manifest.csv
+dataset_index_column: dataset_idx
+stimulus_selection: highest_category_selection_score
+categories:
+  Face: 37
+  Body: 50
+  Scene: 50
+mask_modes: [zero]
+designs: [full_group, equal_k, matched_random]
+matched_random_controls: 5
+equal_k: 4
+control_seed: 20260718
+seeds: [12345, 23456, 34567]
+denoising_steps: 50
+noise_factor: 4.0
+condition_batch_size: 8
+primary_analysis:
+  unit: image
+  seed_aggregation: mean_causal_loss_per_image
+  comparison: full_target_roi_minus_mean_of_five_full_matched_random_controls
+  metrics: [pixel_corr, ssim, lpips, clip, dino]
+  multiplicity: benjamini_hochberg_across_15_category_metric_tests
+secondary_analysis:
+  comparison: equal_k_target_roi_minus_mean_of_five_equal_k_matched_random_controls
+  status: sensitivity_only
+status: preregistered_not_run

@@ -2499,3 +2499,39 @@ experiments/E2_zero_pilot/figures/*_comparison_grid.png
 
 下一步：使用 Face 37、Body 50、Scene 50 和 3 个固定 seed 扩大
 zero-mask 实验；mean-mask 继续延期。
+
+## 2026-07-25 正式 E2 zero-mask 预注册
+
+在查看正式实验数据前固定以下配置：
+
+```text
+config: configs/experiments/E2_full.yaml
+Face: 37
+Body: 50
+Scene: 50
+seeds: 12345, 23456, 34567
+denoising steps: 50
+guidance/noise factor: 4.0
+mask mode: zero
+matched random controls: 5
+equal-k: 4
+```
+
+主要分析：
+
+```text
+full target ROI causal loss
+-
+5 组 full matched-random causal loss 的均值
+```
+
+统计单位为图像。对同一图像先将 3 个 seed 的 causal loss 求平均，再计算
+bootstrap 95% CI 和 sign-flip p。主要检验固定为 3 个类别 × 5 个指标，
+共 15 项，统一进行 Benjamini-Hochberg 校正。
+
+Body 和 Scene 的 equal-k=4 只作为次要敏感性分析。Face 的 full ROI 本身
+就是 4 个 parcel。不得根据 pilot 中 Face PixCorr 或 Scene DINO 的结果
+删减其他预注册指标。
+
+当前尚未启动正式运行。本条记录用于证明统计方案在正式数据评估前已经
+固定。
