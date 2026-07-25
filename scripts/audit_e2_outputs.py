@@ -177,6 +177,7 @@ def main() -> None:
         failures.append("Runs do not share one repository commit")
     result["passed"] = not failures
     output = args.output or args.run_root / "e2_output_audit.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(result, indent=2, ensure_ascii=False),
         encoding="utf-8",
