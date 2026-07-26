@@ -2989,3 +2989,203 @@ E3 的计划生成、pure controls、解码、全局/局部指标、统计输出
 1. 恢复 E1 OpenCV Haar backend，或重新冻结 Face detector；
 2. 审核 smoke 图与局部 region 定义；
 3. 单独批准 10 张 pilot 后再运行。
+
+## 2026-07-26 E3 completion smoke 与严格完成审计
+
+### 目的
+
+对首轮 E3 smoke 的四个审计缺口进行补强：
+
+1. 使用 YAML 作为 E3a/E3b 权威配置，而不是只依赖生成后的 JSON；
+2. 显式证明同一图像的 initial latent 和 diffusion noise 在全部条件中
+   复用；
+3. 将 Body `person_region_consistency` 改为独立指标，不再复制 DINO；
+4. 补齐 E3a 统一 BH 和 E3b 独立 BH 的正式统计代码与测试。
+
+本轮仍只允许每类 1 张图和 seed 12345。没有启动 pilot、全量实验或新模型
+训练。
+
+### 代码与配置
+
+运行代码提交：
+
+```text
+269a9f8917130a277aafe37de0c636b9530ad8c3
+feat(e3): strengthen smoke validation and statistics
+```
+
+权威配置：
+
+```text
+configs/experiments/E3_interaction.yaml
+configs/experiments/E3_joint_redundancy.yaml
+```
+
+配置固定 Subject 1、step-100000 checkpoint、mean replacement、
+equal-k=4、pure-control overlap `<0.10`、每个条件 5 组唯一对照、3 个
+冻结 seed、50 个扩散步和图像统计单位。生成后的 plan 记录配置绝对路径与
+SHA-256。
+
+### 测试
+
+服务器系统 Python 运行：
+
+```bash
+/usr/bin/python3 -m compileall -q scripts src tests
+/usr/bin/python3 -m pytest -q \
+  --ignore=tests/test_e2_metrics.py \
+  --ignore=tests/test_metric_cache.py
+/usr/bin/python3 -m pytest -q \
+  tests/test_e3.py tests/test_e3_audit.py tests/test_local_metrics.py
+```
+
+结果：
+
+```text
+41 passed
+10 passed
+```
+
+未忽略时，两个旧 E2 指标模块因系统 Python 缺少 `skimage` 而在收集阶段
+失败。`neuroadapter` 环境有 `skimage` 但没有 pytest。没有修改共享 conda
+环境。
+
+### 计划生成
+
+```bash
+conda run -n neuroadapter python scripts/make_e3_plans.py \
+  --inventory experiments/E0_mapping/algonauts_top200_mapping_subj01.csv \
+  --manifest experiments/E1_stimulus_manifest/confirmatory_manifest.csv \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --source-e2-plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_mean_full/plan/e2_mean_plan.json \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan
+```
+
+E3a/E3b 的 plan equivalence 与 control matching audit 均为
+`passed=true`。E3a 每类 20 个条件，E3b 每类 32 个条件。
+
+### GPU 解码
+
+两个实验分别使用 GPU 2–4 和 5–7：
+
+```bash
+conda run -n neuroadapter python scripts/launch_e3_smoke.py \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_interaction_plan.json \
+  --project-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026 \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3 \
+  --gpus 2,3,4 --run-label completion_smoke
+
+conda run -n neuroadapter python scripts/launch_e3_smoke.py \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_joint_redundancy_plan.json \
+  --project-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026 \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3 \
+  --gpus 5,6,7 --run-label completion_smoke
+```
+
+| 实验 | Face | Body | Scene | 任务结果 |
+| --- | ---: | ---: | ---: | --- |
+| E3a | 48.62 s | 46.37 s | 49.16 s | 3/3 PASS |
+| E3b | 66.10 s | 63.84 s | 66.08 s | 3/3 PASS |
+
+### 强审计
+
+审计命令：
+
+```bash
+conda run -n neuroadapter python scripts/audit_e3_smoke.py \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_interaction_plan.json \
+  --run-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_interaction/completion_smoke \
+  --output /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_interaction/output_audit.json
+
+conda run -n neuroadapter python scripts/audit_e3_smoke.py \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_joint_redundancy_plan.json \
+  --run-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_joint_redundancy/completion_smoke \
+  --output /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_joint_redundancy/output_audit.json
+```
+
+结果：
+
+```text
+E3a: 3/3 categories passed
+E3b: 3/3 categories passed
+no-mask determinism: all passed
+shared latent/noise reuse: all passed
+max_abs_delta_non_target: 0.0
+same checkpoint across categories: true
+same mean cache across categories: true
+```
+
+每个 `run_summary.json` 记录了 sample/DDPM seed、initial latent SHA、
+diffusion noise SHA、shape、dtype、复用条件名、复用条件数和 condition
+batch 数。审计要求这些字段覆盖该图的全部 20 或 32 个条件。
+
+### 指标计算
+
+E3a 与 E3b 分别在 GPU 2 和 3 运行：
+
+```bash
+conda run -n neuroadapter python scripts/evaluate_e3.py \
+  --run-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_interaction/completion_smoke \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_plan/E3_interaction_plan.json \
+  --manifest experiments/E1_stimulus_manifest/confirmatory_manifest.csv \
+  --coco-annotations /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/coco/annotations \
+  --haar-cascade /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/stimulus_models/opencv-haar-4.12.0/haarcascade_frontalface_default.xml \
+  --clip-checkpoint /public/home/mty/.cache/clip/RN50.pt \
+  --dinov2-repo /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/torch_hub/facebookresearch_dinov2_main \
+  --lpips-package-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics \
+  --output-dir /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_eval/E3_interaction \
+  --mode smoke
+```
+
+E3b 使用相同依赖，将 `run-root`、`plan` 和 `output-dir` 替换为
+`E3_joint_redundancy` 对应路径。
+
+结果：
+
+| 实验 | per-sample | 聚合效应 | 主要摘要 |
+| --- | ---: | ---: | ---: |
+| E3a | 60 | 72 | 15 |
+| E3b | 96 | 120 | 120 |
+
+Body 的 52/52 条 completion-smoke 记录中，
+`person_region_consistency` 与 `person_dino` 数值不同，确认二者为独立
+指标。两项实验均为 `scope=smoke`、`formal_inference_performed=false`，
+CI、p 和 q 为空。
+
+Face detector 仍为：
+
+```text
+skimage_bundled_lbp_smoke_fallback
+face_detector_formal_compatibility: false
+```
+
+### 图片与产物
+
+两项实验的 6 张 comparison grid 和 2 张描述性效应图均已逐张视觉检查：
+非空、GT 与条件列对齐、标题位于固定单元格内，且效应图明确标注非正式
+推断。
+
+轻量产物：
+
+```text
+experiments/E3_interaction/
+experiments/E3_joint_redundancy/
+```
+
+服务器原始输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_interaction/completion_smoke
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_joint_redundancy/completion_smoke
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_eval
+```
+
+### 当前结论与停止点
+
+E3a/E3b 的权威配置、plan、pure controls、解码、共享随机状态、局部指标、
+正式统计函数和轻量产物路径均已通过工程验证。smoke 样本量不足以形成
+功能性科研结论。按预注册边界停止，不启动 pilot 或全量实验。

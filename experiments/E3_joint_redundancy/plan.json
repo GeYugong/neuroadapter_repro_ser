@@ -15,18 +15,55 @@
   "denoising_steps": 50,
   "noise_factor": 4.0,
   "condition_batch_size": 8,
-  "statistical_unit": "image after averaging three seeds",
+  "statistical_unit": "image",
+  "seed_aggregation": "mean_causal_loss_across_three_seeds_per_image",
+  "global_metrics": [
+    "pixel_corr",
+    "ssim",
+    "lpips",
+    "clip",
+    "dino"
+  ],
+  "local_metrics": {
+    "Face": [
+      "face_lpips",
+      "face_dino",
+      "face_detection_success"
+    ],
+    "Body": [
+      "person_lpips",
+      "person_dino",
+      "person_region_consistency"
+    ],
+    "Scene": [
+      "background_dino",
+      "background_clip",
+      "scene_class_consistency"
+    ]
+  },
+  "execution": {
+    "smoke_images_per_category": 1,
+    "smoke_seeds": 1,
+    "pilot_images_per_category": 10,
+    "pilot_seeds": 1,
+    "formal_requires_all_frozen_images": true,
+    "formal_requires_all_seeds": true
+  },
   "mean_token_cache": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt",
   "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e",
   "inventory": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro/experiments/E0_mapping/algonauts_top200_mapping_subj01.csv",
   "inventory_sha256": "3de270fcb0465c2e5c40de6f2301b08200090aebec2b214d41824cd278e47523",
   "manifest": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro/experiments/E1_stimulus_manifest/confirmatory_manifest.csv",
   "manifest_sha256": "d3aa55eab6b537d4b4628313f1cfabdf925ed934fd475bffa1924ac1776aafdf",
-  "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
-  "created_at": "2026-07-26T08:31:31.908251+00:00",
+  "repository_commit": "269a9f8917130a277aafe37de0c636b9530ad8c3",
+  "created_at": "2026-07-26T09:01:11.274660+00:00",
   "preregistration_status": "engineering_implementation_before_smoke",
   "name": "E3_joint_redundancy",
   "analysis_family": "E3b_joint_roi_redundancy",
+  "primary_contrast": "joint_target_minus_mean_same_count_pure_random",
+  "multiplicity": "separate_benjamini_hochberg_family_for_e3b",
+  "config": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro/configs/experiments/E3_joint_redundancy.yaml",
+  "config_sha256": "e0cd2b183ce020d508fd159117bd5a549ed38b7d281cffd719b8bcb1edf90bd0",
   "categories": {
     "Face": {
       "dataset_indices": [

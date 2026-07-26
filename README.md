@@ -25,10 +25,13 @@ docs/DECISIONS.md
 ## 当前阶段结果
 
 阶段 A/B、30 图 E2 pilot、正式 E2 zero-mask 和 E2b mean-mask
-稳健性实验均已完成，没有训练新模型。
+稳健性实验均已完成并关闭；E3a 类别×ROI 与 E3b 联合 ROI 冗余管线已
+完成工程 smoke。没有训练新模型，也没有启动 E3 pilot 或全量实验。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
-- 服务器单元测试结果为 `35 passed`（原 23 项全部保留）；
+- E3 补强后的服务器回归测试为 `41 passed`，E3 专项复跑为
+  `10 passed`；两个旧 E2 指标测试因系统 Python 缺 `scikit-image`
+  无法收集，未修改共享环境；
 - E0 全 1000 parcel inventory 显示，公开映射得到的 97 个功能 ROI
   parcel 全部进入 top-SNR-200，因此没有观察到 Face、Word、V4
   覆盖不足；
@@ -49,6 +52,8 @@ docs/DECISIONS.md
   （Pearson `0.230`，Spearman `0.400`）；
 - 因此正式结论是：当前公开 ROI 映射、100k checkpoint 与两种 parcel
   干预均未提供稳健的类别匹配 ROI 额外因果贡献证据。
+- E3a/E3b completion smoke 共完成 6/6 类别任务，60/96 条条件记录；
+  pure-control、共享 latent/noise、确定性和非目标 parcel 审计全部通过。
 
 该结论针对当前已经训练好的 NeuroAdapter 模型：它没有表现出可由单组
 ROI 整体消融稳定检测到的类别匹配依赖。不能由此推出这些脑区没有真实

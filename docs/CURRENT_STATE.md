@@ -5,9 +5,14 @@
 ## 当前范围
 
 阶段 A、B、30 图 E2 pilot、正式 E2 zero-mask 和预注册 E2b mean-mask
-稳健性实验均已完成。没有训练新模型。
+稳健性实验均已完成并关闭。没有训练新模型。
 附录 P 复现尝试以及已有的 50 样本 zero-mask 输出保留在
 `experiments/roi_ablation/` 下，作为历史性/探索性工作。
+
+正式 E2b 推理使用的代码提交为
+`da3de7c853f9504cb0dd3eefebcabb2eda6515aa`；包含最终结果、图表和解释
+复核的报告快照为 `f7b9603bdf73c8b53c59cf86ad4c444b2220594c`。
+前者用于追溯实际运行代码，后者用于追溯阶段关闭时的报告状态。
 
 ## 阶段 A：实现
 
@@ -18,7 +23,9 @@
   parcel 在比特级完全不变，并记录 token norm 审计结果。
 - 均值替换使用训练集上的 ParcelMapper 输出，而不是 decoder query。
 - 未修改上游 NeuroAdapter checkout。
-- 当前服务器验证结果：`35 passed`，原 23 项测试全部保留。
+- E3 补强后的服务器验证结果：排除两个因系统 Python 缺少
+  `scikit-image` 而无法收集的旧 E2 指标模块后，`41 passed`；E3
+  专项集合另行复跑为 `10 passed`。没有修改共享环境。
 - 真实 step-100000 checkpoint 的 smoke test 已通过。其 `sub_approach`
   为 `linear_projection`：fMRI `[1, 200, 626]` 被映射为
   `[1, 200, 768]` 的 parcel token 和 condition token，不经过
@@ -175,7 +182,9 @@ zero-mask 阶段曾存在“全零 token 属于分布外干预”的疑问；该
 
 ## E3 工程实现与 smoke
 
-E3 已完成代码、测试和工程 smoke，但尚未启动 10 张 pilot 或全量实验。
+E3 已完成代码、测试和两轮工程 smoke；第二轮 completion smoke 对共享
+latent/noise 证据和局部指标独立性进行了补强。尚未启动 10 张 pilot 或
+全量实验。
 
 E3a 使用 equal-k=4 mean replacement 构建完整的 3×3
 刺激类别×被干预 ROI 设计。E3b 包含类别匹配单 ROI、三个双 ROI 组合和
@@ -187,9 +196,20 @@ pure matched-random controls，目标 ROI overlap 严格 `<0.10`。
 - E3a：3/3 任务、60 条 condition-image 记录；
 - E3b：3/3 任务、96 条 condition-image 记录；
 - 两项实验的确定性检查全部通过；
+- 每张图只创建一组 initial latent 和 diffusion noise，并在该图的全部
+  20/32 个条件中复用；运行摘要记录 tensor SHA、seed、shape、dtype、
+  条件名和 batch 数，强审计全部通过；
 - 非目标 parcel 最大变化均为 `0.0`；
 - plan equivalence 和 control matching audit 全部通过；
-- 局部指标与全局五指标均能产出，推断字段保持为空。
+- Body `person_region_consistency` 已改为 person mask 内的 RGB
+  pixel correlation，不再复制 person DINO；completion smoke 中
+  52/52 条 Body 记录的两项数值不同；
+- E3a 正式统计实现会对 15 项交互检验统一 BH；E3b 使用独立的 BH
+  统计族。相关单元测试已通过，但 smoke 中 CI、p 和 q 保持为空。
+
+completion smoke 的运行代码提交为
+`269a9f8917130a277aafe37de0c636b9530ad8c3`。两份 YAML 是计划的权威
+配置源，生成后的 plan 同时记录配置路径和 SHA-256。
 
 服务器 OpenCV 当前缺少 Haar detector API，因此 Face 局部指标的 smoke
 使用了 scikit-image 自带 LBP cascade fallback。该结果只证明评价管线

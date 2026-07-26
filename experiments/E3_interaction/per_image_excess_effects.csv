@@ -30,7 +30,7 @@ dataset_idx,excess_causal_loss,image_category,masked_roi,metric,num_seeds
 816,-0.009719231724739074,Body,Body,dino,1
 816,0.0028147220611572264,Body,Body,person_lpips,1
 816,-0.004248473048210144,Body,Body,person_dino,1
-816,-0.004248473048210144,Body,Body,person_region_consistency,1
+816,-0.0005599538628495132,Body,Body,person_region_consistency,1
 816,0.0018689991475995676,Body,Face,pixel_corr,1
 816,-0.001079708759211906,Body,Face,ssim,1
 816,-0.0017683267593383788,Body,Face,lpips,1
@@ -38,7 +38,7 @@ dataset_idx,excess_causal_loss,image_category,masked_roi,metric,num_seeds
 816,0.005392318964004517,Body,Face,dino,1
 816,-0.004438483715057373,Body,Face,person_lpips,1
 816,0.02300803065299988,Body,Face,person_dino,1
-816,0.02300803065299988,Body,Face,person_region_consistency,1
+816,0.0018491842338373976,Body,Face,person_region_consistency,1
 816,-0.019897564701908975,Body,Scene,pixel_corr,1
 816,-0.005493043326893316,Body,Scene,ssim,1
 816,-0.008798348903656005,Body,Scene,lpips,1
@@ -46,7 +46,7 @@ dataset_idx,excess_causal_loss,image_category,masked_roi,metric,num_seeds
 816,0.03229142129421234,Body,Scene,dino,1
 816,-0.0040303230285644535,Body,Scene,person_lpips,1
 816,0.04513363242149353,Body,Scene,person_dino,1
-816,0.04513363242149353,Body,Scene,person_region_consistency,1
+816,-0.029031990239963678,Body,Scene,person_region_consistency,1
 999,-0.023366610336725352,Scene,Body,pixel_corr,1
 999,-0.03359684809507836,Scene,Body,ssim,1
 999,0.02341594696044922,Scene,Body,lpips,1

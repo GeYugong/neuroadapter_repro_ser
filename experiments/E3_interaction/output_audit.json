@@ -2,6 +2,8 @@
   "experiment": "E3_interaction",
   "scope": "engineering_smoke_only",
   "passed": true,
+  "all_categories_same_checkpoint": true,
+  "all_categories_same_mean_token_cache": true,
   "categories": {
     "Face": {
       "passed": true,
@@ -10,8 +12,39 @@
       "conditions_equal_plan": true,
       "dataset_index_equal_plan": true,
       "determinism_passed": true,
+      "shared_latent_noise_passed": true,
+      "shared_latent_noise_audit": {
+        "passed": true,
+        "policy": "one initial latent and one diffusion-noise tensor per image reused across every condition",
+        "checks": {
+          "policy_declared": true,
+          "condition_batches_fixed_shape": true,
+          "one_state_record_per_image": true,
+          "dataset_indices_identical": true
+        },
+        "records": [
+          {
+            "dataset_idx": 973,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "2c9a55f1efa76fc87e5472930fd43e5f692b58098c8b94b914e1a8b10759d503",
+            "diffusion_noise_sha256": "385916f8fa62b22fff07f1d70ace5d279ff45ac061fa11187c1707e2d35e58c8"
+          }
+        ]
+      },
       "max_abs_delta_non_target": 0.0,
-      "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
+      "repository_commit": "269a9f8917130a277aafe37de0c636b9530ad8c3",
       "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
       "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
     },
@@ -22,8 +55,39 @@
       "conditions_equal_plan": true,
       "dataset_index_equal_plan": true,
       "determinism_passed": true,
+      "shared_latent_noise_passed": true,
+      "shared_latent_noise_audit": {
+        "passed": true,
+        "policy": "one initial latent and one diffusion-noise tensor per image reused across every condition",
+        "checks": {
+          "policy_declared": true,
+          "condition_batches_fixed_shape": true,
+          "one_state_record_per_image": true,
+          "dataset_indices_identical": true
+        },
+        "records": [
+          {
+            "dataset_idx": 816,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "fe6e82a0cb01da45877b289562ee8402400222f33ea7c6be750b5e6ece322f37",
+            "diffusion_noise_sha256": "8986b4726dc192f849e555280f25a5fe3835ace28cc9d9b21e2a2375145c0f82"
+          }
+        ]
+      },
       "max_abs_delta_non_target": 0.0,
-      "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
+      "repository_commit": "269a9f8917130a277aafe37de0c636b9530ad8c3",
       "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
       "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
     },
@@ -34,8 +98,39 @@
       "conditions_equal_plan": true,
       "dataset_index_equal_plan": true,
       "determinism_passed": true,
+      "shared_latent_noise_passed": true,
+      "shared_latent_noise_audit": {
+        "passed": true,
+        "policy": "one initial latent and one diffusion-noise tensor per image reused across every condition",
+        "checks": {
+          "policy_declared": true,
+          "condition_batches_fixed_shape": true,
+          "one_state_record_per_image": true,
+          "dataset_indices_identical": true
+        },
+        "records": [
+          {
+            "dataset_idx": 999,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "0d0aff7596101c3d9924023b9f8d66fa992c3f128f0bf70daacce49a83fdf19c",
+            "diffusion_noise_sha256": "a6533e21df54f878a8cf65a30065e4bf94e6dd4594cac51537491fc136149523"
+          }
+        ]
+      },
       "max_abs_delta_non_target": 0.0,
-      "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
+      "repository_commit": "269a9f8917130a277aafe37de0c636b9530ad8c3",
       "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
       "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
     }

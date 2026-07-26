@@ -21,9 +21,16 @@
 - Face、Body、Scene 共 3 个任务全部完成；
 - 每类 20 个条件，共 60 条 condition-image 记录；
 - no-mask 与 no-mask-repeat 的 PNG SHA-256 完全一致；
+- 每张图的一组 initial latent 和 diffusion noise 在全部 20 个条件中
+  复用，tensor SHA、seed、shape、dtype、条件名和 batch 数均通过审计；
 - 非目标 parcel 最大变化量为 `0.0`；
 - checkpoint 和 mean cache 哈希在 3 个任务中一致；
 - plan equivalence 与 pure-control matching audit 均通过。
+
+权威配置为 `configs/experiments/E3_interaction.yaml`，completion smoke
+运行代码提交为 `269a9f8917130a277aafe37de0c636b9530ad8c3`。正式统计
+路径已实现“每图先平均 3 seeds，再计算匹配类别减非匹配类别，并对
+3 ROI × 5 全局指标统一 BH”，但本目录仍只有 smoke 描述结果。
 
 ## 局部指标限制
 
@@ -31,6 +38,8 @@ COCO person polygon 用于 Body person region 和 Scene background。服务器�
 OpenCV 安装缺少 `CascadeClassifier`，Face smoke 显式退回 scikit-image
 自带 LBP cascade。该 fallback 没有下载权重，但与 E1 的 OpenCV Haar
 后端不完全相同，因此正式实验前必须恢复或重新冻结人脸检测后端。
+Body 的 `person_region_consistency` 是 person mask 内独立计算的 RGB
+pixel correlation，不再复制 person DINO。
 
 ## 主要文件
 

@@ -4,7 +4,7 @@ engineering_smoke,,,Body,Body,dino,1,,0.0038677245378494264
 engineering_smoke,,,Body,Body,lpips,1,,0.00017180442810058594
 engineering_smoke,,,Body,Body,person_dino,1,,0.00853433907032013
 engineering_smoke,,,Body,Body,person_lpips,1,,0.001820528507232666
-engineering_smoke,,,Body,Body,person_region_consistency,1,,0.00853433907032013
+engineering_smoke,,,Body,Body,person_region_consistency,1,,-0.0005526165931724322
 engineering_smoke,,,Body,Body,pixel_corr,1,,-0.00011223409692459607
 engineering_smoke,,,Body,Body,ssim,1,,-0.0022878860073006157
 engineering_smoke,,,Body,Body+Scene,clip,1,,-0.03502325415611267
@@ -12,7 +12,7 @@ engineering_smoke,,,Body,Body+Scene,dino,1,,0.02864201068878174
 engineering_smoke,,,Body,Body+Scene,lpips,1,,0.0027300834655761717
 engineering_smoke,,,Body,Body+Scene,person_dino,1,,0.044010454416275026
 engineering_smoke,,,Body,Body+Scene,person_lpips,1,,-0.003505384922027588
-engineering_smoke,,,Body,Body+Scene,person_region_consistency,1,,0.044010454416275026
+engineering_smoke,,,Body,Body+Scene,person_region_consistency,1,,-0.0006894417667250765
 engineering_smoke,,,Body,Body+Scene,pixel_corr,1,,0.00452131544724188
 engineering_smoke,,,Body,Body+Scene,ssim,1,,-0.004095802999243203
 engineering_smoke,,,Body,Face+Body,clip,1,,0.014334541559219361
@@ -20,7 +20,7 @@ engineering_smoke,,,Body,Face+Body,dino,1,,-0.0011276990175247189
 engineering_smoke,,,Body,Face+Body,lpips,1,,-0.005420029163360596
 engineering_smoke,,,Body,Face+Body,person_dino,1,,-0.007465970516204835
 engineering_smoke,,,Body,Face+Body,person_lpips,1,,-0.008767855167388917
-engineering_smoke,,,Body,Face+Body,person_region_consistency,1,,-0.007465970516204835
+engineering_smoke,,,Body,Face+Body,person_region_consistency,1,,0.004576244695621095
 engineering_smoke,,,Body,Face+Body,pixel_corr,1,,0.007785321442405832
 engineering_smoke,,,Body,Face+Body,ssim,1,,-0.01002470114965428
 engineering_smoke,,,Body,Face+Body+Scene,clip,1,,0.0005052864551544183
@@ -28,7 +28,7 @@ engineering_smoke,,,Body,Face+Body+Scene,dino,1,,0.009759706258773804
 engineering_smoke,,,Body,Face+Body+Scene,lpips,1,,-0.00942375659942627
 engineering_smoke,,,Body,Face+Body+Scene,person_dino,1,,-0.003977759182453154
 engineering_smoke,,,Body,Face+Body+Scene,person_lpips,1,,-0.01829887628555298
-engineering_smoke,,,Body,Face+Body+Scene,person_region_consistency,1,,-0.003977759182453154
+engineering_smoke,,,Body,Face+Body+Scene,person_region_consistency,1,,-0.03467715641619272
 engineering_smoke,,,Body,Face+Body+Scene,pixel_corr,1,,-0.018185099468941236
 engineering_smoke,,,Body,Face+Body+Scene,ssim,1,,-0.012442261921764402
 engineering_smoke,,,Body,Face+Scene,clip,1,,0.04860694408416748
@@ -36,7 +36,7 @@ engineering_smoke,,,Body,Face+Scene,dino,1,,0.025537879765033723
 engineering_smoke,,,Body,Face+Scene,lpips,1,,-0.004089641571044922
 engineering_smoke,,,Body,Face+Scene,person_dino,1,,0.026932799816131593
 engineering_smoke,,,Body,Face+Scene,person_lpips,1,,-0.0013164877891540527
-engineering_smoke,,,Body,Face+Scene,person_region_consistency,1,,0.026932799816131593
+engineering_smoke,,,Body,Face+Scene,person_region_consistency,1,,-0.028296453832016455
 engineering_smoke,,,Body,Face+Scene,pixel_corr,1,,-0.020400565730361774
 engineering_smoke,,,Body,Face+Scene,ssim,1,,-0.0016371601382342115
 engineering_smoke,,,Face,Body+Scene,clip,1,,-0.07906654477119446
