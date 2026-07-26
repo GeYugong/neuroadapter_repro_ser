@@ -41,6 +41,12 @@ E2b 的主要统计单位仍为图像。同一图像先平均 3 个 seed 的 cau
 再计算双侧 sign-flip p、bootstrap 95% CI，并对 3 类别 × 5 指标共
 15 项主要检验统一进行 Benjamini-Hochberg 校正。
 
+E3a 使用 3×3 刺激类别×被干预 ROI 设计，所有 ROI 固定 equal-k=4，
+并使用 overlap `<0.10` 的 pure controls。E3b 使用匹配单 ROI、三个双
+ROI、三 ROI 联合干预及其相同 parcel 数量 controls。两项实验均先在
+图像内平均 3 个 seed；全局和局部指标分别构成独立 BH 统计族。E3b 趋势
+固定为 4、8、12 parcels 三个 level，不得根据正式结果修改。
+
 ## 来源与可追溯性
 
 每次运行都必须记录：仓库 commit、checkpoint 及其哈希、映射及其哈希、

@@ -1,0 +1,20 @@
+{
+  "experiment": "E3_joint_redundancy",
+  "scope": "engineering_formal_evaluation",
+  "passed": true,
+  "expected_per_sample_rows": 13152,
+  "actual_per_sample_rows": 13152,
+  "actual_local_metric_rows": 13152,
+  "invalid_or_missing_metrics": [],
+  "local_regions_nonempty": true,
+  "minimum_local_region_pixels": 3025,
+  "face_detector_passed": true,
+  "face_prediction_detection_success": 1772.0,
+  "face_prediction_count": 3552,
+  "formal_inference_performed": true,
+  "inference_fields_empty": false,
+  "formal_inference_complete": true,
+  "result_counts_passed": true,
+  "per_image_seed_count_passed": true,
+  "engineering_anomalies": []
+}

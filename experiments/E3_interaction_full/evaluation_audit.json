@@ -1,0 +1,20 @@
+{
+  "experiment": "E3_interaction",
+  "scope": "engineering_formal_evaluation",
+  "passed": true,
+  "expected_per_sample_rows": 8220,
+  "actual_per_sample_rows": 8220,
+  "actual_local_metric_rows": 8220,
+  "invalid_or_missing_metrics": [],
+  "local_regions_nonempty": true,
+  "minimum_local_region_pixels": 3025,
+  "face_detector_passed": true,
+  "face_prediction_detection_success": 1093.0,
+  "face_prediction_count": 2220,
+  "formal_inference_performed": true,
+  "inference_fields_empty": false,
+  "formal_inference_complete": true,
+  "result_counts_passed": true,
+  "per_image_seed_count_passed": true,
+  "engineering_anomalies": []
+}

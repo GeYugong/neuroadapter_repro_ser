@@ -3435,3 +3435,280 @@ Haar 后端、统一测试环境、独立 plan、GPU 解码、强审计、全局
 人工审图均已完成。本轮目标已经达到。pilot 没有提供跨指标一致的类别
 特异性交互趋势，也没有显示联合 ROI 数量增加时效应单调增强；同时逐图
 异质性较高。按预定义边界停止，不启动三 seed 全量实验。
+
+## 2026-07-26 E3 三 seed 正式实验
+
+### 目标与冻结边界
+
+本轮将 E3a 类别×ROI 交互和 E3b 联合 ROI 冗余从单 seed pilot 扩展为
+三 seed 正式实验。正式结果生成前冻结以下设置：
+
+```text
+Face images: 37
+Body images: 50
+Scene images: 50
+seeds: 12345, 23456, 34567
+intervention: training-set parcel mean replacement
+equal-k: 4
+pure-control rule: max overlap with every target ROI group < 0.10
+control replicates: 5 unique sets per target condition
+denoising steps: 50
+```
+
+E3a 每图 20 个条件，构建完整 3×3 刺激类别×被干预 ROI 设计。主要统计
+先在图像内平均 3 个 seed，再计算某 ROI 在匹配类别上的 causal loss
+减两个非匹配类别的等权平均。5 个全局指标共 15 项统一 BH；局部 27 项
+作为独立统计族。
+
+E3b 每图 32 个条件，包括匹配单 ROI、三个双 ROI、三 ROI 联合干预以及
+各自相同 parcel 数量的 pure controls。全局联合 75 项、局部联合 45 项
+分别 BH。趋势在运行前固定为：
+
+```text
+level 1: matching single ROI, 4 parcels
+level 2: mean of the two double masks containing the matching ROI, 8 parcels
+level 3: Face+Body+Scene, 12 parcels
+```
+
+每张图片计算三个 level 上的最小二乘斜率，使用双侧 sign-flip；全局
+15 项和局部 9 项趋势分别 BH。不得根据结果改变 level、指标或检验方向。
+
+### 代码、测试与正式 plan
+
+正式 plan、推理和评价实际使用：
+
+```text
+de5a68f61ee31f37cb6ed0b8eacf607c52869183
+```
+
+相关开发提交：
+
+```text
+423b157 feat(e3): prepare formal multi-seed analysis
+de5a68f fix(e3): skip absent trend metrics
+```
+
+完整服务器回归命令：
+
+```bash
+cd /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/envs/e3-pilot/bin/python \
+  -m pytest -q
+```
+
+结果为 `52 passed`。只有已有的
+`torch.load(weights_only=False)` FutureWarning，没有失败、跳过或
+ignore 旧 E2 测试。
+
+正式 plan 核心命令：
+
+```bash
+python scripts/make_e3_plans.py \
+  --scope formal \
+  --inventory experiments/E0_mapping/algonauts_top200_mapping_subj01.csv \
+  --manifest experiments/E1_stimulus_manifest/confirmatory_manifest.csv \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --source-e2-plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_mean_full/plan/e2_mean_plan.json \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/formal_plan
+```
+
+正式 plan 及资产哈希：
+
+```text
+E3a config:
+7d06cf58acf78415ed460e819b9793b929e605d37bd5998c9e386ed0240b6c6c
+E3b config:
+68d248068997ecedc4184b7b17e8f69157574e083707b54a340229cdee8f9bee
+checkpoint:
+2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40
+mean cache:
+283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e
+Haar cascade:
+0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0
+```
+
+两项 plan 的 equivalence 和 control matching audits 全部通过。正式
+plan 的前 10 张图片、目标 parcel、condition 和 controls 与 pilot
+对应部分一致，说明没有根据 pilot 结果修改设计。
+
+### GPU 解码
+
+两项正式任务同时启动，E3a 使用 GPU 0-3，E3b 使用 GPU 4-7；launcher
+保证同一 GPU 同时只有一个任务。核心命令分别为：
+
+```bash
+conda run -n neuroadapter python scripts/launch_e3_smoke.py \
+  --mode formal \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/formal_plan/E3_interaction/plan.json \
+  --project-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026 \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3 \
+  --gpus 0,1,2,3 \
+  --run-label formal
+
+conda run -n neuroadapter python scripts/launch_e3_smoke.py \
+  --mode formal \
+  --plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/formal_plan/E3_joint_redundancy/plan.json \
+  --project-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026 \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3 \
+  --gpus 4,5,6,7 \
+  --run-label formal
+```
+
+运行约从 11 时持续到 15:07。18/18 个 category-seed 任务完成，launcher
+汇总中 `failures=[]`。结束后 GPU 进程全部退出。
+
+原始输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_interaction/formal
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_joint_redundancy/formal
+```
+
+| 实验 | 任务 | image-seed pairs | 条件/图 | records |
+| --- | ---: | ---: | ---: | ---: |
+| E3a | 9/9 | 411 | 20 | 8220 |
+| E3b | 9/9 | 411 | 32 | 13152 |
+
+强审计均通过：
+
+```text
+no-mask determinism: PASS
+shared initial latent/noise: PASS
+checkpoint/mean cache/repository commit: PASS
+image/GT/seed/condition alignment: PASS
+missing or invalid images: 0
+max_abs_delta_non_target: 0.0
+```
+
+### 正式评价
+
+评价使用项目独立环境、GPU 0/1、OpenCV 4.12 Haar、CLIP RN50、
+DINOv2 ViT-B/14 和 LPIPS Alex。E3a/E3b 分别运行约 4.5 和 5.5 小时。
+核心命令形式为：
+
+```bash
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/envs/e3-pilot/bin/python \
+  scripts/evaluate_e3.py \
+  --mode formal \
+  --run-root <FORMAL_RUN_ROOT> \
+  --plan <FORMAL_PLAN> \
+  --manifest experiments/E1_stimulus_manifest/confirmatory_manifest.csv \
+  --coco-annotations /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/coco/annotations \
+  --haar-cascade /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/stimulus_models/opencv-haar-4.12.0/haarcascade_frontalface_default.xml \
+  --clip-checkpoint /public/home/mty/.cache/clip/RN50.pt \
+  --dinov2-repo /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/torch_hub/facebookresearch_dinov2_main \
+  --lpips-package-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics \
+  --output-dir <FORMAL_EVAL_DIR>
+```
+
+评价输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/formal_eval/E3_interaction
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/formal_eval/E3_joint_redundancy
+```
+
+| 实验 | per-sample | local rows | 最小区域 | Face detection | 结果 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| E3a | 8220 | 8220 | 3025 px | 1093/2220 | PASS |
+| E3b | 13152 | 13152 | 3025 px | 1772/3552 | PASS |
+
+所有 CI、p、q 均有限且完整，没有缺图、NaN、空局部区域或错误 fallback。
+
+### E3a 正式统计
+
+15 项全局交互和 27 项局部检验均无 `q<0.05` 结果。最接近的全局结果：
+
+```text
+Body CLIP:
+effect=-0.0134718, CI=[-0.0223172,-0.0045871],
+p=0.009199, q=0.137986
+
+Body DINO:
+effect=-0.0125526, CI=[-0.0228130,-0.0026013],
+p=0.031497, q=0.236226
+
+Face PixCorr:
+effect=0.0043645, CI=[0.0004866,0.0084121],
+p=0.095490, q=0.358089
+```
+
+Body 两项方向为负；Face PixCorr 虽为正但未通过全局多重比较校正。局部
+最接近的 Face/Face face LPIPS 为 `0.0042429`，p=`0.035996`，
+q=`0.323968`。因此没有稳健的类别×ROI 交互证据。
+
+### E3b 正式统计
+
+120 项联合干预检验中有 5 项 `q<0.05`：
+
+```text
+Body, Face+Body, CLIP:
+effect=-0.0132638, CI=[-0.0206785,-0.0066155],
+p=0.000300, q=0.017498
+
+Body, Face+Scene, CLIP:
+effect=0.0135113, CI=[0.0061143,0.0221788],
+p=0.000700, q=0.017498
+
+Scene, Body+Scene, SSIM:
+effect=-0.0053973, CI=[-0.0085583,-0.0024476],
+p=0.000700, q=0.017498
+
+Face, Face+Body+Scene, face LPIPS:
+effect=0.0105471, CI=[0.0046817,0.0168228],
+p=0.001500, q=0.042746
+
+Scene, Face+Body+Scene, scene class consistency:
+effect=0.0533333, CI=[0.0226667,0.0853333],
+p=0.001900, q=0.042746
+```
+
+方向并不一致。两个三 ROI 局部正向结果是候选联合效应，但没有一致的全局
+指标支持。唯一校正显著的趋势为：
+
+```text
+Face SSIM:
+k4=0.0008677, k8=-0.0015964, k12=-0.0051455
+slope=-0.0030066, CI=[-0.0050861,-0.0011234]
+p=0.002800, q=0.041996
+monotonic non-decreasing fraction=0.0811
+```
+
+该趋势方向与联合规模增大导致 causal loss 增强的假设相反；局部趋势均
+不显著。正式结果不支持分布式冗余的预注册单调预测。
+
+### 人工审图与交付
+
+E3a/E3b 的 Face、Body、Scene 六张 comparison grid 已逐行检查，共
+274 行。GT、dataset index 和条件列全部对齐，图片非空，没有渲染损坏、
+错列或异常 fallback。可见效应在图片之间高度异质，没有普遍的类别匹配
+模式，也没有随 4/8/12 parcels 一致增强的视觉模式。
+
+轻量正式产物已整理到：
+
+```text
+experiments/E3_interaction_full/
+experiments/E3_joint_redundancy_full/
+```
+
+每个目录包含 plan、plan/control/output/evaluation/visual audits、
+per-sample、local、per-image 结果、正式 CI/p/q 表、comparison grids、
+forest plots、分布图、趋势图和中文 README。
+
+### 当前结论与停止点
+
+在当前公开 Algonauts Subject 1 ROI 映射、step-100000 checkpoint、
+training-mean replacement、pure controls 和三 seed 正式设计下：
+
+1. 没有获得稳健的类别×ROI 交互证据；
+2. 联合 ROI 结果方向混合，不支持联合规模增加时 causal loss 单调增强；
+3. 两个三 ROI 局部结果保留为候选，但不能在同一正式数据上追加追分析；
+4. 结论只针对当前 NeuroAdapter 模型的可检测依赖，不否定真实脑区功能。
+
+按预注册边界停止。本轮不训练新模型、不增加条件，也不根据正式结果重新
+定义统计。

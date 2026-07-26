@@ -14,24 +14,24 @@
    是否会使对应类别刺激的重建效果下降更多？
 2. 零值替换和训练集均值替换得到的效应方向是否一致？
 3. top-SNR-200 会如何改变功能 ROI 的覆盖率和组成？
-4. 核心研究完成后，attention 大小能否预测屏蔽效应？
+4. 类别×ROI 交互或多个高层 ROI 的联合干预能否揭示分布式依赖？
+5. 核心研究完成后，attention 大小能否预测屏蔽效应？
 
 ## 实验阶段
 
 - E0：建立完整的公开 ROI 清单，并量化 top-SNR 选择偏差。
 - E1：为 Face、Body、Scene 和探索性 Word 类别建立刺激清单。
 - E2：在已有 top-SNR-200 模型上进行配对因果屏蔽实验。
-- E3：比较新训练的 top-SNR-200 与 ROI-balanced-200 模型。
+- E3：在现有 checkpoint 上检验类别×ROI 交互和联合 ROI 冗余。
 - E4：可选的 attention 与因果效应关系分析。
 
 ## 当前范围
 
-阶段 A/B、E2 zero-mask pilot、正式 zero-mask 与预注册 E2b mean-mask
-GPU 解码均已完成。zero 和 mean 均没有发现校正显著的正向类别特异性
-效应，两个结果均永久保留。E2b 除将全零替换改为训练集 parcel-wise
-mean 外，样本、checkpoint、parcel、随机对照、seed、扩散参数、指标和
-统计方案保持不变。本阶段停止，不自动进入 3×3 交互、局部指标、剂量
-响应、attention 分析、新 checkpoint 训练或多被试实验。
+阶段 A/B、E2 zero-mask pilot、正式 zero-mask、E2b mean-mask 和 E3
+三 seed 正式实验均已完成。E3a 没有发现校正显著的类别×ROI 交互；
+E3b 有少量方向混合的联合干预结果，但不支持联合规模单调增强。所有结果
+均永久保留，当前停止，不自动进入 attention 分析、新 checkpoint 训练
+或多被试实验。
 
 E0 发现所有通过公开数据映射出的功能 ROI 均有 100% 的保留率。因此，
 计划中的 ROI-balanced-200 训练对比已暂停：主映射结果不支持原先所假设

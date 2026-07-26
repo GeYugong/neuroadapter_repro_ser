@@ -1,0 +1,57 @@
+{
+  "experiment": "E3_interaction",
+  "scope": "formal",
+  "repository_commit": "de5a68f61ee31f37cb6ed0b8eacf607c52869183",
+  "python_executable": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/envs/e3-pilot/bin/python",
+  "formal_inference_performed": true,
+  "num_rows": 8220,
+  "num_excess_rows": 3288,
+  "seed_aggregation": "mean causal loss across seeds within each image before inference",
+  "multiplicity_families": {
+    "global_interaction": "15 tests",
+    "local_within_category": "27 tests"
+  },
+  "monotonicity_definition": null,
+  "metric_models": {
+    "clip_checkpoint": "/public/home/mty/.cache/clip/RN50.pt",
+    "clip_checkpoint_sha256": "afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762",
+    "dinov2_repo": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/torch_hub/facebookresearch_dinov2_main",
+    "dinov2_repo_commit": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+    "dinov2_checkpoint": "/public/home/mty/.cache/torch/hub/checkpoints/dinov2_vitb14_pretrain.pth",
+    "dinov2_checkpoint_sha256": "0b8b82f85de91b424aded121c7e1dcc2b7bc6d0adeea651bf73a13307fad8c73",
+    "lpips_package_root": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics",
+    "lpips_version": "0.1.4",
+    "lpips_checkpoint": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics/lpips/weights/v0.1/alex.pth",
+    "lpips_checkpoint_sha256": "df73285e35b22355a2df87cdb6b70b343713b667eddbda73e1977e0c860835c0",
+    "alexnet_checkpoint": "/public/home/mty/.cache/torch/hub/checkpoints/alexnet-owt-7be5be79.pth",
+    "alexnet_checkpoint_sha256": "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02",
+    "clip_preprocess": "Compose(\n    Resize(size=224, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    <function _convert_image_to_rgb at 0x7fe484a68a60>\n    ToTensor()\n    Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711))\n)",
+    "dino_preprocess": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))\n)",
+    "lpips_preprocess": "Compose(\n    Resize(size=(256, 256), interpolation=bilinear, max_size=None, antialias=True)\n    ToTensor()\n    Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))\n)",
+    "torch_version": "2.4.1+cu121"
+  },
+  "face_detector_backend": "opencv_haar_e1",
+  "opencv_version": "4.12.0",
+  "face_detector_formal_compatibility": true,
+  "face_detector_cascade": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/stimulus_models/opencv-haar-4.12.0/haarcascade_frontalface_default.xml",
+  "face_detector_cascade_sha256": "0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0",
+  "face_detector_parameters": {
+    "scaleFactor": 1.1,
+    "minNeighbors": 5,
+    "minSize": [
+      24,
+      24
+    ]
+  },
+  "invalid_or_missing_metric_count": 0,
+  "minimum_local_region_pixels": 3025,
+  "content_addressed_cache": {
+    "embedding_computations": {
+      "clip": 13746,
+      "dino": 13746
+    },
+    "pair_computations": {
+      "lpips": 13509
+    }
+  }
+}

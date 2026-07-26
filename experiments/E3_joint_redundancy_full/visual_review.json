@@ -1,0 +1,25 @@
+{
+  "experiment": "E3_joint_redundancy",
+  "scope": "formal",
+  "review_date": "2026-07-26",
+  "reviewed_rows": {
+    "Face": 37,
+    "Body": 50,
+    "Scene": 50,
+    "total": 137
+  },
+  "checks": {
+    "all_rows_reviewed": true,
+    "images_nonempty": true,
+    "ground_truth_and_dataset_index_aligned": true,
+    "condition_columns_aligned": true,
+    "rendering_damage_absent": true,
+    "unexpected_fallback_absent": true
+  },
+  "grid_sha256": {
+    "face_comparison_grid.png": "6b00ee846e57854ce96d7a6a654945d7b143554172efb570dfa8b8bb5c549b5f",
+    "body_comparison_grid.png": "0bc628c5556fb6508ce83c36e22db4fe74de98fa3791de5ae87c8549538f8186",
+    "scene_comparison_grid.png": "3892e8de2821b74b0a8baa7ad1ad849a7843e9831972c7c55e30f02146030d00"
+  },
+  "observation": "Joint-mask effects were heterogeneous and did not show a consistent monotonic increase from 4 to 12 parcels."
+}

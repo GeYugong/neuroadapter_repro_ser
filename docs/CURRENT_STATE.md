@@ -4,9 +4,9 @@
 
 ## 当前范围
 
-阶段 A、B、30 图 E2 pilot、正式 E2 zero-mask、预注册 E2b mean-mask
-稳健性实验，以及 E3a/E3b 每类 10 张、1 个 seed 的工程 pilot 均已完成。
-没有训练新模型，也没有启动 E3 三 seed 全量实验。
+阶段 A、B、30 图 E2 pilot、正式 E2 zero-mask、预注册 E2b mean-mask、
+E3a 类别×ROI 交互和 E3b 联合 ROI 冗余的三 seed 正式实验均已完成。
+没有为 E3 训练新模型，也没有根据正式结果追加新条件。
 附录 P 复现尝试以及已有的 50 样本 zero-mask 输出保留在
 `experiments/roi_ablation/` 下，作为历史性/探索性工作。
 
@@ -25,7 +25,7 @@
 - 均值替换使用训练集上的 ParcelMapper 输出，而不是 decoder query。
 - 未修改上游 NeuroAdapter checkout。
 - 已在项目目录建立独立 E3 测试环境，同时提供 pytest、scikit-image
-  和 OpenCV Haar API。完整测试结果为 `48 passed`，没有 ignore 旧 E2
+  和 OpenCV Haar API。正式运行前完整测试结果为 `52 passed`，没有 ignore 旧 E2
   指标测试，也没有修改共享 conda 环境。
 - 真实 step-100000 checkpoint 的 smoke test 已通过。其 `sub_approach`
   为 `linear_projection`：fMRI `[1, 200, 626]` 被映射为
@@ -181,83 +181,85 @@ zero-mask 阶段曾存在“全零 token 属于分布外干预”的疑问；该
 3. 整图指标可能稀释面部、人体或背景区域的局部变化；
 4. 单 ROI 干预不能直接检验多个脑区之间的信息冗余或生成先验的补偿。
 
-## E3 工程实现、Haar 修复与 pilot
+## E3 三 seed 正式实验
 
-E3 已完成代码、测试和两轮工程 smoke；第二轮 completion smoke 对共享
-latent/noise 证据和局部指标独立性进行了补强。随后完成了每类 10 张、
-seed 12345 的 E3a/E3b pilot；尚未启动三 seed 全量实验。
+E3 的工程 smoke、严格 Haar 修复和每类 10 张单 seed pilot 完成后，在
+查看正式结果前冻结了全量 plan。实际推理与评价代码提交为
+`de5a68f61ee31f37cb6ed0b8eacf607c52869183`。正式配置没有根据 pilot
+结果调整：
 
-E3a 使用 equal-k=4 mean replacement 构建完整的 3×3
-刺激类别×被干预 ROI 设计。E3b 包含类别匹配单 ROI、三个双 ROI 组合和
-Face+Body+Scene 三 ROI 联合干预。每个目标条件配 5 组相同 token 数量的
-pure matched-random controls，目标 ROI overlap 严格 `<0.10`。
+- Face 37、Body 50、Scene 50；
+- seeds `12345`、`23456`、`34567`；
+- training-mean replacement、equal-k=4；
+- 每个目标条件 5 组唯一 pure matched-random controls；
+- pure control 对所有目标 ROI 的 overlap 严格 `<0.10`；
+- 同一 checkpoint、mean cache、Haar detector、50 步扩散和评价指标。
 
-工程 smoke 使用 Face/Body/Scene 各 1 张冻结图片和 seed 12345：
-
-- E3a：3/3 任务、60 条 condition-image 记录；
-- E3b：3/3 任务、96 条 condition-image 记录；
-- 两项实验的确定性检查全部通过；
-- 每张图只创建一组 initial latent 和 diffusion noise，并在该图的全部
-  20/32 个条件中复用；运行摘要记录 tensor SHA、seed、shape、dtype、
-  条件名和 batch 数，强审计全部通过；
-- 非目标 parcel 最大变化均为 `0.0`；
-- plan equivalence 和 control matching audit 全部通过；
-- Body `person_region_consistency` 已改为 person mask 内的 RGB
-  pixel correlation，不再复制 person DINO；completion smoke 中
-  52/52 条 Body 记录的两项数值不同；
-- E3a 正式统计实现会对 15 项交互检验统一 BH；E3b 使用独立的 BH
-  统计族。相关单元测试已通过，但 smoke 中 CI、p 和 q 保持为空。
-
-completion smoke 的运行代码提交为
-`269a9f8917130a277aafe37de0c636b9530ad8c3`。两份 YAML 是计划的权威
-配置源，生成后的 plan 同时记录配置路径和 SHA-256。
-
-Face detector 已恢复为与 E1 相同的 OpenCV 4.12 Haar：
-`scaleFactor=1.1`、`minNeighbors=5`、`minSize=(24,24)`。pilot/formal
-模式禁止 LBP fallback，若 OpenCV 缺少 `CascadeClassifier` 会直接报错。
-cascade SHA-256 为
-`0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0`。
-completion smoke 已在不重新解码的情况下用 Haar 重评，Face 局部指标
-均有限且区域非空。
-
-pilot plan 在查看结果前独立冻结。E3a 和 E3b 使用同一批 30 张图片：
-
-| 类别 | dataset indices |
-| --- | --- |
-| Face | 973, 756, 287, 415, 158, 465, 678, 789, 529, 781 |
-| Body | 816, 220, 21, 847, 716, 931, 941, 474, 40, 366 |
-| Scene | 999, 893, 545, 199, 486, 214, 842, 132, 303, 640 |
-
-运行与评价代码提交为
-`b4e2b99550c4df21911f947100c9bf5df23dddb7`。最终分布审计和绘图标签
-修复提交为 `bf27065f3f9910ba754ec71853f1e7cb50a342f6`。
-
-| 实验 | 任务 | 图片 | 条件/图 | 记录 | 评价结果 |
-| --- | ---: | ---: | ---: | ---: | --- |
-| E3a interaction | 3/3 | 30 | 20 | 600 | PASS |
-| E3b joint redundancy | 3/3 | 30 | 32 | 960 | PASS |
-
-两项 pilot 的 no-mask SHA、共享 latent/noise、checkpoint、mean cache、
-GT 对齐和条件计数均通过；非目标 parcel 最大变化为 `0.0`。评价无缺图、
-错位、NaN 或空局部区域。Face 预测检测成功率分别为 79/200 和 135/320；
-GT 冻结区域全部有效。
-
-E3a 的 15 项描述性交互效应方向不一致。DINO 中 Face、Body、Scene
-ROI 的类别匹配减非匹配效应分别为 `0.02407`、`-0.01329`、`0.00300`。
-E3b 也没有显示联合 ROI 数量与效应单调增强：三 ROI 联合 DINO 效应在
-Face、Body、Scene 图片上分别为 `-0.01262`、`0.03145`、`-0.03547`。
-逐图分布很宽，存在稳定的高敏感样本，因此 pilot 均值对个别图片敏感。
-
-全部 6 张 comparison grid 和 4 张描述性效应图已经人工检查。GT、索引和
-条件列对齐，图片非空，没有布局错误。pilot 未计算 CI、p 或 q，不形成
-正式功能性结论。
-
-轻量结果位于：
+完整回归测试为 `52 passed`。E3a/E3b 的 plan equivalence 和 control
+matching audits 均通过；正式 plan 的 checkpoint、mean cache 和 Haar
+SHA 分别为：
 
 ```text
-experiments/E3_interaction_pilot/
-experiments/E3_joint_redundancy_pilot/
+checkpoint:
+2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40
+mean cache:
+283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e
+Haar cascade:
+0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0
 ```
 
-当前按预定义边界停止。是否进入三 seed 全量实验需要基于 pilot 的高异质
-性、样本量需求和研究价值另行决定，不能自动启动。
+| 实验 | 任务 | image-seed pairs | 条件/图 | 记录 | 评价 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| E3a interaction | 9/9 | 411 | 20 | 8220 | PASS |
+| E3b joint redundancy | 9/9 | 411 | 32 | 13152 | PASS |
+
+两项实验的 no-mask SHA、共享 initial latent/noise、checkpoint、mean
+cache、GT、图片、seed 和 condition 与冻结 plan 完全一致；非目标 parcel
+最大变化均为 `0.0`。评价不存在缺图、错位、NaN、非法指标或空局部区域，
+最小局部区域为 3025 pixels。Face 预测检测成功数分别为 1093/2220 和
+1772/3552。
+
+### E3a 结果
+
+主要统计先在每张图片内平均 3 个 seed，再计算某 ROI 在匹配类别上的
+causal loss 减两个非匹配类别的等权平均 causal loss。15 项全局检验统一
+BH，27 项局部检验作为独立统计族 BH。
+
+全局和局部统计族均没有 `q<0.05` 的结果。最小的全局 q 来自 Body CLIP，
+效应为 `-0.01347`，p=`0.00920`，q=`0.13799`，方向与类别匹配假设相反。
+Face PixCorr 为正 `0.00436`，但 q=`0.35809`。正式结果不支持稳健的
+类别×ROI 交互。
+
+### E3b 结果
+
+E3b 分别比较匹配单 ROI、三个双 ROI 和三 ROI 联合干预与相同 parcel
+数量的 pure controls。全局 75 项、局部 45 项、全局趋势 15 项和局部
+趋势 9 项分别独立 BH。
+
+120 项联合检验有 5 项 `q<0.05`，但方向混合：3 项全局结果中 2 项为负，
+唯一正向 Body Face+Scene CLIP 条件不包含匹配 Body ROI；2 项局部正向
+结果为 Face 三 ROI face LPIPS 和 Scene 三 ROI scene consistency。
+它们是候选联合效应，但没有一致的全局支持。
+
+24 项规模趋势只有 Face SSIM 通过校正，4/8/12 parcels 的 excess 依次为
+`0.00087`、`-0.00160`、`-0.00515`，斜率 `-0.00301`，q=`0.04200`。
+方向与预注册的“联合规模增加时损失增强”假设相反。局部趋势无显著结果。
+
+### 人工审图与阶段结论
+
+E3a/E3b 共 6 张 comparison grid、274 行样本已经逐行检查。所有图片非空，
+GT、dataset index 和条件列对齐，无损坏、错列或异常 fallback。可见变化
+具有明显图像间异质性，没有一致的类别匹配模式或 4/8/12 parcels 单调
+增强模式。
+
+正式结果位于：
+
+```text
+experiments/E3_interaction_full/
+experiments/E3_joint_redundancy_full/
+```
+
+当前结论是：在现有 NeuroAdapter checkpoint 和公开 ROI 映射下，没有
+获得稳健的类别特异交互或联合规模单调效应证据。两个三 ROI 局部结果只
+能作为后续独立验证候选。按预注册边界停止，不训练新模型、不追加条件，
+也不根据正式结果重新定义统计。

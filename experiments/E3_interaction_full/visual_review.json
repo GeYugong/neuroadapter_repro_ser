@@ -1,0 +1,25 @@
+{
+  "experiment": "E3_interaction",
+  "scope": "formal",
+  "review_date": "2026-07-26",
+  "reviewed_rows": {
+    "Face": 37,
+    "Body": 50,
+    "Scene": 50,
+    "total": 137
+  },
+  "checks": {
+    "all_rows_reviewed": true,
+    "images_nonempty": true,
+    "ground_truth_and_dataset_index_aligned": true,
+    "condition_columns_aligned": true,
+    "rendering_damage_absent": true,
+    "unexpected_fallback_absent": true
+  },
+  "grid_sha256": {
+    "face_comparison_grid.png": "0c46cedd701382bdd684f2c618b455104261914a81d20ab757d2e93ffc369565",
+    "body_comparison_grid.png": "6fd884264ebdd146c7e4a190ee5cdc20390e3017d5b4d54bf62e30ee53c30868",
+    "scene_comparison_grid.png": "d40cf334bd2ab036d6a77971335ce2469c1c47ac6d0da8aba00434a93e31b024"
+  },
+  "observation": "Visual changes were heterogeneous across images; no consistent category-matched pattern was observed."
+}

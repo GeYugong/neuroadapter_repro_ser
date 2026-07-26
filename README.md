@@ -24,13 +24,13 @@ docs/DECISIONS.md
 
 ## 当前阶段结果
 
-阶段 A/B、30 图 E2 pilot、正式 E2 zero-mask 和 E2b mean-mask
-稳健性实验均已完成并关闭；E3a 类别×ROI 与 E3b 联合 ROI 冗余管线已
-完成工程 smoke 和每类 10 张、1 个 seed 的 pilot。没有训练新模型，也
-没有启动 E3 三 seed 全量实验。
+阶段 A/B、30 图 E2 pilot、正式 E2 zero-mask、E2b mean-mask，以及
+E3a 类别×ROI 和 E3b 联合 ROI 冗余的三 seed 正式实验均已完成并关闭。
+本研究没有为 E3 训练新模型，全部因果干预使用同一个 step-100000
+NeuroAdapter checkpoint。
 
 - parcel 干预位置已修正为 `ParcelMapper` 之后、`TokenMapper` 之前；
-- 已建立独立 E3 测试环境，完整服务器回归测试为 `48 passed`，没有
+- 已建立独立 E3 测试环境，正式运行前完整服务器回归测试为 `52 passed`，没有
   ignore 旧 E2 指标测试，也没有修改共享环境；
 - E0 全 1000 parcel inventory 显示，公开映射得到的 97 个功能 ROI
   parcel 全部进入 top-SNR-200，因此没有观察到 Face、Word、V4
@@ -60,14 +60,23 @@ docs/DECISIONS.md
   LBP fallback；completion smoke 已用 Haar 重新评价，无需重新解码；
 - pilot 只报告描述性效应和分布。E3a 未显示跨指标一致的类别×ROI趋势，
   E3b 也未显示联合 ROI 数量增加时效应单调增强。
+- E3 正式实验使用 Face 37、Body 50、Scene 50、3 个 seed，共完成
+  18/18 个 category-seed 任务；E3a/E3b 分别生成 8220/13152 条
+  condition-image records，所有强审计和评价审计通过；
+- E3a 的 15 项全局交互和 27 项局部检验均无 `q<0.05` 结果，没有获得
+  稳健的类别×ROI 交互证据；
+- E3b 的 120 项联合检验有 5 项校正显著，但方向混合；唯一显著规模趋势
+  是 Face SSIM 的负斜率，与“联合消融越大损失越强”的假设相反；
+- 全部 6 张正式 comparison grid、274 行样本已经人工检查，没有空图、
+  错列、损坏或异常 fallback。
 
 该结论针对当前已经训练好的 NeuroAdapter 模型：它没有表现出可由单组
 ROI 整体消融稳定检测到的类别匹配依赖。不能由此推出这些脑区没有真实
 生物学功能、fMRI 不含类别信息，或其他模型也不会利用这些脑区。
 
-详细证据、图表、限制和下一步门槛见 `docs/CURRENT_STATE.md`、
-`experiments/E3_interaction_pilot/` 和
-`experiments/E3_joint_redundancy_pilot/`。
+详细证据、图表和限制见 `docs/CURRENT_STATE.md`、
+`experiments/E3_interaction_full/` 和
+`experiments/E3_joint_redundancy_full/`。
 
 ## 推荐项目入口
 
