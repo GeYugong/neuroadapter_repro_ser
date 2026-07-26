@@ -2863,3 +2863,129 @@ checkpoint 和 zero/mean 两种 parcel 干预均未提供稳健的类别匹配 R
 候选下一研究阶段定义为 E3：3×3 类别×ROI equal-k mean 干预、联合高层
 ROI 冗余实验、overlap `<0.10` pure controls 和类别局部指标。E3 尚未
 预注册或启动，本次只记录研究方向。
+
+## 2026-07-26 E3 功能类别交互与分布式冗余：工程 smoke
+
+### 目标与停止边界
+
+在 E2/E2b 负结果后实现两个新问题的实验管线：
+
+1. E3a 检验刺激类别与被干预 ROI 的交互；
+2. E3b 检验多个高层 ROI 是否存在分布式冗余。
+
+本轮边界固定为代码、测试和每类 1 张图的 smoke。没有启动 10 张 pilot、
+三 seed pilot 或全量实验。
+
+### 计划与 pure controls
+
+E3a 为完整 `3 × 3` 设计。Face、Body、Scene 三个 ROI 都取 mean ncsnr
+最高的 4 个 parcel，每个刺激类别均运行 no-mask、三个目标 ROI、每个
+目标 ROI 的 5 组 pure controls 和 no-mask-repeat，共 20 个条件。
+
+E3b 每个刺激类别运行类别匹配单 ROI、Face+Body、Face+Scene、
+Body+Scene、Face+Body+Scene。目标 token 数分别为 4、8、8、8、12，
+每项各配 5 组相同 token 数量的 pure controls，共 32 个条件。
+
+pure control 的每个 parcel 对目标 ROI group 的最大 overlap 必须严格
+`<0.10`。匹配继续考虑半球、mean ncsnr 和 parcel 大小。5 组 control
+set 必须唯一。两份 control matching audit 全部通过。
+
+plan equivalence audit 以正式 E2b mean plan 为基准，确认三类图片索引、
+seeds、denoising steps、noise factor 和 condition batch size 一致。
+
+### 代码与测试
+
+主要实现提交：
+
+```text
+c2563e5fc955adf050b1a5b9fb290b67fe2627ee
+feat(e3): add interaction and redundancy smoke framework
+```
+
+新增计划生成、smoke launcher、输出审计、局部评价、交互统计和重绘工具。
+专项回归测试结果：
+
+```text
+23 passed
+```
+
+服务器 `neuroadapter` 环境包含完整评价依赖但没有 pytest；系统 pytest
+缺少 skimage。因此本轮使用系统 pytest 跑不依赖 skimage 的 23 项专项
+集合，没有修改共享环境。此前 E2b 阶段全量回归结果仍为 `35 passed`。
+
+### GPU smoke
+
+使用 GPU 2–7 并行执行 6 个任务，GPU 0–1 上的既有进程未受影响。
+
+| 实验 | 类别任务 | 条件/类 | condition-image 记录 | 结果 |
+| --- | ---: | ---: | ---: | --- |
+| E3a interaction | 3/3 | 20 | 60 | PASS |
+| E3b joint redundancy | 3/3 | 32 | 96 | PASS |
+
+两项实验均满足：
+
+```text
+determinism checks: all passed
+max_abs_delta_non_target: 0.0
+checkpoint SHA-256:
+2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40
+mean cache SHA-256:
+283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e
+```
+
+### 评价 smoke
+
+全局指标为 PixCorr、SSIM、LPIPS、CLIP 和 DINO。局部指标为：
+
+- Face：face crop LPIPS/DINO、预测图人脸检测成功；
+- Body：COCO person region LPIPS/DINO 与 region consistency；
+- Scene：person-removed background CLIP/DINO 与场景类别一致性。
+
+COCO polygon 能直接使用。服务器当前 `cv2` 缺少
+`CascadeClassifier/cvtColor`，因此 OpenCV Haar API 不可用。没有下载
+新权重或修改共享环境，Face smoke 显式退回 scikit-image bundled LBP
+cascade，并在 `evaluation_summary.json` 中记录：
+
+```text
+face_detector_backend: skimage_bundled_lbp_smoke_fallback
+face_detector_formal_compatibility: false
+```
+
+这只证明局部评价代码可运行，不能作为正式 E3 的 detector 定义。
+
+E3a 生成 60 条 per-sample 指标和 72 条按图像聚合的目标减 pure-control
+效应；E3b 对应为 96 条和 120 条。由于每类只有 1 张图、1 个 seed，
+`interaction_results.csv` 和 `joint_mask_results.csv` 均标记为
+`engineering_smoke`，CI、p 和 q 留空，不形成科研结论。
+
+### 视觉检查与产物
+
+两项实验共 6 张 comparison grid 和 2 张描述性效应图已逐张检查：
+
+- 图像非空，GT 与条件列对齐；
+- Face、Body、Scene 条件均能生成可辨识结果；
+- 长条件名已缩短，标题不再重叠；
+- E3b 效应图只展示 15 个全局 DINO 描述性点，避免 120 行图不可读；
+- 所有图均明确标注为 smoke 描述结果，不是正式推断。
+
+轻量产物位于：
+
+```text
+experiments/E3_interaction/
+experiments/E3_joint_redundancy/
+```
+
+服务器原始逐条件图片与派生区域缓存位于：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/
+```
+
+### 当前停止点
+
+E3 的计划生成、pure controls、解码、全局/局部指标、统计输出和审计路径
+已经通过工程 smoke。当前停止，不启动 pilot。正式继续前至少需要：
+
+1. 恢复 E1 OpenCV Haar backend，或重新冻结 Face detector；
+2. 审核 smoke 图与局部 region 定义；
+3. 单独批准 10 张 pilot 后再运行。

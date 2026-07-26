@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 REPRO_ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,7 @@ from neuro_roi_causal.local_metrics import (
     apply_region,
     crop_pair_by_box,
     detect_largest_face,
+    face_detector_backend,
     load_coco_person_annotations,
     person_mask,
 )
@@ -135,11 +137,16 @@ def visual_grid(
         name for name, info in metadata.items() if info["control_type"] == "target_roi"
     ]
     names = ["no_mask", *targets]
+    display_names = [
+        "GT",
+        "no mask",
+        *[f"mask {metadata[name]['masked_roi']}" for name in targets],
+    ]
     dataset_idx = next(iter(records["no_mask"]))
-    cell, header = 180, 36
+    cell, header = 200, 40
     canvas = Image.new("RGB", (cell * (len(names) + 1), header + cell), "white")
     draw = ImageDraw.Draw(canvas)
-    for column, name in enumerate(["GT", *names]):
+    for column, name in enumerate(display_names):
         draw.text((column * cell + 4, 10), name, fill="black")
     gt = Image.open(records["no_mask"][dataset_idx]["gt"]).convert("RGB")
     canvas.paste(gt.resize((cell, cell)), (0, header))
@@ -148,6 +155,36 @@ def visual_grid(
         canvas.paste(pred.resize((cell, cell)), (column * cell, header))
     output.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output)
+
+
+def effect_plot(rows: list[dict], output: Path, value_column: str) -> None:
+    valid = [
+        row
+        for row in rows
+        if row.get(value_column) not in (None, "")
+        and np.isfinite(float(row[value_column]))
+    ]
+    labels = [
+        " / ".join(
+            str(row[key])
+            for key in ("image_category", "masked_roi", "metric")
+            if key in row
+        )
+        for row in valid
+    ]
+    values = [float(row[value_column]) for row in valid]
+    height = max(4.0, 0.22 * len(valid))
+    figure, axis = plt.subplots(figsize=(10, height))
+    axis.axvline(0.0, color="black", linewidth=0.8)
+    axis.scatter(values, range(len(values)), color="#1f77b4", s=22)
+    axis.set_yticks(range(len(values)), labels)
+    axis.set_xlabel("Engineering-smoke effect estimate (no CI)")
+    axis.set_title("Descriptive smoke effects; not formal inference")
+    axis.invert_yaxis()
+    figure.tight_layout()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=160)
+    plt.close(figure)
 
 
 def aggregate_excess(
@@ -243,6 +280,7 @@ def main() -> None:
     }
     coco = load_coco_person_annotations(args.coco_annotations)
     models = load_models(args)
+    detector_backend = face_detector_backend(args.haar_cascade)
     cache = ContentAddressedCache()
     rows: list[dict] = []
     representation_jobs: list[tuple[int, str, Path, Path]] = []
@@ -284,6 +322,7 @@ def main() -> None:
                         gt_box = detect_largest_face(gt_image, args.haar_cascade)
                         pred_box = detect_largest_face(pred_image, args.haar_cascade)
                         row["face_detection_success"] = float(pred_box is not None)
+                        row["face_detector_backend"] = detector_backend
                         if gt_box is not None:
                             gt_local, pred_local = crop_pair_by_box(
                                 gt_image, pred_image, gt_box
@@ -351,11 +390,16 @@ def main() -> None:
     if plan["name"] == "E3_interaction":
         results = interaction_rows(
             excess,
-            metrics=[*GLOBAL_METRICS, *sorted({m for values in LOCAL_METRICS.values() for m in values})],
+            metrics=GLOBAL_METRICS,
             draws=args.bootstrap_draws,
             smoke=True,
         )
         write_csv(args.output_dir / "interaction_results.csv", results)
+        effect_plot(
+            results,
+            args.output_dir / "figures" / "effect_forest_plot.png",
+            "matched_minus_nonmatched",
+        )
     else:
         results = []
         for key in sorted(
@@ -380,6 +424,11 @@ def main() -> None:
                 }
             )
         write_csv(args.output_dir / "joint_mask_results.csv", results)
+        effect_plot(
+            [row for row in results if row["metric"] == "dino"],
+            args.output_dir / "figures" / "effect_forest_plot.png",
+            "target_minus_pure_random",
+        )
     for category in ("Face", "Body", "Scene"):
         visual_grid(
             seed_roots[0] / category,
@@ -394,6 +443,10 @@ def main() -> None:
         "num_rows": len(rows),
         "num_excess_rows": len(excess),
         "metric_models": models["metadata"],
+        "face_detector_backend": detector_backend,
+        "face_detector_formal_compatibility": (
+            detector_backend == "opencv_haar_e1"
+        ),
         "content_addressed_cache": {
             "embedding_computations": cache.embedding_computations,
             "pair_computations": cache.pair_computations,

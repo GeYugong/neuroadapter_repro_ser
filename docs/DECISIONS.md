@@ -90,3 +90,21 @@ zero 与 mean 均无校正显著正向结果时，只能认为当前映射、che
 两种干预均未提供稳健证据。仅 mean 出现正向结果时，应解释为对干预方式
 敏感的候选效应；二者方向相反时不得形成稳健功能解释。正式 zero 结果
 不可覆盖、删除或重新选择性分析。
+
+## D011：E3 先完成工程 smoke，不自动进入 pilot
+
+E3a 使用完整 `3 × 3` 刺激类别×被干预 ROI 设计，三个 ROI 均固定为
+equal-k=4。E3b 分别检验类别匹配单 ROI、三个双 ROI 组合和三 ROI 联合
+干预。干预值继续使用训练集 parcel mean。
+
+所有随机对照必须满足目标 ROI group max overlap `<0.10`，并匹配 token
+数量、半球、mean ncsnr 和 parcel 大小。联合条件必须使用 8 或 12 token
+的对应对照，不能复用 4-token 对照。
+
+本轮只准运行每类 1 张图、seed 12345 的工程 smoke。smoke 只检查计划、
+推理、局部指标和输出审计，不进行正式显著性判断。完成后停止，不自动
+启动 10 张 pilot 或全量实验。
+
+Face 局部指标优先使用 E1 OpenCV Haar detector。若运行环境缺少该 API，
+smoke 可以显式使用无下载的 bundled LBP fallback，但必须记录 backend，
+且 fallback 结果不能直接升级为正式实验。

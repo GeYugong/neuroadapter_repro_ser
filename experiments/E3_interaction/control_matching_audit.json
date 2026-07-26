@@ -1,0 +1,96 @@
+{
+  "passed": true,
+  "purity_rule": "max overlap with every target ROI group < 0.10",
+  "conditions": [
+    {
+      "image_category": "Face",
+      "masked_roi": "Face",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.0,
+      "max_matching_distance": 1.0748373786420018,
+      "passed": true
+    },
+    {
+      "image_category": "Face",
+      "masked_roi": "Body",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.007042253521126761,
+      "max_matching_distance": 2.2808770816753485,
+      "passed": true
+    },
+    {
+      "image_category": "Face",
+      "masked_roi": "Scene",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.010554089709762533,
+      "max_matching_distance": 2.7232164293089944,
+      "passed": true
+    },
+    {
+      "image_category": "Body",
+      "masked_roi": "Face",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.0,
+      "max_matching_distance": 0.8375699071429588,
+      "passed": true
+    },
+    {
+      "image_category": "Body",
+      "masked_roi": "Body",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.007042253521126761,
+      "max_matching_distance": 1.7071633168994909,
+      "passed": true
+    },
+    {
+      "image_category": "Body",
+      "masked_roi": "Scene",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.010554089709762533,
+      "max_matching_distance": 2.417854626785656,
+      "passed": true
+    },
+    {
+      "image_category": "Scene",
+      "masked_roi": "Face",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.05555555555555555,
+      "max_matching_distance": 1.0748373786420018,
+      "passed": true
+    },
+    {
+      "image_category": "Scene",
+      "masked_roi": "Body",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.0,
+      "max_matching_distance": 2.2808770816753485,
+      "passed": true
+    },
+    {
+      "image_category": "Scene",
+      "masked_roi": "Scene",
+      "target_count": 4,
+      "control_replicates": 5,
+      "unique_control_sets": 5,
+      "max_target_group_overlap": 0.010554089709762533,
+      "max_matching_distance": 2.4659950000432405,
+      "passed": true
+    }
+  ]
+}

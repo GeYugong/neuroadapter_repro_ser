@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from neuro_roi_causal.e2 import read_csv
 from neuro_roi_causal.e3 import (
     ROI_GROUPS,
@@ -78,6 +80,6 @@ def test_e3b_controls_match_each_joint_condition_count():
 
 
 def test_local_metric_directions_are_explicit():
-    assert causal_loss("face_dino", 0.8, 0.6) == 0.2
-    assert causal_loss("background_clip", 0.8, 0.6) == 0.2
-    assert causal_loss("face_lpips", 0.2, 0.4) == 0.2
+    assert causal_loss("face_dino", 0.8, 0.6) == pytest.approx(0.2)
+    assert causal_loss("background_clip", 0.8, 0.6) == pytest.approx(0.2)
+    assert causal_loss("face_lpips", 0.2, 0.4) == pytest.approx(0.2)

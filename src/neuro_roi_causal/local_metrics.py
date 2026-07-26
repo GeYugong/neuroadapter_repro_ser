@@ -10,6 +10,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
+NEAREST = getattr(Image, "Resampling", Image).NEAREST
+
+
 def load_coco_person_annotations(
     annotations_root: Path,
 ) -> dict[tuple[str, int], dict[str, Any]]:
@@ -54,41 +57,93 @@ def person_mask(record: dict[str, Any], output_size: tuple[int, int]) -> tuple[I
             method = "coco_bbox_fallback_for_rle"
             x, y, box_width, box_height = map(float, annotation["bbox"])
             draw.rectangle((x, y, x + box_width, y + box_height), fill=255)
-    return mask.resize(output_size, Image.Resampling.NEAREST), method
+    return mask.resize(output_size, NEAREST), method
 
 
-def detect_largest_face(image: Image.Image, cascade_path: Path) -> tuple[int, int, int, int] | None:
+def face_detector_backend(cascade_path: Path) -> str:
     if not cascade_path.is_file():
         raise FileNotFoundError(f"Required Haar cascade is missing: {cascade_path}")
     import cv2
 
-    cascade = cv2.CascadeClassifier(str(cascade_path))
-    if cascade.empty():
-        raise RuntimeError(f"Could not load Haar cascade: {cascade_path}")
+    if hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "cvtColor"):
+        return "opencv_haar_e1"
+    from skimage import data
+
+    fallback = Path(data.lbp_frontal_face_cascade_filename())
+    if not fallback.is_file():
+        raise RuntimeError(
+            "OpenCV Haar API is unavailable and the bundled scikit-image LBP "
+            "fallback is missing; refusing to download a detector"
+        )
+    return "skimage_bundled_lbp_smoke_fallback"
+
+
+def detect_largest_face(image: Image.Image, cascade_path: Path) -> tuple[int, int, int, int] | None:
+    backend = face_detector_backend(cascade_path)
     rgb = np.asarray(image.convert("RGB"))
-    gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
-    faces = cascade.detectMultiScale(
-        gray, scaleFactor=1.1, minNeighbors=5, minSize=(24, 24)
+    if backend == "opencv_haar_e1":
+        import cv2
+
+        cascade = cv2.CascadeClassifier(str(cascade_path))
+        if cascade.empty():
+            raise RuntimeError(f"Could not load Haar cascade: {cascade_path}")
+        gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+        faces = cascade.detectMultiScale(
+            gray, scaleFactor=1.1, minNeighbors=5, minSize=(24, 24)
+        )
+        if len(faces) == 0:
+            return None
+        x, y, width, height = max(
+            faces, key=lambda item: int(item[2]) * int(item[3])
+        )
+        return int(x), int(y), int(width), int(height)
+
+    from skimage import data
+    from skimage.feature import Cascade
+
+    detector = Cascade(data.lbp_frontal_face_cascade_filename())
+    detections = detector.detect_multi_scale(
+        img=rgb,
+        scale_factor=1.2,
+        step_ratio=1,
+        min_size=(24, 24),
+        max_size=image.size,
     )
-    if len(faces) == 0:
+    if not detections:
         return None
-    x, y, width, height = max(faces, key=lambda item: int(item[2]) * int(item[3]))
-    return int(x), int(y), int(width), int(height)
+    selected = max(
+        detections, key=lambda item: int(item["width"]) * int(item["height"])
+    )
+    return (
+        int(selected["c"]),
+        int(selected["r"]),
+        int(selected["width"]),
+        int(selected["height"]),
+    )
 
 
 def crop_pair_by_box(
     gt: Image.Image, pred: Image.Image, box: tuple[int, int, int, int]
 ) -> tuple[Image.Image, Image.Image]:
     x, y, width, height = box
-    bounds = (x, y, x + width, y + height)
-    return gt.crop(bounds), pred.crop(bounds)
+    gt_bounds = (x, y, x + width, y + height)
+    scale_x = pred.width / gt.width
+    scale_y = pred.height / gt.height
+    pred_bounds = (
+        round(x * scale_x),
+        round(y * scale_y),
+        round((x + width) * scale_x),
+        round((y + height) * scale_y),
+    )
+    return gt.crop(gt_bounds), pred.crop(pred_bounds)
 
 
 def apply_region(
     image: Image.Image, mask: Image.Image, *, keep_mask: bool
 ) -> Image.Image:
     rgb = image.convert("RGB")
+    if mask.size != rgb.size:
+        mask = mask.resize(rgb.size, NEAREST)
     selected = mask if keep_mask else Image.eval(mask, lambda value: 255 - value)
     neutral = Image.new("RGB", rgb.size, (127, 127, 127))
     return Image.composite(rgb, neutral, selected)
-

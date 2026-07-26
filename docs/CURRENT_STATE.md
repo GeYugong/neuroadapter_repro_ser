@@ -173,8 +173,25 @@ zero-mask 阶段曾存在“全零 token 属于分布外干预”的疑问；该
 3. 整图指标可能稀释面部、人体或背景区域的局部变化；
 4. 单 ROI 干预不能直接检验多个脑区之间的信息冗余或生成先验的补偿。
 
-候选下一阶段为 E3“功能类别交互与分布式冗余实验”：使用 equal-k
-mean replacement 构建 3×3 类别×ROI 设计、联合高层 ROI 干预、目标
-overlap `<0.10` 的 pure controls，并加入 Face/Body/Scene 局部指标。
-E3 尚未预注册或启动；开始前需单独冻结样本、条件、局部评价器和统计
-检验族。
+## E3 工程实现与 smoke
+
+E3 已完成代码、测试和工程 smoke，但尚未启动 10 张 pilot 或全量实验。
+
+E3a 使用 equal-k=4 mean replacement 构建完整的 3×3
+刺激类别×被干预 ROI 设计。E3b 包含类别匹配单 ROI、三个双 ROI 组合和
+Face+Body+Scene 三 ROI 联合干预。每个目标条件配 5 组相同 token 数量的
+pure matched-random controls，目标 ROI overlap 严格 `<0.10`。
+
+工程 smoke 使用 Face/Body/Scene 各 1 张冻结图片和 seed 12345：
+
+- E3a：3/3 任务、60 条 condition-image 记录；
+- E3b：3/3 任务、96 条 condition-image 记录；
+- 两项实验的确定性检查全部通过；
+- 非目标 parcel 最大变化均为 `0.0`；
+- plan equivalence 和 control matching audit 全部通过；
+- 局部指标与全局五指标均能产出，推断字段保持为空。
+
+服务器 OpenCV 当前缺少 Haar detector API，因此 Face 局部指标的 smoke
+使用了 scikit-image 自带 LBP cascade fallback。该结果只证明评价管线
+可运行；正式 E3 前必须恢复与 E1 一致的 OpenCV Haar 后端，或重新冻结并
+说明新 detector。当前停止点是 smoke 完成，不自动启动 pilot。

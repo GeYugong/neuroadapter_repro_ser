@@ -25,6 +25,7 @@ def test_person_polygon_mask_and_regions(tmp_path: Path):
 
 def test_face_crop_uses_same_ground_truth_box():
     gt = Image.new("RGB", (20, 20), "red")
-    pred = Image.new("RGB", (20, 20), "blue")
+    pred = Image.new("RGB", (40, 40), "blue")
     gt_crop, pred_crop = crop_pair_by_box(gt, pred, (2, 3, 5, 6))
-    assert gt_crop.size == pred_crop.size == (5, 6)
+    assert gt_crop.size == (5, 6)
+    assert pred_crop.size == (10, 12)

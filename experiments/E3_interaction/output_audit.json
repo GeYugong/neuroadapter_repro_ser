@@ -1,0 +1,43 @@
+{
+  "experiment": "E3_interaction",
+  "scope": "engineering_smoke_only",
+  "passed": true,
+  "categories": {
+    "Face": {
+      "passed": true,
+      "condition_count": 20,
+      "intervention_count": 20,
+      "conditions_equal_plan": true,
+      "dataset_index_equal_plan": true,
+      "determinism_passed": true,
+      "max_abs_delta_non_target": 0.0,
+      "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
+      "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+      "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+    },
+    "Body": {
+      "passed": true,
+      "condition_count": 20,
+      "intervention_count": 20,
+      "conditions_equal_plan": true,
+      "dataset_index_equal_plan": true,
+      "determinism_passed": true,
+      "max_abs_delta_non_target": 0.0,
+      "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
+      "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+      "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+    },
+    "Scene": {
+      "passed": true,
+      "condition_count": 20,
+      "intervention_count": 20,
+      "conditions_equal_plan": true,
+      "dataset_index_equal_plan": true,
+      "determinism_passed": true,
+      "max_abs_delta_non_target": 0.0,
+      "repository_commit": "c2563e5fc955adf050b1a5b9fb290b67fe2627ee",
+      "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+      "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+    }
+  }
+}
