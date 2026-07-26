@@ -4,11 +4,20 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
 import threading
 from pathlib import Path
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,6 +47,26 @@ def main() -> None:
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     if plan["name"] not in {"E3_interaction", "E3_joint_redundancy"}:
         raise ValueError("This launcher only accepts a frozen E3 plan")
+    for label, path, plan_path_key, plan_hash_key in (
+        (
+            "checkpoint",
+            args.checkpoint,
+            "checkpoint",
+            "checkpoint_sha256",
+        ),
+        (
+            "mean cache",
+            args.mean_cache,
+            "mean_token_cache",
+            "mean_token_cache_sha256",
+        ),
+    ):
+        if not path.is_file():
+            raise FileNotFoundError(f"Frozen {label} is missing: {path}")
+        if str(path.resolve()) != plan.get(plan_path_key):
+            raise ValueError(f"{label} path differs from the frozen plan")
+        if file_sha256(path) != plan.get(plan_hash_key):
+            raise ValueError(f"{label} SHA-256 differs from the frozen plan")
     image_count = int(
         plan["execution"][f"{args.mode}_images_per_category"]
     )

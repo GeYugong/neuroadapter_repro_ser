@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--mean-cache", type=Path, required=True)
     parser.add_argument("--source-e2-plan", type=Path)
     parser.add_argument("--output-root", type=Path, required=True)
@@ -188,6 +189,8 @@ def main() -> None:
         "frozen_image_count_per_category": counts,
         "subject": int(interaction_config["subject"]),
         "checkpoint_step": int(interaction_config["checkpoint_step"]),
+        "checkpoint": str(args.checkpoint.resolve()),
+        "checkpoint_sha256": file_sha256(args.checkpoint),
         "mask_mode": interaction_config["mask_mode"],
         "equal_k": int(interaction_config["equal_k"]),
         "pure_control_overlap_rule": (
