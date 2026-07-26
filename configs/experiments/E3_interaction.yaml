@@ -26,6 +26,9 @@ seed_aggregation: mean_causal_loss_across_three_seeds_per_image
 primary_model: metric_loss ~ image_category * masked_roi
 primary_contrast: matched_image_category_minus_mean_nonmatched_categories
 multiplicity: benjamini_hochberg_across_3_rois_x_5_global_metrics
+nonmatched_category_weighting: equal_mean_of_the_two_nonmatched_categories
+local_analysis: within_category_target_minus_same_roi_pure_random
+local_multiplicity: benjamini_hochberg_across_3_categories_x_3_rois_x_3_local_metrics
 global_metrics:
   - pixel_corr
   - ssim

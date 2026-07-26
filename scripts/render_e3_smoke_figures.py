@@ -20,6 +20,7 @@ from evaluate_e3 import (
     LOCAL_METRICS,
     distribution_plot,
     effect_plot,
+    monotonicity_plot,
     visual_grid,
     write_csv,
 )
@@ -31,6 +32,27 @@ def rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def finite_probability(value: str | None) -> bool:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(number) and 0.0 <= number <= 1.0
+
+
+def valid_interval(value: str | None) -> bool:
+    try:
+        interval = json.loads(value or "")
+        return (
+            isinstance(interval, list)
+            and len(interval) == 2
+            and all(math.isfinite(float(item)) for item in interval)
+            and float(interval[0]) <= float(interval[1])
+        )
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-root", type=Path, required=True)
@@ -38,7 +60,7 @@ def main() -> None:
     parser.add_argument("--plan", type=Path, required=True)
     parser.add_argument(
         "--mode",
-        choices=("smoke", "pilot"),
+        choices=("smoke", "pilot", "formal"),
         default="smoke",
     )
     parser.add_argument(
@@ -49,8 +71,12 @@ def main() -> None:
     args = parser.parse_args()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     seed_roots = sorted(path for path in args.run_root.glob("seed_*") if path.is_dir())
-    if len(seed_roots) != 1:
-        raise ValueError("Expected exactly one engineering-smoke seed")
+    expected_seed_count = len(plan["seeds"]) if args.mode == "formal" else 1
+    if len(seed_roots) != expected_seed_count:
+        raise ValueError(
+            f"Expected {expected_seed_count} seed directories, "
+            f"found {len(seed_roots)}"
+        )
     for category in ("Face", "Body", "Scene"):
         records, metadata = load_records(seed_roots[0] / category)
         visual_grid(
@@ -61,18 +87,48 @@ def main() -> None:
         )
     if args.experiment == "E3_interaction":
         result_rows = rows(args.evaluation_dir / "interaction_results.csv")
+        all_primary_rows = result_rows
         value = "matched_minus_nonmatched"
+        local_result_rows = rows(
+            args.evaluation_dir / "local_interaction_results.csv"
+        )
+        effect_plot(
+            local_result_rows,
+            args.evaluation_dir / "figures" / "local_effect_forest_plot.png",
+            "target_minus_pure_random",
+            formal=args.mode == "formal",
+        )
     else:
+        all_joint_rows = rows(args.evaluation_dir / "joint_mask_results.csv")
+        all_primary_rows = all_joint_rows
         result_rows = [
             row
-            for row in rows(args.evaluation_dir / "joint_mask_results.csv")
+            for row in all_joint_rows
             if row["metric"] == "dino"
         ]
         value = "target_minus_pure_random"
+        effect_plot(
+            [row for row in all_joint_rows if row["metric_family"] == "global"],
+            args.evaluation_dir / "figures" / "global_effect_forest_plot.png",
+            value,
+            formal=args.mode == "formal",
+        )
+        effect_plot(
+            [row for row in all_joint_rows if row["metric_family"] == "local"],
+            args.evaluation_dir / "figures" / "local_effect_forest_plot.png",
+            value,
+            formal=args.mode == "formal",
+        )
+        trend_rows = rows(args.evaluation_dir / "monotonicity_results.csv")
+        monotonicity_plot(
+            trend_rows,
+            args.evaluation_dir / "figures" / "joint_size_trend_plot.png",
+        )
     effect_plot(
         result_rows,
         args.evaluation_dir / "figures" / "effect_forest_plot.png",
         value,
+        formal=args.mode == "formal",
     )
     per_image = rows(args.evaluation_dir / "per_image_excess_effects.csv")
     write_csv(
@@ -82,6 +138,7 @@ def main() -> None:
     distribution_plot(
         per_image,
         args.evaluation_dir / "figures" / "effect_distribution_plot.png",
+        scope=args.mode,
     )
 
     sample_rows = rows(args.evaluation_dir / "per_sample_metrics.csv")
@@ -128,6 +185,50 @@ def main() -> None:
         )
         for row in result_rows
     )
+    formal_result_files = (
+        [args.evaluation_dir / "local_interaction_results.csv"]
+        if args.experiment == "E3_interaction"
+        else [args.evaluation_dir / "monotonicity_results.csv"]
+    )
+    formal_rows = list(all_primary_rows)
+    for result_path in formal_result_files:
+        formal_rows.extend(rows(result_path))
+    if args.mode == "formal":
+        expected_result_counts = (
+            {"primary": 15, "secondary": 27}
+            if args.experiment == "E3_interaction"
+            else {"primary": 120, "secondary": 24}
+        )
+        result_counts_passed = (
+            len(all_primary_rows) == expected_result_counts["primary"]
+            and len(formal_rows) - len(all_primary_rows)
+            == expected_result_counts["secondary"]
+        )
+        formal_inference_complete = result_counts_passed and all(
+            valid_interval(row.get("ci95"))
+            and finite_probability(
+                row.get("sign_flip_p") or row.get("permutation_p")
+            )
+            and finite_probability(
+                row.get("bh_q_e3a")
+                or row.get("bh_q_e3a_local")
+                or row.get("bh_q_e3b")
+                or row.get("bh_q_e3b_monotonicity")
+            )
+            for row in formal_rows
+        )
+    else:
+        result_counts_passed = True
+        formal_inference_complete = False
+    per_image_rows = rows(
+        args.evaluation_dir / "per_image_excess_effects.csv"
+    )
+    per_image_seed_count_passed = all(
+        int(row["num_seeds"]) == (
+            len(plan["seeds"]) if args.mode == "formal" else 1
+        )
+        for row in per_image_rows
+    )
     local_regions_nonempty = all(
         int(float(row["local_region_pixels"])) > 0 for row in local_rows
     )
@@ -149,9 +250,21 @@ def main() -> None:
             and not invalid
             and local_regions_nonempty
             and detector_passed
+            and summary.get("repository_commit") == plan["repository_commit"]
             and summary.get("scope") == args.mode
-            and summary.get("formal_inference_performed") is False
-            and inference_fields_empty
+            and result_counts_passed
+            and per_image_seed_count_passed
+            and (
+                (
+                    summary.get("formal_inference_performed") is True
+                    and formal_inference_complete
+                )
+                if args.mode == "formal"
+                else (
+                    summary.get("formal_inference_performed") is False
+                    and inference_fields_empty
+                )
+            )
         ),
         "expected_per_sample_rows": expected_rows,
         "actual_per_sample_rows": len(sample_rows),
@@ -170,6 +283,9 @@ def main() -> None:
             "formal_inference_performed"
         ),
         "inference_fields_empty": inference_fields_empty,
+        "formal_inference_complete": formal_inference_complete,
+        "result_counts_passed": result_counts_passed,
+        "per_image_seed_count_passed": per_image_seed_count_passed,
         "engineering_anomalies": [],
     }
     (args.evaluation_dir / "evaluation_audit.json").write_text(

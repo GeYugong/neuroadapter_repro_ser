@@ -26,7 +26,17 @@ condition_batch_size: 8
 statistical_unit: image
 seed_aggregation: mean_causal_loss_across_three_seeds_per_image
 primary_contrast: joint_target_minus_mean_same_count_pure_random
-multiplicity: separate_benjamini_hochberg_family_for_e3b
+global_multiplicity: benjamini_hochberg_across_3_categories_x_5_masks_x_5_global_metrics
+local_multiplicity: benjamini_hochberg_across_3_categories_x_5_masks_x_3_local_metrics
+monotonicity:
+  levels:
+    - matching_single_roi_4_parcels
+    - mean_of_two_matching_containing_double_roi_masks_8_parcels
+    - Face+Body+Scene_12_parcels
+  per_image_statistic: least_squares_slope_across_levels_1_2_3
+  test: two_sided_sign_flip
+  global_multiplicity: benjamini_hochberg_across_3_categories_x_5_global_metrics
+  local_multiplicity: benjamini_hochberg_across_3_categories_x_3_local_metrics
 global_metrics:
   - pixel_corr
   - ssim

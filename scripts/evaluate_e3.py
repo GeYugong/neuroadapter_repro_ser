@@ -23,9 +23,11 @@ sys.path.insert(0, str(REPRO_ROOT / "scripts"))
 from evaluate_e2 import load_models, load_records
 from neuro_roi_causal.e2 import read_csv
 from neuro_roi_causal.e3 import (
+    cell_result_rows,
     descriptive_distribution_rows,
     interaction_rows,
     joint_result_rows,
+    monotonicity_rows,
 )
 from neuro_roi_causal.local_metrics import (
     HAAR_MIN_NEIGHBORS,
@@ -184,7 +186,13 @@ def visual_grid(
     canvas.save(output)
 
 
-def effect_plot(rows: list[dict], output: Path, value_column: str) -> None:
+def effect_plot(
+    rows: list[dict],
+    output: Path,
+    value_column: str,
+    *,
+    formal: bool = False,
+) -> None:
     valid = [
         row
         for row in rows
@@ -203,10 +211,51 @@ def effect_plot(rows: list[dict], output: Path, value_column: str) -> None:
     height = max(4.0, 0.22 * len(valid))
     figure, axis = plt.subplots(figsize=(10, height))
     axis.axvline(0.0, color="black", linewidth=0.8)
-    axis.scatter(values, range(len(values)), color="#1f77b4", s=22)
+    positions = np.arange(len(values))
+    if formal:
+        intervals = []
+        for row in valid:
+            interval = row.get("ci95")
+            if isinstance(interval, str) and interval:
+                interval = json.loads(interval)
+            intervals.append(interval)
+        if all(
+            isinstance(interval, (list, tuple)) and len(interval) == 2
+            for interval in intervals
+        ):
+            lower = [
+                max(0.0, value - float(interval[0]))
+                for value, interval in zip(values, intervals)
+            ]
+            upper = [
+                max(0.0, float(interval[1]) - value)
+                for value, interval in zip(values, intervals)
+            ]
+            axis.errorbar(
+                values,
+                positions,
+                xerr=np.asarray([lower, upper]),
+                fmt="o",
+                color="#1f77b4",
+                ecolor="#6b7280",
+                capsize=2,
+                markersize=4,
+            )
+        else:
+            axis.scatter(values, positions, color="#1f77b4", s=22)
+    else:
+        axis.scatter(values, positions, color="#1f77b4", s=22)
     axis.set_yticks(range(len(values)), labels)
-    axis.set_xlabel("Descriptive effect estimate (no CI)")
-    axis.set_title("Descriptive effects; not formal inference")
+    axis.set_xlabel(
+        "Effect estimate with bootstrap 95% CI"
+        if formal
+        else "Descriptive effect estimate (no CI)"
+    )
+    axis.set_title(
+        "Formal effects with two-sided tests"
+        if formal
+        else "Descriptive effects; not formal inference"
+    )
     axis.invert_yaxis()
     figure.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -214,7 +263,12 @@ def effect_plot(rows: list[dict], output: Path, value_column: str) -> None:
     plt.close(figure)
 
 
-def distribution_plot(rows: list[dict], output: Path) -> None:
+def distribution_plot(
+    rows: list[dict],
+    output: Path,
+    *,
+    scope: str = "pilot",
+) -> None:
     selected = [row for row in rows if row["metric"] == "dino"]
     groups = sorted(
         {
@@ -236,8 +290,35 @@ def distribution_plot(rows: list[dict], output: Path) -> None:
     )
     axis.axvline(0.0, color="black", linewidth=0.8)
     axis.boxplot(values, vert=False, labels=labels, showmeans=True)
-    axis.set_xlabel("Pilot excess causal loss (DINO)")
-    axis.set_title("Pilot effect distributions; descriptive only")
+    axis.set_xlabel(f"{scope.capitalize()} excess causal loss (DINO)")
+    axis.set_title(f"{scope.capitalize()} effect distributions")
+    figure.tight_layout()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=160)
+    plt.close(figure)
+
+
+def monotonicity_plot(rows: list[dict], output: Path) -> None:
+    selected = [
+        row
+        for row in rows
+        if row["metric"] == "dino"
+    ]
+    figure, axis = plt.subplots(figsize=(8, 5))
+    x = np.asarray([4, 8, 12])
+    for row in selected:
+        values = [
+            float(row["mean_excess_k4"]),
+            float(row["mean_excess_k8"]),
+            float(row["mean_excess_k12"]),
+        ]
+        axis.plot(x, values, marker="o", label=row["image_category"])
+    axis.axhline(0.0, color="black", linewidth=0.8)
+    axis.set_xticks(x)
+    axis.set_xlabel("Number of masked ROI parcels")
+    axis.set_ylabel("Mean target-minus-pure-random causal loss (DINO)")
+    axis.set_title("Preregistered E3b joint-size trend")
+    axis.legend(frameon=False)
     figure.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output, dpi=160)
@@ -247,6 +328,8 @@ def distribution_plot(rows: list[dict], output: Path) -> None:
 def aggregate_excess(
     rows: list[dict],
     metadata_by_category: dict[str, dict[str, dict]],
+    *,
+    expected_num_seeds: int | None = None,
 ) -> list[dict]:
     output = []
     for category in ("Face", "Body", "Scene"):
@@ -302,6 +385,15 @@ def aggregate_excess(
                     )
                     by_image[key[1]].append(float(target_loss - random_loss))
                 for dataset_idx, seed_values in by_image.items():
+                    if (
+                        expected_num_seeds is not None
+                        and len(seed_values) != expected_num_seeds
+                    ):
+                        raise RuntimeError(
+                            f"Expected {expected_num_seeds} seeds for "
+                            f"{category}/{target}/{metric}/{dataset_idx}, "
+                            f"found {len(seed_values)}"
+                        )
                     output.append(
                         {
                             "image_category": category,
@@ -544,7 +636,11 @@ def main() -> None:
         for row in rows
     ]
     write_csv(args.output_dir / "local_metric_results.csv", local_rows)
-    excess = aggregate_excess(rows, metadata_by_category)
+    excess = aggregate_excess(
+        rows,
+        metadata_by_category,
+        expected_num_seeds=(len(plan["seeds"]) if mode == "formal" else None),
+    )
     write_csv(args.output_dir / "per_image_excess_effects.csv", excess)
     write_csv(
         args.output_dir / "effect_distribution_summary.csv",
@@ -553,6 +649,7 @@ def main() -> None:
     distribution_plot(
         excess,
         args.output_dir / "figures" / "effect_distribution_plot.png",
+        scope=mode,
     )
     if plan["name"] == "E3_interaction":
         results = interaction_rows(
@@ -571,6 +668,29 @@ def main() -> None:
             results,
             args.output_dir / "figures" / "effect_forest_plot.png",
             "matched_minus_nonmatched",
+            formal=mode == "formal",
+        )
+        local_results = cell_result_rows(
+            excess,
+            metrics_by_category=LOCAL_METRICS,
+            draws=args.bootstrap_draws,
+            formal=mode == "formal",
+            analysis_status=(
+                "formal"
+                if mode == "formal"
+                else f"engineering_{mode}"
+            ),
+            q_column="bh_q_e3a_local",
+        )
+        write_csv(
+            args.output_dir / "local_interaction_results.csv",
+            local_results,
+        )
+        effect_plot(
+            local_results,
+            args.output_dir / "figures" / "local_effect_forest_plot.png",
+            "target_minus_pure_random",
+            formal=mode == "formal",
         )
     else:
         results = joint_result_rows(
@@ -588,6 +708,38 @@ def main() -> None:
             [row for row in results if row["metric"] == "dino"],
             args.output_dir / "figures" / "effect_forest_plot.png",
             "target_minus_pure_random",
+            formal=mode == "formal",
+        )
+        effect_plot(
+            [row for row in results if row["metric_family"] == "global"],
+            args.output_dir / "figures" / "global_effect_forest_plot.png",
+            "target_minus_pure_random",
+            formal=mode == "formal",
+        )
+        effect_plot(
+            [row for row in results if row["metric_family"] == "local"],
+            args.output_dir / "figures" / "local_effect_forest_plot.png",
+            "target_minus_pure_random",
+            formal=mode == "formal",
+        )
+        trend_results = monotonicity_rows(
+            excess,
+            metrics_by_category=LOCAL_METRICS,
+            draws=args.bootstrap_draws,
+            formal=mode == "formal",
+            analysis_status=(
+                "formal"
+                if mode == "formal"
+                else f"engineering_{mode}"
+            ),
+        )
+        write_csv(
+            args.output_dir / "monotonicity_results.csv",
+            trend_results,
+        )
+        monotonicity_plot(
+            trend_results,
+            args.output_dir / "figures" / "joint_size_trend_plot.png",
         )
     for category in ("Face", "Body", "Scene"):
         visual_grid(
@@ -608,6 +760,35 @@ def main() -> None:
         "formal_inference_performed": mode == "formal",
         "num_rows": len(rows),
         "num_excess_rows": len(excess),
+        "seed_aggregation": (
+            "mean causal loss across seeds within each image before inference"
+        ),
+        "multiplicity_families": (
+            {
+                "global_interaction": "15 tests",
+                "local_within_category": "27 tests",
+            }
+            if plan["name"] == "E3_interaction"
+            else {
+                "global_joint_masks": "75 tests",
+                "local_joint_masks": "45 tests",
+                "global_monotonicity": "15 tests",
+                "local_monotonicity": "9 tests",
+            }
+        ),
+        "monotonicity_definition": (
+            None
+            if plan["name"] == "E3_interaction"
+            else {
+                "levels": [
+                    "matching single ROI (4 parcels)",
+                    "mean of the two matching-containing double ROI masks (8 parcels)",
+                    "Face+Body+Scene (12 parcels)",
+                ],
+                "per_image_statistic": "least-squares slope across levels 1,2,3",
+                "test": "two-sided sign-flip on per-image slopes",
+            }
+        ),
         "metric_models": models["metadata"],
         "face_detector_backend": detector_backend,
         "opencv_version": __import__("cv2").__version__,

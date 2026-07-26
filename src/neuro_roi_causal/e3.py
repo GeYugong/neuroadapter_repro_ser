@@ -13,6 +13,7 @@ from .stats import benjamini_hochberg, bootstrap_ci, sign_flip_pvalue
 
 
 ROI_GROUPS = ("Face", "Body", "Scene")
+GLOBAL_METRICS = ("pixel_corr", "ssim", "lpips", "clip", "dino")
 
 
 def equal_k_targets(
@@ -260,61 +261,82 @@ def interaction_rows(
     output: list[dict[str, Any]] = []
     for roi_index, roi in enumerate(ROI_GROUPS):
         for metric_index, metric in enumerate(metrics):
-            matched = np.asarray(
-                [
-                    float(row["excess_causal_loss"])
-                    for row in rows
-                    if row["masked_roi"] == roi
-                    and row["image_category"] == roi
-                    and row["metric"] == metric
-                ],
-                dtype=np.float64,
-            )
-            nonmatched = np.asarray(
-                [
-                    float(row["excess_causal_loss"])
-                    for row in rows
-                    if row["masked_roi"] == roi
-                    and row["image_category"] != roi
-                    and row["metric"] == metric
-                ],
-                dtype=np.float64,
-            )
+            by_category = {
+                category: np.asarray(
+                    [
+                        float(row["excess_causal_loss"])
+                        for row in rows
+                        if row["masked_roi"] == roi
+                        and row["image_category"] == category
+                        and row["metric"] == metric
+                    ],
+                    dtype=np.float64,
+                )
+                for category in ROI_GROUPS
+            }
+            matched = by_category[roi]
+            nonmatched_categories = [
+                by_category[category] for category in ROI_GROUPS if category != roi
+            ]
             effect = (
-                float(matched.mean() - nonmatched.mean())
-                if len(matched) and len(nonmatched)
+                float(
+                    matched.mean()
+                    - np.mean([values.mean() for values in nonmatched_categories])
+                )
+                if len(matched) and all(len(values) for values in nonmatched_categories)
                 else float("nan")
             )
             item: dict[str, Any] = {
                 "masked_roi": roi,
                 "metric": metric,
                 "num_matched_images": int(len(matched)),
-                "num_nonmatched_images": int(len(nonmatched)),
+                "num_nonmatched_images": int(
+                    sum(len(values) for values in nonmatched_categories)
+                ),
+                "num_nonmatched_categories": len(nonmatched_categories),
+                "nonmatched_category_weighting": "equal_category_mean",
                 "matched_minus_nonmatched": effect,
                 "analysis_status": analysis_status,
                 "ci95": None,
                 "permutation_p": None,
                 "bh_q_e3a": None,
             }
-            if formal and len(matched) >= 2 and len(nonmatched) >= 2:
+            if formal and len(matched) >= 2 and all(
+                len(values) >= 2 for values in nonmatched_categories
+            ):
                 rng = np.random.default_rng(31000 + roi_index * 100 + metric_index)
                 bootstrap = np.asarray(
                     [
                         rng.choice(matched, len(matched), replace=True).mean()
-                        - rng.choice(nonmatched, len(nonmatched), replace=True).mean()
+                        - np.mean(
+                            [
+                                rng.choice(values, len(values), replace=True).mean()
+                                for values in nonmatched_categories
+                            ]
+                        )
                         for _ in range(draws)
                     ]
                 )
                 item["ci95"] = [
                     float(value) for value in np.quantile(bootstrap, [0.025, 0.975])
                 ]
-                combined = np.concatenate([matched, nonmatched])
+                groups = [matched, *nonmatched_categories]
+                combined = np.concatenate(groups)
                 null = []
                 for _ in range(draws):
                     permuted = rng.permutation(combined)
+                    offset = 0
+                    permuted_groups = []
+                    for values in groups:
+                        permuted_groups.append(
+                            permuted[offset : offset + len(values)]
+                        )
+                        offset += len(values)
                     null.append(
-                        permuted[: len(matched)].mean()
-                        - permuted[len(matched) :].mean()
+                        permuted_groups[0].mean()
+                        - np.mean(
+                            [values.mean() for values in permuted_groups[1:]]
+                        )
                     )
                 item["permutation_p"] = float(
                     (np.count_nonzero(np.abs(null) >= abs(effect)) + 1) / (draws + 1)
@@ -326,6 +348,69 @@ def interaction_rows(
             valid, benjamini_hochberg([item["permutation_p"] for item in valid])
         ):
             item["bh_q_e3a"] = qvalue
+    return output
+
+
+def cell_result_rows(
+    per_image_effects: Iterable[dict[str, Any]],
+    *,
+    metrics_by_category: dict[str, Iterable[str]],
+    draws: int,
+    formal: bool,
+    analysis_status: str,
+    q_column: str,
+) -> list[dict[str, Any]]:
+    """Test within-category target-minus-control effects as one BH family."""
+    rows = list(per_image_effects)
+    output: list[dict[str, Any]] = []
+    test_index = 0
+    for category in ROI_GROUPS:
+        for masked_roi in ROI_GROUPS:
+            for metric in metrics_by_category[category]:
+                values = np.asarray(
+                    [
+                        float(row["excess_causal_loss"])
+                        for row in rows
+                        if row["image_category"] == category
+                        and row["masked_roi"] == masked_roi
+                        and row["metric"] == metric
+                    ],
+                    dtype=np.float64,
+                )
+                item: dict[str, Any] = {
+                    "image_category": category,
+                    "masked_roi": masked_roi,
+                    "metric": metric,
+                    "metric_family": "local",
+                    "num_images": int(len(values)),
+                    "target_minus_pure_random": (
+                        float(values.mean()) if len(values) else float("nan")
+                    ),
+                    "analysis_status": analysis_status,
+                    "ci95": None,
+                    "sign_flip_p": None,
+                    q_column: None,
+                }
+                if formal and len(values) >= 2:
+                    item["ci95"] = bootstrap_ci(
+                        values,
+                        51000 + test_index,
+                        draws,
+                    )
+                    item["sign_flip_p"] = sign_flip_pvalue(
+                        values,
+                        52000 + test_index,
+                        draws,
+                    )
+                output.append(item)
+                test_index += 1
+    valid = [item for item in output if item["sign_flip_p"] is not None]
+    if valid:
+        for item, qvalue in zip(
+            valid,
+            benjamini_hochberg([item["sign_flip_p"] for item in valid]),
+        ):
+            item[q_column] = qvalue
     return output
 
 
@@ -362,6 +447,9 @@ def joint_result_rows(
             "image_category": category,
             "masked_roi": masked_roi,
             "metric": metric,
+            "metric_family": (
+                "global" if metric in GLOBAL_METRICS else "local"
+            ),
             "num_images": int(len(values)),
             "target_minus_pure_random": (
                 float(values.mean()) if len(values) else float("nan")
@@ -383,13 +471,135 @@ def joint_result_rows(
                 draws,
             )
         output.append(item)
-    valid = [item for item in output if item["sign_flip_p"] is not None]
-    if valid:
-        for item, qvalue in zip(
-            valid,
-            benjamini_hochberg([item["sign_flip_p"] for item in valid]),
-        ):
-            item["bh_q_e3b"] = qvalue
+    for family in ("global", "local"):
+        valid = [
+            item
+            for item in output
+            if item["metric_family"] == family
+            and item["sign_flip_p"] is not None
+        ]
+        if valid:
+            for item, qvalue in zip(
+                valid,
+                benjamini_hochberg([item["sign_flip_p"] for item in valid]),
+            ):
+                item["bh_q_e3b"] = qvalue
+    return output
+
+
+def monotonicity_rows(
+    per_image_effects: Iterable[dict[str, Any]],
+    *,
+    metrics_by_category: dict[str, Iterable[str]],
+    draws: int,
+    formal: bool,
+    analysis_status: str,
+) -> list[dict[str, Any]]:
+    """Test the preregistered 4 -> 8 -> 12 token trend per image."""
+    rows = list(per_image_effects)
+    output: list[dict[str, Any]] = []
+    test_index = 0
+    for category in ROI_GROUPS:
+        double_masks = sorted(
+            "+".join(pair)
+            for pair in (
+                ("Face", "Body"),
+                ("Face", "Scene"),
+                ("Body", "Scene"),
+            )
+            if category in pair
+        )
+        metrics = list(GLOBAL_METRICS) + list(metrics_by_category[category])
+        for metric in metrics:
+            by_image: dict[int, dict[str, float]] = {}
+            for row in rows:
+                if row["image_category"] != category or row["metric"] != metric:
+                    continue
+                by_image.setdefault(int(row["dataset_idx"]), {})[
+                    row["masked_roi"]
+                ] = float(row["excess_causal_loss"])
+            level_rows = []
+            for dataset_idx, values in sorted(by_image.items()):
+                required = [category, *double_masks, "Face+Body+Scene"]
+                if any(label not in values for label in required):
+                    raise ValueError(
+                        f"Missing monotonicity level for {category}/{metric}/"
+                        f"{dataset_idx}: {required}"
+                    )
+                levels = np.asarray(
+                    [
+                        values[category],
+                        np.mean([values[label] for label in double_masks]),
+                        values["Face+Body+Scene"],
+                    ],
+                    dtype=np.float64,
+                )
+                level_rows.append(
+                    {
+                        "dataset_idx": dataset_idx,
+                        "levels": levels,
+                        "slope": float(np.polyfit([1.0, 2.0, 3.0], levels, 1)[0]),
+                    }
+                )
+            slopes = np.asarray(
+                [item["slope"] for item in level_rows],
+                dtype=np.float64,
+            )
+            level_matrix = np.stack(
+                [item["levels"] for item in level_rows],
+                axis=0,
+            )
+            item: dict[str, Any] = {
+                "image_category": category,
+                "metric": metric,
+                "metric_family": (
+                    "global" if metric in GLOBAL_METRICS else "local"
+                ),
+                "num_images": int(len(slopes)),
+                "single_mask": category,
+                "double_masks_averaged": ";".join(double_masks),
+                "triple_mask": "Face+Body+Scene",
+                "mean_excess_k4": float(level_matrix[:, 0].mean()),
+                "mean_excess_k8": float(level_matrix[:, 1].mean()),
+                "mean_excess_k12": float(level_matrix[:, 2].mean()),
+                "mean_slope_per_level": float(slopes.mean()),
+                "monotonic_non_decreasing_fraction": float(
+                    np.mean(
+                        (level_matrix[:, 0] <= level_matrix[:, 1])
+                        & (level_matrix[:, 1] <= level_matrix[:, 2])
+                    )
+                ),
+                "analysis_status": analysis_status,
+                "ci95": None,
+                "sign_flip_p": None,
+                "bh_q_e3b_monotonicity": None,
+            }
+            if formal and len(slopes) >= 2:
+                item["ci95"] = bootstrap_ci(
+                    slopes,
+                    61000 + test_index,
+                    draws,
+                )
+                item["sign_flip_p"] = sign_flip_pvalue(
+                    slopes,
+                    62000 + test_index,
+                    draws,
+                )
+            output.append(item)
+            test_index += 1
+    for family in ("global", "local"):
+        valid = [
+            item
+            for item in output
+            if item["metric_family"] == family
+            and item["sign_flip_p"] is not None
+        ]
+        if valid:
+            for item, qvalue in zip(
+                valid,
+                benjamini_hochberg([item["sign_flip_p"] for item in valid]),
+            ):
+                item["bh_q_e3b_monotonicity"] = qvalue
     return output
 
 

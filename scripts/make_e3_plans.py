@@ -45,9 +45,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--count", type=int, default=0, help="0 keeps all frozen E2 samples")
     parser.add_argument(
         "--scope",
-        choices=("full", "pilot"),
-        default="full",
-        help="pilot freezes the configured pilot image and seed prefix.",
+        choices=("formal", "pilot", "full"),
+        default="formal",
+        help=(
+            "pilot freezes the configured pilot prefix; formal freezes all "
+            "images and seeds. full is a legacy alias for formal."
+        ),
     )
     parser.add_argument("--seed", type=int, default=20260726)
     return parser.parse_args()
@@ -86,10 +89,21 @@ def load_config(path: Path, expected_name: str) -> dict:
                 "primary_model",
                 "primary_contrast",
                 "multiplicity",
+                "nonmatched_category_weighting",
+                "local_analysis",
+                "local_multiplicity",
             }
         )
     else:
-        required.update({"joint_masks", "primary_contrast", "multiplicity"})
+        required.update(
+            {
+                "joint_masks",
+                "primary_contrast",
+                "global_multiplicity",
+                "local_multiplicity",
+                "monotonicity",
+            }
+        )
     missing = sorted(required - config.keys())
     if missing:
         raise ValueError(f"{path} is missing required fields: {missing}")
@@ -105,6 +119,10 @@ def load_config(path: Path, expected_name: str) -> dict:
         raise ValueError("E3 smoke requires one image per category")
     if int(config["execution"]["smoke_seeds"]) != 1:
         raise ValueError("E3 smoke requires one seed")
+    if config["execution"].get("formal_requires_all_frozen_images") is not True:
+        raise ValueError("E3 formal execution must require all frozen images")
+    if config["execution"].get("formal_requires_all_seeds") is not True:
+        raise ValueError("E3 formal execution must require all frozen seeds")
     expected_detector = {
         "backend": "opencv_haar_e1",
         "cascade_filename": "haarcascade_frontalface_default.xml",
@@ -185,7 +203,9 @@ def main() -> None:
     )
     common = {
         "schema_version": 1,
-        "plan_scope": args.scope,
+        "plan_scope": (
+            "formal" if args.scope in {"formal", "full"} else "pilot"
+        ),
         "frozen_image_count_per_category": counts,
         "subject": int(interaction_config["subject"]),
         "checkpoint_step": int(interaction_config["checkpoint_step"]),
@@ -223,7 +243,11 @@ def main() -> None:
             ["git", "rev-parse", "HEAD"], cwd=REPRO_ROOT, text=True
         ).strip(),
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "preregistration_status": "engineering_implementation_before_smoke",
+        "preregistration_status": (
+            "formal_plan_frozen_before_execution"
+            if args.scope in {"formal", "full"}
+            else "pilot_plan_frozen_before_execution"
+        ),
     }
     plans = {
         "E3_interaction": {
@@ -233,6 +257,11 @@ def main() -> None:
             "primary_model": interaction_config["primary_model"],
             "primary_contrast": interaction_config["primary_contrast"],
             "multiplicity": interaction_config["multiplicity"],
+            "nonmatched_category_weighting": interaction_config[
+                "nonmatched_category_weighting"
+            ],
+            "local_analysis": interaction_config["local_analysis"],
+            "local_multiplicity": interaction_config["local_multiplicity"],
             "config": str(args.interaction_config.resolve()),
             "config_sha256": file_sha256(args.interaction_config),
             "categories": {},
@@ -242,7 +271,9 @@ def main() -> None:
             "name": "E3_joint_redundancy",
             "analysis_family": joint_config["analysis_family"],
             "primary_contrast": joint_config["primary_contrast"],
-            "multiplicity": joint_config["multiplicity"],
+            "global_multiplicity": joint_config["global_multiplicity"],
+            "local_multiplicity": joint_config["local_multiplicity"],
+            "monotonicity": joint_config["monotonicity"],
             "config": str(args.joint_config.resolve()),
             "config_sha256": file_sha256(args.joint_config),
             "categories": {},
@@ -311,7 +342,7 @@ def main() -> None:
             equivalence["checks"] = {
                 "seeds_identical": (
                     plan["seeds"] == source["seeds"]
-                    if args.scope == "full"
+                    if args.scope in {"formal", "full"}
                     else plan["seeds"]
                     == source["seeds"][: len(plan["seeds"])]
                 ),

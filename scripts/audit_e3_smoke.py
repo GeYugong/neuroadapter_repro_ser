@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--mode",
-        choices=("smoke", "pilot"),
+        choices=("smoke", "pilot", "formal"),
         default="smoke",
     )
     return parser.parse_args()
@@ -54,20 +54,41 @@ def valid_image(path: Path) -> bool:
 def main() -> None:
     args = parse_args()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
-    image_count = int(
-        plan["execution"][f"{args.mode}_images_per_category"]
+    image_counts = {
+        category: (
+            len(category_plan["dataset_indices"])
+            if args.mode == "formal"
+            else int(plan["execution"][f"{args.mode}_images_per_category"])
+        )
+        for category, category_plan in plan["categories"].items()
+    }
+    seed_count = (
+        len(plan["seeds"])
+        if args.mode == "formal"
+        else int(plan["execution"][f"{args.mode}_seeds"])
     )
-    seed_count = int(plan["execution"][f"{args.mode}_seeds"])
     if args.mode == "pilot":
         if plan.get("plan_scope") != "pilot":
             raise ValueError("Pilot audit requires an independent pilot plan")
-        if image_count != 10 or seed_count != 1 or len(plan["seeds"]) != 1:
+        if (
+            set(image_counts.values()) != {10}
+            or seed_count != 1
+            or len(plan["seeds"]) != 1
+        ):
             raise ValueError("Pilot plan must freeze ten images and one seed")
+    if args.mode == "formal":
+        if plan.get("plan_scope") != "formal":
+            raise ValueError("Formal audit requires a formal frozen plan")
+        if image_counts != {"Face": 37, "Body": 50, "Scene": 50}:
+            raise ValueError("Formal image counts must be 37/50/50")
+        if [int(seed) for seed in plan["seeds"]] != [12345, 23456, 34567]:
+            raise ValueError("Formal seeds differ from the preregistered set")
     seeds = [int(seed) for seed in plan["seeds"][:seed_count]]
     categories = {}
     passed = True
     for seed in seeds:
         for category, category_plan in plan["categories"].items():
+            image_count = image_counts[category]
             key = category if len(seeds) == 1 else f"seed_{seed}_{category}"
             root = args.run_root / f"seed_{seed}" / category
             summary_path = root / "run_summary.json"
@@ -194,9 +215,9 @@ def main() -> None:
         if item.get("repository_commit")
     }
     consistent_assets = (
-        len(checkpoint_hashes) == 1
-        and len(mean_cache_hashes) == 1
-        and len(repository_commits) == 1
+        checkpoint_hashes == {plan["checkpoint_sha256"]}
+        and mean_cache_hashes == {plan["mean_token_cache_sha256"]}
+        and repository_commits == {plan["repository_commit"]}
     )
     passed = passed and consistent_assets
     audit = {
@@ -208,14 +229,18 @@ def main() -> None:
             bool(item.get("passed")) for item in categories.values()
         ),
         "expected_condition_image_records": sum(
-            image_count * len(category_plan["conditions"])
-            for category_plan in plan["categories"].values()
+            image_counts[category] * len(category_plan["conditions"])
+            for category, category_plan in plan["categories"].items()
         )
         * len(seeds),
-        "all_categories_same_checkpoint": len(checkpoint_hashes) == 1,
-        "all_categories_same_mean_token_cache": len(mean_cache_hashes) == 1,
+        "all_categories_same_checkpoint": (
+            checkpoint_hashes == {plan["checkpoint_sha256"]}
+        ),
+        "all_categories_same_mean_token_cache": (
+            mean_cache_hashes == {plan["mean_token_cache_sha256"]}
+        ),
         "all_categories_same_repository_commit": (
-            len(repository_commits) == 1
+            repository_commits == {plan["repository_commit"]}
         ),
         "categories": categories,
     }
