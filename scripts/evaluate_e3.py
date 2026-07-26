@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -23,10 +24,14 @@ from evaluate_e2 import load_models, load_records
 from neuro_roi_causal.e2 import read_csv
 from neuro_roi_causal.e3 import interaction_rows, joint_result_rows
 from neuro_roi_causal.local_metrics import (
+    HAAR_MIN_NEIGHBORS,
+    HAAR_MIN_SIZE,
+    HAAR_SCALE_FACTOR,
     apply_region,
     crop_pair_by_box,
     detect_largest_face,
     face_detector_backend,
+    file_sha256,
     load_coco_person_annotations,
     person_mask,
     region_pixel_consistency,
@@ -287,7 +292,35 @@ def main() -> None:
     }
     coco = load_coco_person_annotations(args.coco_annotations)
     models = load_models(args)
-    detector_backend = face_detector_backend(args.haar_cascade)
+    require_opencv = mode in {"pilot", "formal"}
+    cascade_sha256 = file_sha256(args.haar_cascade)
+    detector_backend = face_detector_backend(
+        args.haar_cascade,
+        require_opencv=require_opencv,
+    )
+    detector_plan = plan.get("face_detector")
+    if require_opencv:
+        if detector_plan is None:
+            raise ValueError("pilot/formal plan must freeze face_detector settings")
+        expected_detector = {
+            "backend": "opencv_haar_e1",
+            "cascade_filename": args.haar_cascade.name,
+            "cascade_sha256": cascade_sha256,
+            "scale_factor": HAAR_SCALE_FACTOR,
+            "min_neighbors": HAAR_MIN_NEIGHBORS,
+            "min_size": list(HAAR_MIN_SIZE),
+        }
+        mismatched = {
+            key: {"plan": detector_plan.get(key), "actual": value}
+            for key, value in expected_detector.items()
+            if detector_plan.get(key) != value
+        }
+        if mismatched:
+            raise ValueError(
+                f"Face detector differs from the frozen pilot plan: {mismatched}"
+            )
+        if detector_plan.get(f"{mode}_fallback_allowed") is not False:
+            raise ValueError(f"{mode} plan must explicitly forbid detector fallback")
     cache = ContentAddressedCache()
     rows: list[dict] = []
     representation_jobs: list[tuple[int, str, Path, Path]] = []
@@ -344,16 +377,33 @@ def main() -> None:
                     manifest_row = manifest[dataset_idx]
                     stem = f"{category}_{seed}_{dataset_idx}_{condition}"
                     if category == "Face":
-                        gt_box = detect_largest_face(gt_image, args.haar_cascade)
-                        pred_box = detect_largest_face(pred_image, args.haar_cascade)
+                        gt_box = detect_largest_face(
+                            gt_image,
+                            args.haar_cascade,
+                            require_opencv=require_opencv,
+                        )
+                        pred_box = detect_largest_face(
+                            pred_image,
+                            args.haar_cascade,
+                            require_opencv=require_opencv,
+                        )
+                        if gt_box is None:
+                            raise RuntimeError(
+                                "Ground-truth Face region is empty for "
+                                f"dataset_idx={dataset_idx}, condition={condition}"
+                            )
                         row["face_detection_success"] = float(pred_box is not None)
                         row["face_detector_backend"] = detector_backend
-                        if gt_box is not None:
-                            gt_local, pred_local = crop_pair_by_box(
-                                gt_image, pred_image, gt_box
-                            )
-                            paths = save_pair(derived_root, stem, gt_local, pred_local)
-                            representation_jobs.append((row_index, "face", *paths))
+                        gt_local, pred_local = crop_pair_by_box(
+                            gt_image, pred_image, gt_box
+                        )
+                        if not gt_local.width or not gt_local.height:
+                            raise RuntimeError("Detected Face crop is empty")
+                        row["local_region_pixels"] = (
+                            gt_local.width * gt_local.height
+                        )
+                        paths = save_pair(derived_root, stem, gt_local, pred_local)
+                        representation_jobs.append((row_index, "face", *paths))
                     else:
                         key = (
                             str(manifest_row["coco_split"]),
@@ -362,6 +412,18 @@ def main() -> None:
                         mask, method = person_mask(coco[key], gt_image.size)
                         row["person_mask_method"] = method
                         keep = category == "Body"
+                        mask_array = np.asarray(mask, dtype=np.uint8) > 0
+                        selected_pixels = (
+                            int(mask_array.sum())
+                            if keep
+                            else int((~mask_array).sum())
+                        )
+                        if selected_pixels == 0:
+                            raise RuntimeError(
+                                f"{category} local region is empty for "
+                                f"dataset_idx={dataset_idx}"
+                            )
+                        row["local_region_pixels"] = selected_pixels
                         if keep:
                             row["person_region_consistency"] = (
                                 region_pixel_consistency(
@@ -396,6 +458,28 @@ def main() -> None:
             row["scene_class_consistency"] = scene_label_consistency(
                 gt_path, pred_path, models, cache
             )
+    required_metrics = {
+        category: [*GLOBAL_METRICS, *LOCAL_METRICS[category]]
+        for category in ("Face", "Body", "Scene")
+    }
+    invalid_metrics = []
+    for row in rows:
+        for metric in required_metrics[row["image_category"]]:
+            value = row.get(metric)
+            if value in (None, "") or not np.isfinite(float(value)):
+                invalid_metrics.append(
+                    {
+                        "category": row["image_category"],
+                        "dataset_idx": row["dataset_idx"],
+                        "condition": row["condition"],
+                        "metric": metric,
+                        "value": value,
+                    }
+                )
+    if invalid_metrics:
+        raise RuntimeError(
+            f"Missing or non-finite evaluation metrics: {invalid_metrics[:10]}"
+        )
     write_csv(args.output_dir / "per_sample_metrics.csv", rows)
     local_rows = [
         {
@@ -411,6 +495,7 @@ def main() -> None:
                 "seed",
                 "dataset_idx",
                 "person_mask_method",
+                "local_region_pixels",
                 *LOCAL_METRICS[row["image_category"]],
             }
         }
@@ -464,13 +549,33 @@ def main() -> None:
     summary = {
         "experiment": plan["name"],
         "scope": mode,
+        "repository_commit": subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPRO_ROOT,
+            text=True,
+        ).strip(),
+        "python_executable": sys.executable,
         "formal_inference_performed": mode == "formal",
         "num_rows": len(rows),
         "num_excess_rows": len(excess),
         "metric_models": models["metadata"],
         "face_detector_backend": detector_backend,
+        "opencv_version": __import__("cv2").__version__,
         "face_detector_formal_compatibility": (
             detector_backend == "opencv_haar_e1"
+        ),
+        "face_detector_cascade": str(args.haar_cascade.resolve()),
+        "face_detector_cascade_sha256": cascade_sha256,
+        "face_detector_parameters": {
+            "scaleFactor": HAAR_SCALE_FACTOR,
+            "minNeighbors": HAAR_MIN_NEIGHBORS,
+            "minSize": list(HAAR_MIN_SIZE),
+        },
+        "invalid_or_missing_metric_count": len(invalid_metrics),
+        "minimum_local_region_pixels": min(
+            int(row["local_region_pixels"])
+            for row in rows
+            if "local_region_pixels" in row
         ),
         "content_addressed_cache": {
             "embedding_computations": cache.embedding_computations,

@@ -1,4 +1,5 @@
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
@@ -6,6 +7,8 @@ from PIL import Image
 from neuro_roi_causal.local_metrics import (
     apply_region,
     crop_pair_by_box,
+    face_detector_backend,
+    file_sha256,
     person_mask,
     region_pixel_consistency,
 )
@@ -49,3 +52,39 @@ def test_region_consistency_is_independent_and_masked():
         for y in range(2, 8):
             mask.putpixel((x, y), 255)
     assert region_pixel_consistency(gt, pred, mask, size=10) == pytest.approx(1.0)
+
+
+def test_pilot_detector_rejects_incomplete_cv2(tmp_path: Path, monkeypatch):
+    cascade = tmp_path / "haarcascade_frontalface_default.xml"
+    cascade.write_text("fixture", encoding="utf-8")
+    monkeypatch.setitem(
+        __import__("sys").modules,
+        "cv2",
+        SimpleNamespace(cvtColor=lambda value, code: value),
+    )
+    with pytest.raises(RuntimeError, match="requires OpenCV Haar"):
+        face_detector_backend(cascade, require_opencv=True)
+
+
+def test_opencv_detector_and_cascade_hash_are_explicit(
+    tmp_path: Path,
+    monkeypatch,
+):
+    cascade = tmp_path / "haarcascade_frontalface_default.xml"
+    cascade.write_bytes(b"fixture")
+    monkeypatch.setitem(
+        __import__("sys").modules,
+        "cv2",
+        SimpleNamespace(
+            CascadeClassifier=object,
+            cvtColor=lambda value, code: value,
+        ),
+    )
+    assert (
+        face_detector_backend(cascade, require_opencv=True)
+        == "opencv_haar_e1"
+    )
+    assert file_sha256(cascade) == (
+        "f16d05ec6b29248d2c61adb1e9263f78e4f7bace1b955014a2d"
+        "17872cfe4064d"
+    )

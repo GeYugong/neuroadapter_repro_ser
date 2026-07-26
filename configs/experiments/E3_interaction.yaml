@@ -45,6 +45,17 @@ local_metrics:
     - background_dino
     - background_clip
     - scene_class_consistency
+face_detector:
+  backend: opencv_haar_e1
+  cascade_filename: haarcascade_frontalface_default.xml
+  cascade_sha256: 0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0
+  scale_factor: 1.1
+  min_neighbors: 5
+  min_size:
+    - 24
+    - 24
+  pilot_fallback_allowed: false
+  formal_fallback_allowed: false
 execution:
   smoke_images_per_category: 1
   smoke_seeds: 1
@@ -52,4 +63,3 @@ execution:
   pilot_seeds: 1
   formal_requires_all_frozen_images: true
   formal_requires_all_seeds: true
-

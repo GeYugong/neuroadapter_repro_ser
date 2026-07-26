@@ -42,6 +42,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-e2-plan", type=Path)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--count", type=int, default=0, help="0 keeps all frozen E2 samples")
+    parser.add_argument(
+        "--scope",
+        choices=("full", "pilot"),
+        default="full",
+        help="pilot freezes the configured pilot image and seed prefix.",
+    )
     parser.add_argument("--seed", type=int, default=20260726)
     return parser.parse_args()
 
@@ -69,6 +75,7 @@ def load_config(path: Path, expected_name: str) -> dict:
         "seed_aggregation",
         "global_metrics",
         "local_metrics",
+        "face_detector",
         "execution",
     }
     if expected_name == "E3_interaction":
@@ -97,6 +104,23 @@ def load_config(path: Path, expected_name: str) -> dict:
         raise ValueError("E3 smoke requires one image per category")
     if int(config["execution"]["smoke_seeds"]) != 1:
         raise ValueError("E3 smoke requires one seed")
+    expected_detector = {
+        "backend": "opencv_haar_e1",
+        "cascade_filename": "haarcascade_frontalface_default.xml",
+        "scale_factor": 1.1,
+        "min_neighbors": 5,
+        "min_size": [24, 24],
+        "pilot_fallback_allowed": False,
+        "formal_fallback_allowed": False,
+    }
+    for key, expected in expected_detector.items():
+        if config["face_detector"].get(key) != expected:
+            raise ValueError(
+                f"E3 face detector field {key!r} must equal {expected!r}"
+            )
+    cascade_sha = str(config["face_detector"].get("cascade_sha256", ""))
+    if len(cascade_sha) != 64:
+        raise ValueError("E3 face detector cascade_sha256 must be a SHA-256")
     return config
 
 
@@ -117,6 +141,7 @@ def assert_common_config(interaction: dict, joint: dict) -> None:
         "seed_aggregation",
         "global_metrics",
         "local_metrics",
+        "face_detector",
         "execution",
     )
     mismatched = [key for key in common_keys if interaction[key] != joint[key]]
@@ -135,14 +160,32 @@ def main() -> None:
         category: int(count)
         for category, count in interaction_config["categories"].items()
     }
-    counts = (
-        {category: args.count for category in ROI_GROUPS}
-        if args.count > 0
-        else available
-    )
+    if args.scope == "pilot":
+        if args.count > 0:
+            raise ValueError("--count cannot be combined with --scope pilot")
+        pilot_count = int(
+            interaction_config["execution"]["pilot_images_per_category"]
+        )
+        counts = {category: pilot_count for category in ROI_GROUPS}
+    else:
+        counts = (
+            {category: args.count for category in ROI_GROUPS}
+            if args.count > 0
+            else available
+        )
     selected = select_manifest_indices(manifest, counts)
+    configured_seeds = [int(seed) for seed in interaction_config["seeds"]]
+    selected_seeds = (
+        configured_seeds[
+            : int(interaction_config["execution"]["pilot_seeds"])
+        ]
+        if args.scope == "pilot"
+        else configured_seeds
+    )
     common = {
         "schema_version": 1,
+        "plan_scope": args.scope,
+        "frozen_image_count_per_category": counts,
         "subject": int(interaction_config["subject"]),
         "checkpoint_step": int(interaction_config["checkpoint_step"]),
         "mask_mode": interaction_config["mask_mode"],
@@ -157,7 +200,7 @@ def main() -> None:
         "matched_random_controls": int(
             interaction_config["matched_random_controls"]
         ),
-        "seeds": [int(seed) for seed in interaction_config["seeds"]],
+        "seeds": selected_seeds,
         "denoising_steps": int(interaction_config["denoising_steps"]),
         "noise_factor": float(interaction_config["noise_factor"]),
         "condition_batch_size": int(interaction_config["condition_batch_size"]),
@@ -165,6 +208,7 @@ def main() -> None:
         "seed_aggregation": interaction_config["seed_aggregation"],
         "global_metrics": interaction_config["global_metrics"],
         "local_metrics": interaction_config["local_metrics"],
+        "face_detector": interaction_config["face_detector"],
         "execution": interaction_config["execution"],
         "mean_token_cache": str(args.mean_cache.resolve()),
         "mean_token_cache_sha256": file_sha256(args.mean_cache),
@@ -262,7 +306,12 @@ def main() -> None:
         }
         if source is not None:
             equivalence["checks"] = {
-                "seeds_identical": plan["seeds"] == source["seeds"],
+                "seeds_identical": (
+                    plan["seeds"] == source["seeds"]
+                    if args.scope == "full"
+                    else plan["seeds"]
+                    == source["seeds"][: len(plan["seeds"])]
+                ),
                 "denoising_steps_identical": (
                     plan["denoising_steps"] == source["denoising_steps"]
                 ),
@@ -274,7 +323,13 @@ def main() -> None:
                 ),
                 "dataset_indices_identical": all(
                     plan["categories"][category]["dataset_indices"]
-                    == source["categories"][category]["dataset_indices"]
+                    == (
+                        source["categories"][category]["dataset_indices"]
+                        if args.scope == "full"
+                        else source["categories"][category]["dataset_indices"][
+                            : len(plan["categories"][category]["dataset_indices"])
+                        ]
+                    )
                     for category in ROI_GROUPS
                 ),
             }

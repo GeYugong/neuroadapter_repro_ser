@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,17 @@ from PIL import Image, ImageDraw
 
 NEAREST = getattr(Image, "Resampling", Image).NEAREST
 BILINEAR = getattr(Image, "Resampling", Image).BILINEAR
+HAAR_SCALE_FACTOR = 1.1
+HAAR_MIN_NEIGHBORS = 5
+HAAR_MIN_SIZE = (24, 24)
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def load_coco_person_annotations(
@@ -61,13 +73,22 @@ def person_mask(record: dict[str, Any], output_size: tuple[int, int]) -> tuple[I
     return mask.resize(output_size, NEAREST), method
 
 
-def face_detector_backend(cascade_path: Path) -> str:
+def face_detector_backend(
+    cascade_path: Path,
+    *,
+    require_opencv: bool = False,
+) -> str:
     if not cascade_path.is_file():
         raise FileNotFoundError(f"Required Haar cascade is missing: {cascade_path}")
     import cv2
 
     if hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "cvtColor"):
         return "opencv_haar_e1"
+    if require_opencv:
+        raise RuntimeError(
+            "pilot/formal evaluation requires OpenCV Haar, but cv2 does not "
+            "provide CascadeClassifier and cvtColor"
+        )
     from skimage import data
 
     fallback = Path(data.lbp_frontal_face_cascade_filename())
@@ -79,8 +100,16 @@ def face_detector_backend(cascade_path: Path) -> str:
     return "skimage_bundled_lbp_smoke_fallback"
 
 
-def detect_largest_face(image: Image.Image, cascade_path: Path) -> tuple[int, int, int, int] | None:
-    backend = face_detector_backend(cascade_path)
+def detect_largest_face(
+    image: Image.Image,
+    cascade_path: Path,
+    *,
+    require_opencv: bool = False,
+) -> tuple[int, int, int, int] | None:
+    backend = face_detector_backend(
+        cascade_path,
+        require_opencv=require_opencv,
+    )
     rgb = np.asarray(image.convert("RGB"))
     if backend == "opencv_haar_e1":
         import cv2
@@ -90,7 +119,10 @@ def detect_largest_face(image: Image.Image, cascade_path: Path) -> tuple[int, in
             raise RuntimeError(f"Could not load Haar cascade: {cascade_path}")
         gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
         faces = cascade.detectMultiScale(
-            gray, scaleFactor=1.1, minNeighbors=5, minSize=(24, 24)
+            gray,
+            scaleFactor=HAAR_SCALE_FACTOR,
+            minNeighbors=HAAR_MIN_NEIGHBORS,
+            minSize=HAAR_MIN_SIZE,
         )
         if len(faces) == 0:
             return None
