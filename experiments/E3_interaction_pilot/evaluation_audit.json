@@ -1,0 +1,17 @@
+{
+  "experiment": "E3_interaction",
+  "scope": "engineering_pilot_evaluation",
+  "passed": true,
+  "expected_per_sample_rows": 600,
+  "actual_per_sample_rows": 600,
+  "actual_local_metric_rows": 600,
+  "invalid_or_missing_metrics": [],
+  "local_regions_nonempty": true,
+  "minimum_local_region_pixels": 16641,
+  "face_detector_passed": true,
+  "face_prediction_detection_success": 79.0,
+  "face_prediction_count": 200,
+  "formal_inference_performed": false,
+  "inference_fields_empty": true,
+  "engineering_anomalies": []
+}

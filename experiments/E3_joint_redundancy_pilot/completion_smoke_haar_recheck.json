@@ -1,0 +1,22 @@
+{
+  "experiment": "E3_joint_redundancy",
+  "scope": "completion_smoke_haar_recheck",
+  "passed": true,
+  "generated_images_reused": true,
+  "per_sample_rows": 96,
+  "face_rows": 32,
+  "finite_face_crop_metric_rows": 32,
+  "face_prediction_detection_success": 0.0,
+  "face_detector_backend": "opencv_haar_e1",
+  "face_detector_formal_compatibility": true,
+  "cascade_sha256": "0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0",
+  "parameters": {
+    "scaleFactor": 1.1,
+    "minNeighbors": 5,
+    "minSize": [
+      24,
+      24
+    ]
+  },
+  "minimum_local_region_pixels": 52900
+}

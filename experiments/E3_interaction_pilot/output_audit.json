@@ -1,0 +1,646 @@
+{
+  "experiment": "E3_interaction",
+  "scope": "engineering_pilot_only",
+  "passed": true,
+  "expected_task_count": 3,
+  "completed_task_count": 3,
+  "expected_condition_image_records": 600,
+  "all_categories_same_checkpoint": true,
+  "all_categories_same_mean_token_cache": true,
+  "all_categories_same_repository_commit": true,
+  "categories": {
+    "Face": {
+      "passed": true,
+      "seed": 12345,
+      "image_count": 10,
+      "condition_count": 20,
+      "condition_image_record_count": 200,
+      "intervention_count": 200,
+      "conditions_equal_plan": true,
+      "dataset_indices_equal_plan": true,
+      "condition_summaries_equal_plan": true,
+      "output_files_passed": true,
+      "ground_truth_alignment_passed": true,
+      "determinism_passed": true,
+      "shared_latent_noise_passed": true,
+      "shared_latent_noise_audit": {
+        "passed": true,
+        "policy": "one initial latent and one diffusion-noise tensor per image reused across every condition",
+        "checks": {
+          "policy_declared": true,
+          "condition_batches_fixed_shape": true,
+          "one_state_record_per_image": true,
+          "dataset_indices_identical": true
+        },
+        "records": [
+          {
+            "dataset_idx": 973,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "2c9a55f1efa76fc87e5472930fd43e5f692b58098c8b94b914e1a8b10759d503",
+            "diffusion_noise_sha256": "385916f8fa62b22fff07f1d70ace5d279ff45ac061fa11187c1707e2d35e58c8"
+          },
+          {
+            "dataset_idx": 756,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "d1b51fc81601bb131aab900defb277117d17ab4614231c8cdbd4f1c6832c8c84",
+            "diffusion_noise_sha256": "fb299e2d0f729d168117bf0406ddd9d65b4e12db58552a03849a32bb64f3db5f"
+          },
+          {
+            "dataset_idx": 287,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "dc2bc96380691c2ad368f4cc6563f717fcdae2be6b2e639b251ae55f712e3e67",
+            "diffusion_noise_sha256": "78b962f10d9d7f3ab45a4e23293811965d5783db4ef24df7606ff6bdbfdce658"
+          },
+          {
+            "dataset_idx": 415,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "7c75ab2678553b9a4035182c8c38bdb76cd745dafb537ea0002eabac37ab2da7",
+            "diffusion_noise_sha256": "2e4dd6022c59d1b5c3369ea0bd61f79a9f6c00df00c85565d8936be44c45bc6c"
+          },
+          {
+            "dataset_idx": 158,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "137e26935ea68597e444c9230f3dedf4815e9f22820fbfc5306b5cb911f3e1a9",
+            "diffusion_noise_sha256": "d06a8ca1343cfd140cce0bc67a8a270e9a0633be372c85f83b1392b7825254ba"
+          },
+          {
+            "dataset_idx": 465,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "ed364b32017efabc9c2c6a192cb9fe0413e929494e33c228b11ef1c71191e92c",
+            "diffusion_noise_sha256": "4477e228c5731d2ec70179c3947c0add77e3f06cb662303a632db8e1482d42b7"
+          },
+          {
+            "dataset_idx": 678,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "7bf44d6ab586701caeda1305bd85ee1e8b837f5123747729371f5ef306464f0b",
+            "diffusion_noise_sha256": "2184e21226fcece3c2724df1fb144efe2749d1e8af948be6e988c9b3e251f41e"
+          },
+          {
+            "dataset_idx": 789,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "9b4fae989c44dc843174dccdd389f89423dbccfecc17e79188f751e6a82405cf",
+            "diffusion_noise_sha256": "500353cc229f7995ec3ae307bd32200c33ae75c9154a8376bceed7934c66e4b3"
+          },
+          {
+            "dataset_idx": 529,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "d328bf225641ed0883010efa66b6396a6c798651cc1b48761c41792c80e6e524",
+            "diffusion_noise_sha256": "8d08e249201952550bbeb5e7f45b680c2d39a4a37747ef0f4cb12480e13c94b1"
+          },
+          {
+            "dataset_idx": 781,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "d1c9328fa5f1c6befb2691ba0923adf7b1ec65f094d188a9b2b75595a95fdc6b",
+            "diffusion_noise_sha256": "cabb2447c34a5685f48957483df32ff6ba7f2d1f62d7c6b4c92cb48fce3f006e"
+          }
+        ]
+      },
+      "max_abs_delta_non_target": 0.0,
+      "repository_commit": "b4e2b99550c4df21911f947100c9bf5df23dddb7",
+      "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+      "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+    },
+    "Body": {
+      "passed": true,
+      "seed": 12345,
+      "image_count": 10,
+      "condition_count": 20,
+      "condition_image_record_count": 200,
+      "intervention_count": 200,
+      "conditions_equal_plan": true,
+      "dataset_indices_equal_plan": true,
+      "condition_summaries_equal_plan": true,
+      "output_files_passed": true,
+      "ground_truth_alignment_passed": true,
+      "determinism_passed": true,
+      "shared_latent_noise_passed": true,
+      "shared_latent_noise_audit": {
+        "passed": true,
+        "policy": "one initial latent and one diffusion-noise tensor per image reused across every condition",
+        "checks": {
+          "policy_declared": true,
+          "condition_batches_fixed_shape": true,
+          "one_state_record_per_image": true,
+          "dataset_indices_identical": true
+        },
+        "records": [
+          {
+            "dataset_idx": 816,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "fe6e82a0cb01da45877b289562ee8402400222f33ea7c6be750b5e6ece322f37",
+            "diffusion_noise_sha256": "8986b4726dc192f849e555280f25a5fe3835ace28cc9d9b21e2a2375145c0f82"
+          },
+          {
+            "dataset_idx": 220,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "1c1022f4afd069dbae0ae65a62733a645016cd0a7f3a168598cbecc4a67f803d",
+            "diffusion_noise_sha256": "39adf06b0b6f47f9d918de4a845c1c65eafb9f97ac3a4214843941831e9f7233"
+          },
+          {
+            "dataset_idx": 21,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "b112e51cade67a3f23b93016923eb00a699b0a352598361519c2d9a3f7abc06b",
+            "diffusion_noise_sha256": "410f5742b007509558d33ab1a669a4fbd979d5376bc614713ff49e06377b8e1b"
+          },
+          {
+            "dataset_idx": 847,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "722e9f3b97ff26975107a32c585f9959645018da40268457270374ec4b2bd25e",
+            "diffusion_noise_sha256": "5f70dc0793db1c7cefc89762959c169a705af630a4aeba2b4123e331fbacc76e"
+          },
+          {
+            "dataset_idx": 716,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "2ec8dac402aedff99f644666b0be045ea539f1ccd4f67529203318e8f5206c82",
+            "diffusion_noise_sha256": "386a8fa33c27c96f64901757bcd5ee9c873f54159f879f29eb690d66c4548bb8"
+          },
+          {
+            "dataset_idx": 931,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "a71d0ca3987af9ff8ebe3f03fbe75f2f71d75a3dc43c497976c19d76adb08877",
+            "diffusion_noise_sha256": "c7af19ecae16cb53b02c043a8b1346e22ec472c7f68435c9c0dedad32e2b522e"
+          },
+          {
+            "dataset_idx": 941,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "51ea3ed05ad33d0a7367a5e33a854e7c28e297b53c58f782d8d09ec264a8fea9",
+            "diffusion_noise_sha256": "779d5d0835ea5d6f71dc81e43d120adcdc0611f4b321c1a4cdaf6955b3afe605"
+          },
+          {
+            "dataset_idx": 474,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "99b2fac3e9bcdd8e6aaed2f601bd6da7ac4eee8edf3bc13b989c8c018fc5c90b",
+            "diffusion_noise_sha256": "5fbd0d86ff48f08aab864904342dc1097922d3add093bc61f2277adc77668573"
+          },
+          {
+            "dataset_idx": 40,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "3ef04ad8e6d8826178bd6f9cd76da2653d76071435dfb984587be611a2fd93d1",
+            "diffusion_noise_sha256": "00f5f7a333c6eef458db234a176aff0364e70381b4be7e98187d2eeac32d1528"
+          },
+          {
+            "dataset_idx": 366,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "0a2d1bdefd6fab2d51532dcc35705a7df51d0fed7d2865bdd95eeaa5027dca62",
+            "diffusion_noise_sha256": "95949207e230a316c563eafa29285748bc765436f8244111a58c295a13ecfcaf"
+          }
+        ]
+      },
+      "max_abs_delta_non_target": 0.0,
+      "repository_commit": "b4e2b99550c4df21911f947100c9bf5df23dddb7",
+      "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+      "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+    },
+    "Scene": {
+      "passed": true,
+      "seed": 12345,
+      "image_count": 10,
+      "condition_count": 20,
+      "condition_image_record_count": 200,
+      "intervention_count": 200,
+      "conditions_equal_plan": true,
+      "dataset_indices_equal_plan": true,
+      "condition_summaries_equal_plan": true,
+      "output_files_passed": true,
+      "ground_truth_alignment_passed": true,
+      "determinism_passed": true,
+      "shared_latent_noise_passed": true,
+      "shared_latent_noise_audit": {
+        "passed": true,
+        "policy": "one initial latent and one diffusion-noise tensor per image reused across every condition",
+        "checks": {
+          "policy_declared": true,
+          "condition_batches_fixed_shape": true,
+          "one_state_record_per_image": true,
+          "dataset_indices_identical": true
+        },
+        "records": [
+          {
+            "dataset_idx": 999,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "0d0aff7596101c3d9924023b9f8d66fa992c3f128f0bf70daacce49a83fdf19c",
+            "diffusion_noise_sha256": "a6533e21df54f878a8cf65a30065e4bf94e6dd4594cac51537491fc136149523"
+          },
+          {
+            "dataset_idx": 893,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "40f9db61fa204841141bfffaffd15d960d0f64574721f5fed9727bfc76b40a1f",
+            "diffusion_noise_sha256": "a0b83323a1aa2e443514cfc2e7902396cb7d89502a64a19323a28054cf426c5e"
+          },
+          {
+            "dataset_idx": 545,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "72fcb18a3543f0037e87c7788ccb1978621b38a916ddfa5691d5b6401a58b4ea",
+            "diffusion_noise_sha256": "57e477eb30250387c5a7fc8060595541101e22c8e55cf3614f785364b7ecbfc4"
+          },
+          {
+            "dataset_idx": 199,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "941eea14fe0f733db178637ffd6d255f1f49ff311d5a6bd84dd9d73a027679cd",
+            "diffusion_noise_sha256": "334c5134fc4e19eb8f8dbefff93e85ef9dead9bd8a1ef862bbfaaf765e0f02eb"
+          },
+          {
+            "dataset_idx": 486,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "4ddf98f63a3a1f65bd0b356019d0aebcaaea63517294ef905965acaa2571b44d",
+            "diffusion_noise_sha256": "129a150c534ed4bee21ac6734bb66276e10463dffbf6fb33e4bbc5bc7bb7a018"
+          },
+          {
+            "dataset_idx": 214,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "72c2aa82ccdaed37d9f0f783401751fc31db474acfce08cba2a1fb7604948f42",
+            "diffusion_noise_sha256": "15bbd0c20cd3b89dc658afaefff1bbe3ff66fd6479d5f391c28e374b9dae568d"
+          },
+          {
+            "dataset_idx": 842,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "f5994e2d3ca4ec8cf2fb0c1fea24a3050764712ce34dd0be52de7fd7a77ca5e8",
+            "diffusion_noise_sha256": "508108d027824d908a1d31a3f5c1ebd15f9269926bf6c69cdab9bb729b48069e"
+          },
+          {
+            "dataset_idx": 132,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "7499d49e2605fd47aee6d64a1b2f9121771319fa8de699895b9e518fc387c0f2",
+            "diffusion_noise_sha256": "e6384252e0925fbc730edbec81c566c3771b2a996a2d2d81976f19db5347ddaa"
+          },
+          {
+            "dataset_idx": 303,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "9f561b31782a566a393382121d22aaf001c1ece32f682f3924818835ff75e8ab",
+            "diffusion_noise_sha256": "b523f5f5c19fbddccb270f58ae58a85f92d26cede2059bff257de638541925ed"
+          },
+          {
+            "dataset_idx": 640,
+            "passed": true,
+            "checks": {
+              "sample_seed_correct": true,
+              "ddpm_seed_correct": true,
+              "latent_hash_valid": true,
+              "noise_hash_valid": true,
+              "latent_and_noise_distinct": true,
+              "shape_valid": true,
+              "dtype_recorded": true,
+              "ddpm_strategy_declared": true,
+              "reused_for_every_condition": true,
+              "condition_batch_count_correct": true
+            },
+            "initial_latent_sha256": "3ec60ded0b29eaa0937a7baefa4141100761ae71b2532748408cc950a7413dae",
+            "diffusion_noise_sha256": "e419ad3435eb359fb22a25c9ae173ba2d14998f3655ba7199dcd9e08f8530b2c"
+          }
+        ]
+      },
+      "max_abs_delta_non_target": 0.0,
+      "repository_commit": "b4e2b99550c4df21911f947100c9bf5df23dddb7",
+      "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+      "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e"
+    }
+  }
+}

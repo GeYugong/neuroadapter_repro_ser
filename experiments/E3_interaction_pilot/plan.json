@@ -1,0 +1,4064 @@
+{
+  "schema_version": 1,
+  "plan_scope": "pilot",
+  "frozen_image_count_per_category": {
+    "Face": 10,
+    "Body": 10,
+    "Scene": 10
+  },
+  "subject": 1,
+  "checkpoint_step": 100000,
+  "checkpoint": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt",
+  "checkpoint_sha256": "2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40",
+  "mask_mode": "mean",
+  "equal_k": 4,
+  "pure_control_overlap_rule": "max overlap with every target ROI group < 0.10",
+  "pure_control_overlap_threshold": 0.1,
+  "matched_random_controls": 5,
+  "seeds": [
+    12345
+  ],
+  "denoising_steps": 50,
+  "noise_factor": 4.0,
+  "condition_batch_size": 8,
+  "statistical_unit": "image",
+  "seed_aggregation": "mean_causal_loss_across_three_seeds_per_image",
+  "global_metrics": [
+    "pixel_corr",
+    "ssim",
+    "lpips",
+    "clip",
+    "dino"
+  ],
+  "local_metrics": {
+    "Face": [
+      "face_lpips",
+      "face_dino",
+      "face_detection_success"
+    ],
+    "Body": [
+      "person_lpips",
+      "person_dino",
+      "person_region_consistency"
+    ],
+    "Scene": [
+      "background_dino",
+      "background_clip",
+      "scene_class_consistency"
+    ]
+  },
+  "face_detector": {
+    "backend": "opencv_haar_e1",
+    "cascade_filename": "haarcascade_frontalface_default.xml",
+    "cascade_sha256": "0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0",
+    "scale_factor": 1.1,
+    "min_neighbors": 5,
+    "min_size": [
+      24,
+      24
+    ],
+    "pilot_fallback_allowed": false,
+    "formal_fallback_allowed": false
+  },
+  "execution": {
+    "smoke_images_per_category": 1,
+    "smoke_seeds": 1,
+    "pilot_images_per_category": 10,
+    "pilot_seeds": 1,
+    "formal_requires_all_frozen_images": true,
+    "formal_requires_all_seeds": true
+  },
+  "mean_token_cache": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt",
+  "mean_token_cache_sha256": "283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e",
+  "inventory": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro/experiments/E0_mapping/algonauts_top200_mapping_subj01.csv",
+  "inventory_sha256": "3de270fcb0465c2e5c40de6f2301b08200090aebec2b214d41824cd278e47523",
+  "manifest": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro/experiments/E1_stimulus_manifest/confirmatory_manifest.csv",
+  "manifest_sha256": "d3aa55eab6b537d4b4628313f1cfabdf925ed934fd475bffa1924ac1776aafdf",
+  "repository_commit": "b4e2b99550c4df21911f947100c9bf5df23dddb7",
+  "created_at": "2026-07-26T11:15:47.218674+00:00",
+  "preregistration_status": "engineering_implementation_before_smoke",
+  "name": "E3_interaction",
+  "analysis_family": "E3a_category_by_roi_interaction",
+  "primary_model": "metric_loss ~ image_category * masked_roi",
+  "primary_contrast": "matched_image_category_minus_mean_nonmatched_categories",
+  "multiplicity": "benjamini_hochberg_across_3_rois_x_5_global_metrics",
+  "config": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/repro/configs/experiments/E3_interaction.yaml",
+  "config_sha256": "16991d35787af1be2e56507e37c1ed3b806a7682b53d204d5cc66e4f2258e39c",
+  "categories": {
+    "Face": {
+      "dataset_indices": [
+        973,
+        756,
+        287,
+        415,
+        158,
+        465,
+        678,
+        789,
+        529,
+        781
+      ],
+      "conditions": [
+        {
+          "name": "no_mask",
+          "masked_token_indices": [],
+          "mask_mode": "zero",
+          "image_category": "Face",
+          "masked_roi": "none",
+          "target_groups": [],
+          "control_type": "none",
+          "design": "baseline"
+        },
+        {
+          "name": "mask_Face_mean",
+          "masked_token_indices": [
+            16,
+            22,
+            43,
+            152
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Face_pure_random_01_mean",
+          "masked_token_indices": [
+            17,
+            19,
+            50,
+            147
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Face_pure_random_02_mean",
+          "masked_token_indices": [
+            23,
+            42,
+            50,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Face_pure_random_03_mean",
+          "masked_token_indices": [
+            19,
+            29,
+            50,
+            151
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Face_pure_random_04_mean",
+          "masked_token_indices": [
+            19,
+            26,
+            46,
+            156
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Face_pure_random_05_mean",
+          "masked_token_indices": [
+            27,
+            29,
+            36,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "mask_Body_mean",
+          "masked_token_indices": [
+            1,
+            102,
+            104,
+            106
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Body_pure_random_01_mean",
+          "masked_token_indices": [
+            11,
+            101,
+            112,
+            115
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Body_pure_random_02_mean",
+          "masked_token_indices": [
+            5,
+            109,
+            112,
+            130
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Body_pure_random_03_mean",
+          "masked_token_indices": [
+            5,
+            103,
+            108,
+            121
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Body_pure_random_04_mean",
+          "masked_token_indices": [
+            10,
+            105,
+            107,
+            121
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Body_pure_random_05_mean",
+          "masked_token_indices": [
+            4,
+            105,
+            109,
+            121
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "mask_Scene_mean",
+          "masked_token_indices": [
+            10,
+            21,
+            126,
+            127
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Scene_pure_random_01_mean",
+          "masked_token_indices": [
+            5,
+            63,
+            138,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Scene_pure_random_02_mean",
+          "masked_token_indices": [
+            15,
+            18,
+            124,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Scene_pure_random_03_mean",
+          "masked_token_indices": [
+            14,
+            16,
+            136,
+            155
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Scene_pure_random_04_mean",
+          "masked_token_indices": [
+            7,
+            16,
+            121,
+            134
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Scene_pure_random_05_mean",
+          "masked_token_indices": [
+            4,
+            17,
+            123,
+            134
+          ],
+          "mask_mode": "mean",
+          "image_category": "Face",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "no_mask_repeat",
+          "masked_token_indices": [],
+          "mask_mode": "zero",
+          "image_category": "Face",
+          "masked_roi": "none",
+          "target_groups": [],
+          "control_type": "none",
+          "design": "determinism_check"
+        }
+      ],
+      "matching_audit": {
+        "image_category": "Face",
+        "roi_designs": {
+          "Face": {
+            "target_indices": [
+              16,
+              22,
+              43,
+              152
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  17,
+                  19,
+                  50,
+                  147
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 17,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.6222882866859436,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 162,
+                    "control_roi": "V1",
+                    "distance": 0.2400807703994987
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 19,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.5719456672668457,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 182,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3574038505761708
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 50,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.45015156269073486,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 360,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1290423990469816
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 147,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49031317234039307,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 329,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.27217102431489004
+                  }
+                ],
+                "mean_distance": 0.24967451108438526,
+                "max_distance": 0.3574038505761708,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  23,
+                  42,
+                  50,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 23,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5457936525344849,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 102,
+                    "control_roi": "Scene",
+                    "distance": 1.0748373786420018
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 42,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4748196601867676,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 208,
+                    "control_roi": "Body",
+                    "distance": 0.3517340471707287
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 50,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.45015156269073486,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 360,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1290423990469816
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.23433391837562423
+                  }
+                ],
+                "mean_distance": 0.44748693580883403,
+                "max_distance": 1.0748373786420018,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  19,
+                  29,
+                  50,
+                  151
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 29,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5202304720878601,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 146,
+                    "control_roi": "Scene",
+                    "distance": 0.6157060885944812
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 19,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.5719456672668457,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 182,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3574038505761708
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 50,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.45015156269073486,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 360,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1290423990469816
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 151,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.4700580835342407,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 249,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.123394837943071
+                  }
+                ],
+                "mean_distance": 0.3063867940401761,
+                "max_distance": 0.6157060885944812,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  19,
+                  26,
+                  46,
+                  156
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 26,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5347240567207336,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 178,
+                    "control_roi": "V4",
+                    "distance": 1.0163483956557444
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 19,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.5719456672668457,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 182,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3574038505761708
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 46,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.46364814043045044,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 343,
+                    "control_roi": "Body",
+                    "distance": 0.21376416818573635
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 156,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.44249382615089417,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 250,
+                    "control_roi": "Scene",
+                    "distance": 0.12470766458418131
+                  }
+                ],
+                "mean_distance": 0.4280560197504582,
+                "max_distance": 1.0163483956557444,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  27,
+                  29,
+                  36,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 29,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5202304720878601,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 146,
+                    "control_roi": "Scene",
+                    "distance": 0.6157060885944812
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 36,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4952622056007385,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 250,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.29108579127435624
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 27,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.5291171669960022,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 358,
+                    "control_roi": "Body",
+                    "distance": 0.2706181042619379
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.23433391837562423
+                  }
+                ],
+                "mean_distance": 0.35293597562659995,
+                "max_distance": 0.6157060885944812,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              }
+            ]
+          },
+          "Body": {
+            "target_indices": [
+              102,
+              1,
+              104,
+              106
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  11,
+                  101,
+                  112,
+                  115
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 11,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6668669581413269,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 326,
+                    "control_roi": "V3",
+                    "distance": 0.8613986671550203
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 101,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7969893217086792,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 440,
+                    "control_roi": "V2",
+                    "distance": 1.8350211336216269
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 112,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.671980082988739,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 254,
+                    "control_roi": "V4",
+                    "distance": 1.7071633168994909
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 115,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.6453737616539001,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 285,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.474929308215897
+                  }
+                ],
+                "mean_distance": 1.2196281064730088,
+                "max_distance": 1.8350211336216269,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  5,
+                  109,
+                  112,
+                  130
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 5,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7401266098022461,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 318,
+                    "control_roi": "V1",
+                    "distance": 0.17958085574069144
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 112,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.671980082988739,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 254,
+                    "control_roi": "V4",
+                    "distance": 0.8578235977729757
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 130,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.548660159111023,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 165,
+                    "control_roi": "V1",
+                    "distance": 2.2808770816753485
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 109,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.7047218680381775,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 210,
+                    "control_roi": "V1",
+                    "distance": 1.082743750696818
+                  }
+                ],
+                "mean_distance": 1.1002563214714585,
+                "max_distance": 2.2808770816753485,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  5,
+                  103,
+                  108,
+                  121
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 5,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7401266098022461,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 318,
+                    "control_roi": "V1",
+                    "distance": 0.17958085574069144
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 103,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7783543467521667,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 192,
+                    "control_roi": "V2",
+                    "distance": 1.2917673396987213
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 108,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7057465314865112,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 265,
+                    "control_roi": "V1",
+                    "distance": 1.7746880389357762
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.4285792637082715
+                  }
+                ],
+                "mean_distance": 1.168653874520865,
+                "max_distance": 1.7746880389357762,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.007042253521126761
+              },
+              {
+                "indices": [
+                  10,
+                  105,
+                  107,
+                  121
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 10,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6811837553977966,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 381,
+                    "control_roi": "Scene",
+                    "distance": 1.2100518407252816
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 107,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7308821678161621,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 306,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.27893998305417866
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 105,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7489200234413147,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 156,
+                    "control_roi": "V2",
+                    "distance": 0.10048960326102511
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.4285792637082715
+                  }
+                ],
+                "mean_distance": 0.7545151726871893,
+                "max_distance": 1.4285792637082715,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.007042253521126761
+              },
+              {
+                "indices": [
+                  4,
+                  105,
+                  109,
+                  121
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 1.0280046297883838
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 109,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7047218680381775,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 210,
+                    "control_roi": "V1",
+                    "distance": 1.157939500751196
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 105,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7489200234413147,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 156,
+                    "control_roi": "V2",
+                    "distance": 0.10048960326102511
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.4285792637082715
+                  }
+                ],
+                "mean_distance": 0.928753249377219,
+                "max_distance": 1.4285792637082715,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.007042253521126761
+              }
+            ]
+          },
+          "Scene": {
+            "target_indices": [
+              10,
+              126,
+              127,
+              21
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  5,
+                  63,
+                  138,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 5,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7401266098022461,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 318,
+                    "control_roi": "V1",
+                    "distance": 0.4873301622471574
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 63,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.3844403028488159,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 158,
+                    "control_roi": "Unlabeled",
+                    "distance": 2.7232164293089944
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.21888066363252306
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 138,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.512506902217865,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 430,
+                    "control_roi": "Body",
+                    "distance": 0.24442796651665152
+                  }
+                ],
+                "mean_distance": 0.9184638054263317,
+                "max_distance": 2.7232164293089944,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  15,
+                  18,
+                  124,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 18,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6210088133811951,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 354,
+                    "control_roi": "Body",
+                    "distance": 0.22217140392905216
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 1.193741733587141
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.21888066363252306
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 124,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.563030481338501,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 322,
+                    "control_roi": "V2",
+                    "distance": 0.26768132314897014
+                  }
+                ],
+                "mean_distance": 0.47561878107442157,
+                "max_distance": 1.193741733587141,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  14,
+                  16,
+                  136,
+                  155
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 14,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6395871043205261,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 326,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3228494072398852
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 16,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6251530051231384,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 137,
+                    "control_roi": "Face",
+                    "distance": 0.7515532836556218
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 136,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5264740586280823,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 221,
+                    "control_roi": "Body",
+                    "distance": 0.23468360240634628
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 155,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.4533856213092804,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 379,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.4835103704257718
+                  }
+                ],
+                "mean_distance": 0.4481491659319063,
+                "max_distance": 0.7515532836556218,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.010554089709762533
+              },
+              {
+                "indices": [
+                  7,
+                  16,
+                  121,
+                  134
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 7,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7111992835998535,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 336,
+                    "control_roi": "Body",
+                    "distance": 0.19944356156540116
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 16,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6251530051231384,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 137,
+                    "control_roi": "Face",
+                    "distance": 0.7515532836556218
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 134,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5336077809333801,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 302,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.5365160263882773
+                  }
+                ],
+                "mean_distance": 0.4076652121349419,
+                "max_distance": 0.7515532836556218,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  4,
+                  17,
+                  123,
+                  134
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 0.32967940563667886
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 17,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6222882866859436,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 162,
+                    "control_roi": "V1",
+                    "distance": 1.777933059131305
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 123,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5699483156204224,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 241,
+                    "control_roi": "V2",
+                    "distance": 0.028137176420208278
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 134,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5336077809333801,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 302,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.5365160263882773
+                  }
+                ],
+                "mean_distance": 0.6680664168941173,
+                "max_distance": 1.777933059131305,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              }
+            ]
+          }
+        }
+      }
+    },
+    "Body": {
+      "dataset_indices": [
+        816,
+        220,
+        21,
+        847,
+        716,
+        931,
+        941,
+        474,
+        40,
+        366
+      ],
+      "conditions": [
+        {
+          "name": "no_mask",
+          "masked_token_indices": [],
+          "mask_mode": "zero",
+          "image_category": "Body",
+          "masked_roi": "none",
+          "target_groups": [],
+          "control_type": "none",
+          "design": "baseline"
+        },
+        {
+          "name": "mask_Face_mean",
+          "masked_token_indices": [
+            16,
+            22,
+            43,
+            152
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Face_pure_random_01_mean",
+          "masked_token_indices": [
+            15,
+            19,
+            53,
+            147
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Face_pure_random_02_mean",
+          "masked_token_indices": [
+            13,
+            27,
+            29,
+            153
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Face_pure_random_03_mean",
+          "masked_token_indices": [
+            19,
+            42,
+            70,
+            154
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Face_pure_random_04_mean",
+          "masked_token_indices": [
+            28,
+            45,
+            53,
+            147
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Face_pure_random_05_mean",
+          "masked_token_indices": [
+            27,
+            29,
+            42,
+            149
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "mask_Body_mean",
+          "masked_token_indices": [
+            1,
+            102,
+            104,
+            106
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Body_pure_random_01_mean",
+          "masked_token_indices": [
+            5,
+            105,
+            108,
+            119
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Body_pure_random_02_mean",
+          "masked_token_indices": [
+            14,
+            101,
+            109,
+            112
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Body_pure_random_03_mean",
+          "masked_token_indices": [
+            10,
+            108,
+            112,
+            121
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Body_pure_random_04_mean",
+          "masked_token_indices": [
+            6,
+            112,
+            115,
+            124
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Body_pure_random_05_mean",
+          "masked_token_indices": [
+            4,
+            103,
+            108,
+            115
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "mask_Scene_mean",
+          "masked_token_indices": [
+            10,
+            21,
+            126,
+            127
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Scene_pure_random_01_mean",
+          "masked_token_indices": [
+            9,
+            18,
+            121,
+            134
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Scene_pure_random_02_mean",
+          "masked_token_indices": [
+            18,
+            26,
+            121,
+            155
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Scene_pure_random_03_mean",
+          "masked_token_indices": [
+            11,
+            15,
+            121,
+            129
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Scene_pure_random_04_mean",
+          "masked_token_indices": [
+            16,
+            18,
+            120,
+            121
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Scene_pure_random_05_mean",
+          "masked_token_indices": [
+            14,
+            15,
+            121,
+            129
+          ],
+          "mask_mode": "mean",
+          "image_category": "Body",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "no_mask_repeat",
+          "masked_token_indices": [],
+          "mask_mode": "zero",
+          "image_category": "Body",
+          "masked_roi": "none",
+          "target_groups": [],
+          "control_type": "none",
+          "design": "determinism_check"
+        }
+      ],
+      "matching_audit": {
+        "image_category": "Body",
+        "roi_designs": {
+          "Face": {
+            "target_indices": [
+              16,
+              22,
+              43,
+              152
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  15,
+                  19,
+                  53,
+                  147
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 0.051951573517815035
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 19,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.5719456672668457,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 182,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3574038505761708
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 53,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.4396008551120758,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 305,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.7009167417813729
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 147,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49031317234039307,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 329,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.27217102431489004
+                  }
+                ],
+                "mean_distance": 0.3456107975475622,
+                "max_distance": 0.7009167417813729,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  13,
+                  27,
+                  29,
+                  153
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 29,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5202304720878601,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 146,
+                    "control_roi": "Scene",
+                    "distance": 0.6157060885944812
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 13,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.6397836208343506,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 218,
+                    "control_roi": "V1",
+                    "distance": 0.4084217220479075
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 27,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.5291171669960022,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 358,
+                    "control_roi": "Body",
+                    "distance": 0.2706181042619379
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 153,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.45591914653778076,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 233,
+                    "control_roi": "Body",
+                    "distance": 0.2886616279894694
+                  }
+                ],
+                "mean_distance": 0.39585188572344904,
+                "max_distance": 0.6157060885944812,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  19,
+                  42,
+                  70,
+                  154
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 19,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5719456672668457,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 182,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.8375699071429588
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 42,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4748196601867676,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 208,
+                    "control_roi": "Body",
+                    "distance": 0.3517340471707287
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 70,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.36539316177368164,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 364,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.7016733656861412
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 154,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.45569831132888794,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 292,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.01575893511578424
+                  }
+                ],
+                "mean_distance": 0.47668406377890327,
+                "max_distance": 0.8375699071429588,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  28,
+                  45,
+                  53,
+                  147
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 28,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5204342603683472,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 130,
+                    "control_roi": "Body",
+                    "distance": 0.6023822829335459
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 45,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4684760272502899,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 208,
+                    "control_roi": "Scene",
+                    "distance": 0.40564066708873475
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 53,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.4396008551120758,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 305,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.7009167417813729
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 147,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49031317234039307,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 329,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.27217102431489004
+                  }
+                ],
+                "mean_distance": 0.4952776790296359,
+                "max_distance": 0.7009167417813729,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  27,
+                  29,
+                  42,
+                  149
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 29,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5202304720878601,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 146,
+                    "control_roi": "Scene",
+                    "distance": 0.6157060885944812
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 42,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4748196601867676,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 208,
+                    "control_roi": "Body",
+                    "distance": 0.3517340471707287
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 27,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.5291171669960022,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 358,
+                    "control_roi": "Body",
+                    "distance": 0.2706181042619379
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 149,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.47452762722969055,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 262,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.049681893135207725
+                  }
+                ],
+                "mean_distance": 0.3219350332905888,
+                "max_distance": 0.6157060885944812,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              }
+            ]
+          },
+          "Body": {
+            "target_indices": [
+              102,
+              1,
+              104,
+              106
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  5,
+                  105,
+                  108,
+                  119
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 5,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7401266098022461,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 318,
+                    "control_roi": "V1",
+                    "distance": 0.17958085574069144
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 108,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7057465314865112,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 265,
+                    "control_roi": "V1",
+                    "distance": 0.4324901932520525
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 105,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7489200234413147,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 156,
+                    "control_roi": "V2",
+                    "distance": 0.10048960326102511
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 119,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.5871975421905518,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 244,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.5228190564295914
+                  }
+                ],
+                "mean_distance": 0.5588449271708401,
+                "max_distance": 1.5228190564295914,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  14,
+                  101,
+                  109,
+                  112
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 14,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6395871043205261,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 326,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.240881161800886
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 112,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.671980082988739,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 254,
+                    "control_roi": "V4",
+                    "distance": 0.8578235977729757
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 109,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7047218680381775,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 210,
+                    "control_roi": "V1",
+                    "distance": 0.48448340183733607
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 101,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.7969893217086792,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 440,
+                    "control_roi": "V2",
+                    "distance": 1.624221770801687
+                  }
+                ],
+                "mean_distance": 1.0518524830532212,
+                "max_distance": 1.624221770801687,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  10,
+                  108,
+                  112,
+                  121
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 10,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6811837553977966,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 381,
+                    "control_roi": "Scene",
+                    "distance": 1.2100518407252816
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 108,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7057465314865112,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 265,
+                    "control_roi": "V1",
+                    "distance": 0.4324901932520525
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 112,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.671980082988739,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 254,
+                    "control_roi": "V4",
+                    "distance": 1.7071633168994909
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.4285792637082715
+                  }
+                ],
+                "mean_distance": 1.194571153646274,
+                "max_distance": 1.7071633168994909,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.007042253521126761
+              },
+              {
+                "indices": [
+                  6,
+                  112,
+                  115,
+                  124
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 6,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7368682622909546,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 233,
+                    "control_roi": "V1",
+                    "distance": 0.6075911871964994
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 115,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.6453737616539001,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 285,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.147460589269071
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 112,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.671980082988739,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 254,
+                    "control_roi": "V4",
+                    "distance": 1.7071633168994909
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 124,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.563030481338501,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 322,
+                    "control_roi": "V2",
+                    "distance": 1.6968341094581316
+                  }
+                ],
+                "mean_distance": 1.2897623007057981,
+                "max_distance": 1.7071633168994909,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  4,
+                  103,
+                  108,
+                  115
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 1.0280046297883838
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 115,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.6453737616539001,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 285,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.147460589269071
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 103,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7783543467521667,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 192,
+                    "control_roi": "V2",
+                    "distance": 0.11850513952969952
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 108,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.7057465314865112,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 265,
+                    "control_roi": "V1",
+                    "distance": 0.1591290428235963
+                  }
+                ],
+                "mean_distance": 0.6132748503526877,
+                "max_distance": 1.147460589269071,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              }
+            ]
+          },
+          "Scene": {
+            "target_indices": [
+              10,
+              126,
+              127,
+              21
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  9,
+                  18,
+                  121,
+                  134
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 18,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6210088133811951,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 354,
+                    "control_roi": "Body",
+                    "distance": 0.22217140392905216
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 9,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6841720342636108,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 85,
+                    "control_roi": "Body",
+                    "distance": 1.3949987713695653
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 134,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5336077809333801,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 302,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.5365160263882773
+                  }
+                ],
+                "mean_distance": 0.5742085446543406,
+                "max_distance": 1.3949987713695653,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  18,
+                  26,
+                  121,
+                  155
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 18,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6210088133811951,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 354,
+                    "control_roi": "Body",
+                    "distance": 0.22217140392905216
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 26,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.5347240567207336,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 178,
+                    "control_roi": "V4",
+                    "distance": 2.417854626785656
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 155,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.4533856213092804,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 379,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.4835103704257718
+                  }
+                ],
+                "mean_distance": 0.8166710945177368,
+                "max_distance": 2.417854626785656,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.010554089709762533
+              },
+              {
+                "indices": [
+                  11,
+                  15,
+                  121,
+                  129
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 11,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6668669581413269,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 326,
+                    "control_roi": "V3",
+                    "distance": 0.25196249388929903
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 1.193741733587141
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 129,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5526844263076782,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 300,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.5453587156719534
+                  }
+                ],
+                "mean_distance": 0.5335527300197151,
+                "max_distance": 1.193741733587141,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  16,
+                  18,
+                  120,
+                  121
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 18,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6210088133811951,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 354,
+                    "control_roi": "Body",
+                    "distance": 0.22217140392905216
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 16,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6251530051231384,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 137,
+                    "control_roi": "Face",
+                    "distance": 0.7515532836556218
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 120,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5772696137428284,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 411,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.08779269781800234
+                  }
+                ],
+                "mean_distance": 0.3011663405832859,
+                "max_distance": 0.7515532836556218,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  14,
+                  15,
+                  121,
+                  129
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 14,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6395871043205261,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 326,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3228494072398852
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 1.193741733587141
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 129,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5526844263076782,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 300,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.5453587156719534
+                  }
+                ],
+                "mean_distance": 0.5512744583573617,
+                "max_distance": 1.193741733587141,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              }
+            ]
+          }
+        }
+      }
+    },
+    "Scene": {
+      "dataset_indices": [
+        999,
+        893,
+        545,
+        199,
+        486,
+        214,
+        842,
+        132,
+        303,
+        640
+      ],
+      "conditions": [
+        {
+          "name": "no_mask",
+          "masked_token_indices": [],
+          "mask_mode": "zero",
+          "image_category": "Scene",
+          "masked_roi": "none",
+          "target_groups": [],
+          "control_type": "none",
+          "design": "baseline"
+        },
+        {
+          "name": "mask_Face_mean",
+          "masked_token_indices": [
+            16,
+            22,
+            43,
+            152
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Face_pure_random_01_mean",
+          "masked_token_indices": [
+            15,
+            36,
+            50,
+            156
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Face_pure_random_02_mean",
+          "masked_token_indices": [
+            23,
+            45,
+            50,
+            157
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Face_pure_random_03_mean",
+          "masked_token_indices": [
+            28,
+            33,
+            46,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Face_pure_random_04_mean",
+          "masked_token_indices": [
+            15,
+            42,
+            53,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Face_pure_random_05_mean",
+          "masked_token_indices": [
+            17,
+            20,
+            46,
+            146
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Face",
+          "target_groups": [
+            "Face"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "mask_Body_mean",
+          "masked_token_indices": [
+            1,
+            102,
+            104,
+            106
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Body_pure_random_01_mean",
+          "masked_token_indices": [
+            11,
+            101,
+            114,
+            116
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Body_pure_random_02_mean",
+          "masked_token_indices": [
+            3,
+            103,
+            107,
+            116
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Body_pure_random_03_mean",
+          "masked_token_indices": [
+            11,
+            109,
+            112,
+            117
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Body_pure_random_04_mean",
+          "masked_token_indices": [
+            11,
+            101,
+            117,
+            119
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Body_pure_random_05_mean",
+          "masked_token_indices": [
+            14,
+            103,
+            116,
+            130
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Body",
+          "target_groups": [
+            "Body"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "mask_Scene_mean",
+          "masked_token_indices": [
+            10,
+            21,
+            126,
+            127
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "target_roi",
+          "design": "interaction_equal4"
+        },
+        {
+          "name": "mask_Scene_pure_random_01_mean",
+          "masked_token_indices": [
+            4,
+            17,
+            119,
+            155
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 1
+        },
+        {
+          "name": "mask_Scene_pure_random_02_mean",
+          "masked_token_indices": [
+            4,
+            15,
+            119,
+            129
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 2
+        },
+        {
+          "name": "mask_Scene_pure_random_03_mean",
+          "masked_token_indices": [
+            4,
+            16,
+            134,
+            155
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 3
+        },
+        {
+          "name": "mask_Scene_pure_random_04_mean",
+          "masked_token_indices": [
+            4,
+            28,
+            118,
+            134
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 4
+        },
+        {
+          "name": "mask_Scene_pure_random_05_mean",
+          "masked_token_indices": [
+            14,
+            85,
+            121,
+            155
+          ],
+          "mask_mode": "mean",
+          "image_category": "Scene",
+          "masked_roi": "Scene",
+          "target_groups": [
+            "Scene"
+          ],
+          "control_type": "pure_matched_random",
+          "design": "interaction_equal4",
+          "control_replicate": 5
+        },
+        {
+          "name": "no_mask_repeat",
+          "masked_token_indices": [],
+          "mask_mode": "zero",
+          "image_category": "Scene",
+          "masked_roi": "none",
+          "target_groups": [],
+          "control_type": "none",
+          "design": "determinism_check"
+        }
+      ],
+      "matching_audit": {
+        "image_category": "Scene",
+        "roi_designs": {
+          "Face": {
+            "target_indices": [
+              16,
+              22,
+              43,
+              152
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  15,
+                  36,
+                  50,
+                  156
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 0.051951573517815035
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 36,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4952622056007385,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 250,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.29108579127435624
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 50,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.45015156269073486,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 360,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1290423990469816
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 156,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.44249382615089417,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 250,
+                    "control_roi": "Scene",
+                    "distance": 0.12470766458418131
+                  }
+                ],
+                "mean_distance": 0.14919685710583352,
+                "max_distance": 0.29108579127435624,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  23,
+                  45,
+                  50,
+                  157
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 23,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5457936525344849,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 102,
+                    "control_roi": "Scene",
+                    "distance": 1.0748373786420018
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 45,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4684760272502899,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 208,
+                    "control_roi": "Scene",
+                    "distance": 0.40564066708873475
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 50,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.45015156269073486,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 360,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1290423990469816
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 157,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.4358782470226288,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 297,
+                    "control_roi": "V2",
+                    "distance": 0.05893449346148734
+                  }
+                ],
+                "mean_distance": 0.41711373455980133,
+                "max_distance": 1.0748373786420018,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  28,
+                  33,
+                  46,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 28,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.5204342603683472,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 130,
+                    "control_roi": "Body",
+                    "distance": 0.6023822829335459
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 33,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.5133366584777832,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 256,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.2526628710450505
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 46,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.46364814043045044,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 343,
+                    "control_roi": "Body",
+                    "distance": 0.21376416818573635
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.23433391837562423
+                  }
+                ],
+                "mean_distance": 0.3257858101349892,
+                "max_distance": 0.6023822829335459,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  15,
+                  42,
+                  53,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 0.051951573517815035
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 42,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.4748196601867676,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 208,
+                    "control_roi": "Body",
+                    "distance": 0.3517340471707287
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 53,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.4396008551120758,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 305,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.7009167417813729
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.23433391837562423
+                  }
+                ],
+                "mean_distance": 0.33473407021138524,
+                "max_distance": 0.7009167417813729,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  17,
+                  20,
+                  46,
+                  146
+                ],
+                "pairs": [
+                  {
+                    "target_index": 16,
+                    "control_index": 17,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6251530051231384,
+                    "control_mean_ncsnr": 0.6222882866859436,
+                    "target_num_vertices": 137,
+                    "control_num_vertices": 162,
+                    "control_roi": "V1",
+                    "distance": 0.2400807703994987
+                  },
+                  {
+                    "target_index": 22,
+                    "control_index": 20,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.552130937576294,
+                    "control_mean_ncsnr": 0.5701537728309631,
+                    "target_num_vertices": 222,
+                    "control_num_vertices": 216,
+                    "control_roi": "V3",
+                    "distance": 0.02355152965065253
+                  },
+                  {
+                    "target_index": 43,
+                    "control_index": 46,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.47391507029533386,
+                    "control_mean_ncsnr": 0.46364814043045044,
+                    "target_num_vertices": 401,
+                    "control_num_vertices": 343,
+                    "control_roi": "Body",
+                    "distance": 0.21376416818573635
+                  },
+                  {
+                    "target_index": 152,
+                    "control_index": 146,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.45943668484687805,
+                    "control_mean_ncsnr": 0.49398019909858704,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 243,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.23433391837562423
+                  }
+                ],
+                "mean_distance": 0.17793259665287797,
+                "max_distance": 0.2400807703994987,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Face"
+                ],
+                "max_target_group_overlap": 0.05555555555555555
+              }
+            ]
+          },
+          "Body": {
+            "target_indices": [
+              102,
+              1,
+              104,
+              106
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  11,
+                  101,
+                  114,
+                  116
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 11,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6668669581413269,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 326,
+                    "control_roi": "V3",
+                    "distance": 0.8613986671550203
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 101,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7969893217086792,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 440,
+                    "control_roi": "V2",
+                    "distance": 1.8350211336216269
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 114,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.6665645241737366,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 184,
+                    "control_roi": "V2",
+                    "distance": 0.4663168481871546
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 116,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.6341803073883057,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 228,
+                    "control_roi": "V3",
+                    "distance": 1.1628799377651209
+                  }
+                ],
+                "mean_distance": 1.0814041466822308,
+                "max_distance": 1.8350211336216269,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  3,
+                  103,
+                  107,
+                  116
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 3,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.7609300017356873,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 204,
+                    "control_roi": "V3",
+                    "distance": 1.2157155998835512
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 107,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7308821678161621,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 306,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.27893998305417866
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 103,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.7783543467521667,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 192,
+                    "control_roi": "V2",
+                    "distance": 0.11850513952969952
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 116,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.6341803073883057,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 228,
+                    "control_roi": "V3",
+                    "distance": 1.1628799377651209
+                  }
+                ],
+                "mean_distance": 0.6940101650581376,
+                "max_distance": 1.2157155998835512,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  11,
+                  109,
+                  112,
+                  117
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 11,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6668669581413269,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 326,
+                    "control_roi": "V3",
+                    "distance": 0.8613986671550203
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 112,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.671980082988739,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 254,
+                    "control_roi": "V4",
+                    "distance": 0.8578235977729757
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 117,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.6138092875480652,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 212,
+                    "control_roi": "V1",
+                    "distance": 1.4445033695193035
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 109,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.7047218680381775,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 210,
+                    "control_roi": "V1",
+                    "distance": 1.082743750696818
+                  }
+                ],
+                "mean_distance": 1.0616173462860294,
+                "max_distance": 1.4445033695193035,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  11,
+                  101,
+                  117,
+                  119
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 11,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6668669581413269,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 326,
+                    "control_roi": "V3",
+                    "distance": 0.8613986671550203
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 101,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7969893217086792,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 440,
+                    "control_roi": "V2",
+                    "distance": 1.8350211336216269
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 117,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.6138092875480652,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 212,
+                    "control_roi": "V1",
+                    "distance": 1.4445033695193035
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 119,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.5871975421905518,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 244,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.5228190564295914
+                  }
+                ],
+                "mean_distance": 1.4159355566813856,
+                "max_distance": 1.8350211336216269,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  14,
+                  103,
+                  116,
+                  130
+                ],
+                "pairs": [
+                  {
+                    "target_index": 1,
+                    "control_index": 14,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.7882688641548157,
+                    "control_mean_ncsnr": 0.6395871043205261,
+                    "target_num_vertices": 293,
+                    "control_num_vertices": 326,
+                    "control_roi": "Unlabeled",
+                    "distance": 1.240881161800886
+                  },
+                  {
+                    "target_index": 102,
+                    "control_index": 103,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.794450581073761,
+                    "control_mean_ncsnr": 0.7783543467521667,
+                    "target_num_vertices": 280,
+                    "control_num_vertices": 192,
+                    "control_roi": "V2",
+                    "distance": 1.2917673396987213
+                  },
+                  {
+                    "target_index": 104,
+                    "control_index": 130,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7581679224967957,
+                    "control_mean_ncsnr": 0.548660159111023,
+                    "target_num_vertices": 173,
+                    "control_num_vertices": 165,
+                    "control_roi": "V1",
+                    "distance": 2.2808770816753485
+                  },
+                  {
+                    "target_index": 106,
+                    "control_index": 116,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.7405180931091309,
+                    "control_mean_ncsnr": 0.6341803073883057,
+                    "target_num_vertices": 294,
+                    "control_num_vertices": 228,
+                    "control_roi": "V3",
+                    "distance": 1.1628799377651209
+                  }
+                ],
+                "mean_distance": 1.4941013802350191,
+                "max_distance": 2.2808770816753485,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Body"
+                ],
+                "max_target_group_overlap": 0.0
+              }
+            ]
+          },
+          "Scene": {
+            "target_indices": [
+              10,
+              126,
+              127,
+              21
+            ],
+            "target_count": 4,
+            "pure_random_controls": [
+              {
+                "indices": [
+                  4,
+                  17,
+                  119,
+                  155
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 0.32967940563667886
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 17,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6222882866859436,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 162,
+                    "control_roi": "V1",
+                    "distance": 1.777933059131305
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 119,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5871975421905518,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 244,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.047423316818598786
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 155,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.4533856213092804,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 379,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.4835103704257718
+                  }
+                ],
+                "mean_distance": 0.6596365380030885,
+                "max_distance": 1.777933059131305,
+                "replicate": 1,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.010554089709762533
+              },
+              {
+                "indices": [
+                  4,
+                  15,
+                  119,
+                  129
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 0.32967940563667886
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 15,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6296619772911072,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 148,
+                    "control_roi": "V3",
+                    "distance": 1.193741733587141
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 119,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5871975421905518,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 244,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.047423316818598786
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 129,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5526844263076782,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 300,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.5453587156719534
+                  }
+                ],
+                "mean_distance": 0.529050792928593,
+                "max_distance": 1.193741733587141,
+                "replicate": 2,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  4,
+                  16,
+                  134,
+                  155
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 0.32967940563667886
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 16,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.6251530051231384,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 137,
+                    "control_roi": "Face",
+                    "distance": 0.7515532836556218
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 134,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5336077809333801,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 302,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.34503665343265666
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 155,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.4533856213092804,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 379,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.4835103704257718
+                  }
+                ],
+                "mean_distance": 0.47744492828768226,
+                "max_distance": 0.7515532836556218,
+                "replicate": 3,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.010554089709762533
+              },
+              {
+                "indices": [
+                  4,
+                  28,
+                  118,
+                  134
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 4,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.7592077255249023,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 408,
+                    "control_roi": "V2",
+                    "distance": 0.32967940563667886
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 28,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.5204342603683472,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 130,
+                    "control_roi": "Body",
+                    "distance": 0.3644520749069654
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 134,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5336077809333801,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 302,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.34503665343265666
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 118,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.5975874662399292,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 300,
+                    "control_roi": "Body",
+                    "distance": 0.6277903053300397
+                  }
+                ],
+                "mean_distance": 0.4167396098265851,
+                "max_distance": 0.6277903053300397,
+                "replicate": 4,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.0
+              },
+              {
+                "indices": [
+                  14,
+                  85,
+                  121,
+                  155
+                ],
+                "pairs": [
+                  {
+                    "target_index": 10,
+                    "control_index": 14,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.6811837553977966,
+                    "control_mean_ncsnr": 0.6395871043205261,
+                    "target_num_vertices": 381,
+                    "control_num_vertices": 326,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.3228494072398852
+                  },
+                  {
+                    "target_index": 21,
+                    "control_index": 85,
+                    "hemisphere": "lh",
+                    "target_mean_ncsnr": 0.5547806024551392,
+                    "control_mean_ncsnr": 0.3313343822956085,
+                    "target_num_vertices": 109,
+                    "control_num_vertices": 123,
+                    "control_roi": "Unlabeled",
+                    "distance": 2.4659950000432405
+                  },
+                  {
+                    "target_index": 126,
+                    "control_index": 121,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.560015857219696,
+                    "control_mean_ncsnr": 0.5746031403541565,
+                    "target_num_vertices": 253,
+                    "control_num_vertices": 284,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.1431479769304673
+                  },
+                  {
+                    "target_index": 127,
+                    "control_index": 155,
+                    "hemisphere": "rh",
+                    "target_mean_ncsnr": 0.5553853511810303,
+                    "control_mean_ncsnr": 0.4533856213092804,
+                    "target_num_vertices": 379,
+                    "control_num_vertices": 379,
+                    "control_roi": "Unlabeled",
+                    "distance": 0.4835103704257718
+                  }
+                ],
+                "mean_distance": 0.8538756886598411,
+                "max_distance": 2.4659950000432405,
+                "replicate": 5,
+                "purity_threshold": 0.1,
+                "target_groups": [
+                  "Scene"
+                ],
+                "max_target_group_overlap": 0.010554089709762533
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

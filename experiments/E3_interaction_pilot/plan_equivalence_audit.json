@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "source_e2_plan": "/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_mean_full/plan/e2_mean_plan.json",
+  "source_e2_plan_sha256": "1c98e4ccfb4762193d4e0e61d3b0d2ebd3b95b1ad0a18bbb3e2adcf00cc21b76",
+  "checks": {
+    "seeds_identical": true,
+    "denoising_steps_identical": true,
+    "noise_factor_identical": true,
+    "condition_batch_size_identical": true,
+    "dataset_indices_identical": true
+  }
+}

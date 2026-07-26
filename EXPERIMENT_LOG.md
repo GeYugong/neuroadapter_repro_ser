@@ -3189,3 +3189,249 @@ experiments/E3_joint_redundancy/
 E3a/E3b 的权威配置、plan、pure controls、解码、共享随机状态、局部指标、
 正式统计函数和轻量产物路径均已通过工程验证。smoke 样本量不足以形成
 功能性科研结论。按预注册边界停止，不启动 pilot 或全量实验。
+
+## 2026-07-26 E3 Haar 修复与 10 图 pilot
+
+### 目标与边界
+
+本轮先恢复与 E1 一致的 Face detector，再运行独立冻结的 E3 pilot：
+
+- E3a：Face、Body、Scene 每类 10 张，20 条件/图，seed 12345；
+- E3b：Face、Body、Scene 每类 10 张，32 条件/图，seed 12345；
+- mean replacement、equal-k=4、pure-control overlap `<0.10`；
+- 每个目标条件 5 组唯一 matched-random controls；
+- 50 步扩散，checkpoint 和 mean cache 不变；
+- pilot 只报告效应量、分布和工程异常，不做正式统计推断；
+- 完成人工审图后停止，不启动三 seed 全量实验。
+
+### 代码提交
+
+```text
+7c9c370 feat(e3): prepare haar-validated pilot
+b4e2b99 fix(e3): freeze pilot model assets
+7085ba9 feat(e3): add pilot distribution audits
+bf27065 fix(e3): correct pilot figure labels
+```
+
+推理和首次评价实际使用
+`b4e2b99550c4df21911f947100c9bf5df23dddb7`。`7085ba9` 增加了分布
+审计与完整 10 图可视化；`bf27065` 只修正图中的 smoke/pilot 文案并用
+已有 CSV 重绘，没有重新解码或改变指标值。
+
+### Face detector 与测试环境
+
+pilot/formal 模式固定：
+
+```text
+backend: opencv_haar_e1
+OpenCV: 4.12.0
+scaleFactor: 1.1
+minNeighbors: 5
+minSize: [24, 24]
+cascade SHA-256:
+0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0
+fallback: forbidden
+```
+
+若 OpenCV 缺少 `CascadeClassifier` 或 cascade 哈希不符，pilot/formal
+评价会直接失败。独立环境建立在：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/envs/e3-pilot
+```
+
+该环境提供 Python、pytest 8.4.1、scikit-image 0.25.2、OpenCV 4.12.0、
+NumPy 2.2.6 和 Torch 2.4.1。没有修改共享 conda 环境。
+
+完整测试命令：
+
+```bash
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/envs/e3-pilot/bin/python \
+  -m pytest -q
+```
+
+最终结果：
+
+```text
+48 passed
+```
+
+只有一个已有的 `torch.load(weights_only=False)` FutureWarning；没有
+ignore 或跳过旧 E2 指标测试。
+
+### completion smoke 的 Haar 重评
+
+旧 completion smoke 的生成图片不变，仅用严格 Haar 后端重新计算 Face
+局部指标。输出位于：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_haar_eval/E3_interaction
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/completion_smoke_haar_eval/E3_joint_redundancy
+```
+
+两项 `haar_recheck_audit.json` 均通过。E3a/E3b 的 Face 记录分别为
+20/32，指标全部有限、GT region 非空。预测图人脸检测为 0/20 和 0/32，
+这是 smoke 图片上的 detector 表现；局部指标使用冻结 GT region，因此
+仍可计算。该重评不占用扩散解码 GPU。
+
+### 冻结 pilot plan
+
+核心命令：
+
+```bash
+python scripts/make_e3_plans.py \
+  --scope pilot \
+  --inventory experiments/E0_mapping/algonauts_top200_mapping_subj01.csv \
+  --manifest experiments/E1_stimulus_manifest/confirmatory_manifest.csv \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --source-e2-plan /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/E2_top_snr_causal_mean_full/plan/e2_mean_plan.json \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/pilot_plan
+```
+
+checkpoint SHA-256：
+
+```text
+2d340552270db08a8518fd60949af1fa1b823ac4fd1d18eab7b17a0d04ec3a40
+```
+
+mean cache SHA-256：
+
+```text
+283159cd0f610202b7ebfb60e85a97ad3a49af6662bcbb364239375b9b228d1e
+```
+
+完整 mean cache 哈希已保存在两份 `plan.json` 中。冻结图片索引为：
+
+```text
+Face:  973, 756, 287, 415, 158, 465, 678, 789, 529, 781
+Body:  816, 220, 21, 847, 716, 931, 941, 474, 40, 366
+Scene: 999, 893, 545, 199, 486, 214, 842, 132, 303, 640
+```
+
+两项 plan 的图片顺序相同。E3a 每类 20 条件，共计划 600 条；E3b 每类
+32 条件，共计划 960 条。plan equivalence 与 control matching audit
+均通过；目标/联合 parcel 和每组随机对照的具体索引、SNR/大小匹配距离
+均保存在 `plan.json`。
+
+### GPU 解码
+
+运行器统一使用：
+
+```bash
+conda run -n neuroadapter python scripts/launch_e3_smoke.py \
+  --mode pilot \
+  --plan <PILOT_PLAN> \
+  --project-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026 \
+  --checkpoint /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt \
+  --mean-cache /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e2/mean_tokens/subj01_step100000_parcel_mean.pt \
+  --output-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3 \
+  --gpus <GPU_LIST> \
+  --run-label pilot
+```
+
+E3a 和 E3b 分别使用空闲的 GPU 2–7 并行完成，约 10 分钟和 13 分钟。
+任务结束后相关 GPU 进程全部退出。
+
+原始输出：
+
+```text
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_interaction/pilot
+/public/home/mty/GeYugong/projects/neuroadapter-iclr2026/outputs/e3/E3_joint_redundancy/pilot
+```
+
+强审计结果：
+
+```text
+E3a: 3/3 categories, 600/600 records, PASS
+E3b: 3/3 categories, 960/960 records, PASS
+no-mask SHA determinism: PASS
+shared initial latent/noise: PASS
+condition and dataset alignment: PASS
+checkpoint/mean cache/repository commit consistency: PASS
+max_abs_delta_non_target: 0.0
+missing or invalid images: 0
+```
+
+### 指标评价
+
+评价使用项目独立环境、GPU 2/3、严格 Haar 后端。核心命令为：
+
+```bash
+python scripts/evaluate_e3.py \
+  --mode pilot \
+  --run-root <PILOT_RUN_ROOT> \
+  --plan <PILOT_PLAN> \
+  --manifest experiments/E1_stimulus_manifest/confirmatory_manifest.csv \
+  --coco-annotations /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/coco/annotations \
+  --haar-cascade /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/data/stimulus_models/opencv-haar-4.12.0/haarcascade_frontalface_default.xml \
+  --clip-checkpoint /public/home/mty/.cache/clip/RN50.pt \
+  --dinov2-repo /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/torch_hub/facebookresearch_dinov2_main \
+  --lpips-package-root /public/home/mty/GeYugong/projects/neuroadapter-iclr2026/tools/e2-metrics \
+  --output-dir <PILOT_EVAL_DIR>
+```
+
+输出和审计：
+
+| 实验 | per-sample | 局部指标 | 逐图效应 | 评价审计 |
+| --- | ---: | ---: | ---: | --- |
+| E3a | 600 | 600 | 720 | PASS |
+| E3b | 960 | 960 | 1200 | PASS |
+
+两项均无缺失/非法指标，最小局部区域为 16641 pixels。Face 预测图检测
+成功率为 79/200 和 135/320。`formal_inference_performed=false`，
+CI、p、q 字段保持为空，`engineering_anomalies=[]`。
+
+### 描述性结果
+
+E3a 的 DINO 类别匹配减非匹配效应：
+
+```text
+Face ROI:   0.02407
+Body ROI:  -0.01329
+Scene ROI:  0.00300
+```
+
+15 项指标方向不一致。E3b 三 ROI 联合相对 pure random 的 DINO 效应：
+
+```text
+Face images:  -0.01262
+Body images:   0.03145
+Scene images: -0.03547
+```
+
+联合 ROI 数量与效应没有单调关系。逐图分布宽，稳定的极端样本包括：
+
+```text
+E3a Face idx 678, mask Scene:             -0.32962
+E3b Face idx 678, mask Face+Body+Scene:   -0.33216
+E3b Scene idx 214, mask Face+Body+Scene:  -0.26384
+E3b Face idx 756, mask Body+Scene:         0.18425
+```
+
+这些记录通过文件、GT、条件和共享随机状态审计，属于真实的单图敏感性，
+不是工程错配。由于每类仅 10 张，不能将均值或极端值解释为正式效应。
+
+### 人工审图与产物
+
+两项实验的 Face、Body、Scene comparison grids 共 6 张，描述性效应图和
+分布图共 4 张，均已逐张检查。所有 60 个图片行非空，GT、dataset index
+和条件列对齐，没有文字重叠或渲染损坏。视觉变化同样具有明显的图像间
+异质性，没有普遍且单调增强的联合消融现象。
+
+轻量产物：
+
+```text
+experiments/E3_interaction_pilot/
+experiments/E3_joint_redundancy_pilot/
+```
+
+包含冻结 plan、control/plan/output/evaluation 审计、逐样本和逐图指标、
+局部指标、聚合摘要、全部 comparison grids 和描述性效应图。
+
+### 当前结论与停止点
+
+Haar 后端、统一测试环境、独立 plan、GPU 解码、强审计、全局/局部评价和
+人工审图均已完成。本轮目标已经达到。pilot 没有提供跨指标一致的类别
+特异性交互趋势，也没有显示联合 ROI 数量增加时效应单调增强；同时逐图
+异质性较高。按预定义边界停止，不启动三 seed 全量实验。

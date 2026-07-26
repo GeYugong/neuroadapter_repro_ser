@@ -108,3 +108,19 @@ equal-k=4。E3b 分别检验类别匹配单 ROI、三个双 ROI 组合和三 ROI
 Face 局部指标优先使用 E1 OpenCV Haar detector。若运行环境缺少该 API，
 smoke 可以显式使用无下载的 bundled LBP fallback，但必须记录 backend，
 且 fallback 结果不能直接升级为正式实验。
+
+## D012：E3 pilot 使用严格 Haar 后端并在人工审图后停止
+
+E3 pilot 使用与 E1 完全相同的 OpenCV Haar cascade 与参数。pilot 和
+formal 模式禁止 LBP fallback；缺少 `CascadeClassifier` 时必须失败，
+不能静默切换 detector。为避免修改共享环境，测试和评价使用项目目录下
+的独立 Python 环境。
+
+E3a/E3b 各使用 Face、Body、Scene 每类 10 张冻结图片和 seed 12345。
+E3a 每张图 20 个条件，共 600 条记录；E3b 每张图 32 个条件，共 960 条
+记录。pilot 只检查工程完整性、效应量、逐图分布和人工视觉结果，不计算
+正式 CI、p 或 q。
+
+两项 pilot 完成并通过审计后停止。由于效应方向不一致、逐图异质性较高，
+不能从该 pilot 得出类别特异性或分布式冗余的正式结论，也不能自动升级为
+三 seed 全量实验。
