@@ -518,6 +518,8 @@ def monotonicity_rows(
                 by_image.setdefault(int(row["dataset_idx"]), {})[
                     row["masked_roi"]
                 ] = float(row["excess_causal_loss"])
+            if not by_image:
+                continue
             level_rows = []
             for dataset_idx, values in sorted(by_image.items()):
                 required = [category, *double_masks, "Face+Body+Scene"]
