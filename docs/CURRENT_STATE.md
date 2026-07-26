@@ -129,29 +129,6 @@ pilot 中 Face PixCorr 和 Scene DINO 的信号未在正式实验中复现。
 
 完整结果与视觉审查图见 `experiments/E2_zero_full/`。
 
-## 当前限制与后续问题
-
-1. 结论只适用于公开 Algonauts ROI 映射和当前 step-100000 checkpoint；
-2. 作者附录 P 使用的原始 ROI metadata 仍未公开；
-3. mean-mask 尚未运行，zero-mask 可能产生分布外 token；
-4. 在没有新的预注册假设前，不应继续根据现有结果反复调整 ROI 或指标。
-
-## 下一步准确命令
-
-以下命令可安全地重新验证已经完成的 A/B 阶段准入条件：
-
-```bash
-REPRO_ROOT="$(git rev-parse --show-toplevel)"
-PROJECT_ROOT="$(dirname "$REPRO_ROOT")"
-cd "$REPRO_ROOT"
-PYTHONPATH="$PROJECT_ROOT/tools/test-deps:src" \
-  conda run -n neuroadapter python -m pytest -q
-python scripts/validate_stage_ab_artifacts.py
-conda run -n neuroadapter python scripts/smoke_test_checkpoint_intervention.py \
-  --checkpoint "$PROJECT_ROOT/outputs/neuroadapter/20260707-topk100-bs4-ddp4-resume50000-to100000/checkpoint-step-100000.pt" \
-  --upstream-root "$PROJECT_ROOT/code/NeuroAdapter"
-```
-
 ## E2b mean-mask 稳健性分析
 
 E2b 在查看 mean 结果前预注册，只把 parcel 干预值从全零改为 Subject 1
@@ -172,8 +149,32 @@ Body equal-k CLIP 为校正显著的负向 excess，不支持原假设。
 
 zero 与 mean 有 10/15 项同方向，其中 4 项共同为正、6 项共同为负；
 整体 Pearson 为 `0.230`，Spearman 为 `0.400`。15 项 mean-zero 配对差异
-均未通过次要 BH 校正。
+均未通过次要 BH 校正。上述相关性仅为描述性结果：总体只有 15 个点，
+每个类别内部只有 5 个点，每个指标内部只有 3 个点，不能把类别内或
+指标内的高相关系数作为强统计证据。
 
 按预定义规则属于情况 A：在当前公开 ROI 映射、当前 checkpoint 和两种
 parcel 干预方式下，没有获得稳健的类别匹配 ROI 额外因果贡献证据。
 这不等于这些脑区没有功能。
+
+## 阶段关闭与下一研究决策
+
+zero-mask 阶段曾存在“全零 token 属于分布外干预”的疑问；该问题现已
+通过 E2b mean-mask 稳健性实验进行验证。当前能够形成的模型层面结论是：
+这个已训练的 NeuroAdapter 模型没有表现出能被单组 ROI 整体消融稳定
+检测到的类别匹配依赖。
+
+当前仍有四项关键限制：
+
+1. 59 个目标 parcel 中有 8 个同时对目标组和非目标组达到 0.5 overlap，
+   因此目标 ROI 并不纯净；
+2. frozen random controls 中存在目标 ROI overlap，且审计计数是不同
+   replicate 中的 control 记录数，不等于独立 parcel 数；
+3. 整图指标可能稀释面部、人体或背景区域的局部变化；
+4. 单 ROI 干预不能直接检验多个脑区之间的信息冗余或生成先验的补偿。
+
+候选下一阶段为 E3“功能类别交互与分布式冗余实验”：使用 equal-k
+mean replacement 构建 3×3 类别×ROI 设计、联合高层 ROI 干预、目标
+overlap `<0.10` 的 pure controls，并加入 Face/Body/Scene 局部指标。
+E3 尚未预注册或启动；开始前需单独冻结样本、条件、局部评价器和统计
+检验族。

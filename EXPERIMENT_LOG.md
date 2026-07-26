@@ -2841,3 +2841,25 @@ checkpoint 和 zero/mean 两种 parcel 干预均未提供稳健的类别匹配 R
 指标、dose-response、attention、训练新 checkpoint 或多被试实验。
 
 最终回归测试结果为 `35 passed`，原有 23 项测试全部继续通过。
+
+## 2026-07-26 最终复核后的解释修正
+
+按最终报告快照 `f7b9603bdf73c8b53c59cf86ad4c444b2220594c`
+重新检查代码、配置、审计和结果后，确认实验工程结论与主要统计数字不变，
+并修正以下文档解释：
+
+- 明确 95% bootstrap CI 与单项 p 未做 15 项多重校正，正式判断以全局
+  BH q 为准；
+- 明确 zero/mean 相关性只有 15 个总体点、5 个类别内点或 3 个指标内点，
+  只能作描述性汇总；
+- 明确 control contamination 数字是可重复的 control 记录数，不是独立
+  parcel 数；
+- 删除 `CURRENT_STATE.md` 中“mean 尚未运行”的过期段落；
+- 区分正式推理提交 `da3de7c853f9504cb0dd3eefebcabb2eda6515aa`
+  与包含结果产物的 reviewed reporting snapshot `f7b9603...`；
+- 将结论收窄为当前 NeuroAdapter 模型未表现出可由单组 ROI 整体消融
+  稳定检测到的类别匹配依赖。
+
+候选下一研究阶段定义为 E3：3×3 类别×ROI equal-k mean 干预、联合高层
+ROI 冗余实验、overlap `<0.10` pure controls 和类别局部指标。E3 尚未
+预注册或启动，本次只记录研究方向。
