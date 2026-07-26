@@ -5,7 +5,19 @@ from __future__ import annotations
 import numpy as np
 
 
-HIGHER_IS_BETTER = {"pixel_corr", "ssim", "clip", "dino"}
+HIGHER_IS_BETTER = {
+    "pixel_corr",
+    "ssim",
+    "clip",
+    "dino",
+    "face_dino",
+    "face_detection_success",
+    "person_dino",
+    "person_region_consistency",
+    "background_dino",
+    "background_clip",
+    "scene_class_consistency",
+}
 
 
 def bootstrap_ci(values: np.ndarray, seed: int, draws: int) -> list[float]:
