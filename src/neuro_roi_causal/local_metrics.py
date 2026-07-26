@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw
 
 
 NEAREST = getattr(Image, "Resampling", Image).NEAREST
+BILINEAR = getattr(Image, "Resampling", Image).BILINEAR
 
 
 def load_coco_person_annotations(
@@ -147,3 +148,32 @@ def apply_region(
     selected = mask if keep_mask else Image.eval(mask, lambda value: 255 - value)
     neutral = Image.new("RGB", rgb.size, (127, 127, 127))
     return Image.composite(rgb, neutral, selected)
+
+
+def region_pixel_consistency(
+    gt: Image.Image,
+    pred: Image.Image,
+    mask: Image.Image,
+    *,
+    size: int = 256,
+) -> float:
+    """Return RGB correlation inside a ground-truth region mask."""
+    if size <= 0:
+        raise ValueError("Region consistency size must be positive")
+    gt_array = np.asarray(
+        gt.convert("RGB").resize((size, size), BILINEAR),
+        dtype=np.float64,
+    )
+    pred_array = np.asarray(
+        pred.convert("RGB").resize((size, size), BILINEAR),
+        dtype=np.float64,
+    )
+    mask_array = np.asarray(mask.resize((size, size), NEAREST), dtype=np.uint8) > 0
+    if not mask_array.any():
+        raise ValueError("Person region mask is empty")
+    x = gt_array[mask_array].reshape(-1)
+    y = pred_array[mask_array].reshape(-1)
+    x -= x.mean()
+    y -= y.mean()
+    denominator = np.linalg.norm(x) * np.linalg.norm(y)
+    return 0.0 if denominator == 0 else float(np.dot(x, y) / denominator)

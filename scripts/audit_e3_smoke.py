@@ -5,7 +5,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+REPRO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPRO_ROOT / "src"))
+
+from neuro_roi_causal.e3_audit import audit_shared_diffusion_state
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,6 +43,12 @@ def main() -> None:
             len(summary.get("determinism_checks", [])) == 1
             and summary["determinism_checks"][0]["passed"]
         )
+        expected_names = [condition["name"] for condition in expected_conditions]
+        shared_state = audit_shared_diffusion_state(
+            summary,
+            expected_indices=category_plan["dataset_indices"][:1],
+            expected_condition_names=expected_names,
+        )
         max_non_target_delta = 0.0
         intervention_count = 0
         for condition in expected_conditions:
@@ -53,6 +65,7 @@ def main() -> None:
             same_conditions
             and one_expected_image
             and determinism
+            and shared_state["passed"]
             and max_non_target_delta == 0.0
         )
         categories[category] = {
@@ -62,16 +75,32 @@ def main() -> None:
             "conditions_equal_plan": same_conditions,
             "dataset_index_equal_plan": one_expected_image,
             "determinism_passed": determinism,
+            "shared_latent_noise_passed": shared_state["passed"],
+            "shared_latent_noise_audit": shared_state,
             "max_abs_delta_non_target": max_non_target_delta,
             "repository_commit": summary["repository_commit"],
             "checkpoint_sha256": summary["checkpoint_sha256"],
             "mean_token_cache_sha256": summary["mean_token_cache_sha256"],
         }
         passed = passed and category_passed
+    checkpoint_hashes = {
+        item.get("checkpoint_sha256")
+        for item in categories.values()
+        if item.get("checkpoint_sha256")
+    }
+    mean_cache_hashes = {
+        item.get("mean_token_cache_sha256")
+        for item in categories.values()
+        if item.get("mean_token_cache_sha256")
+    }
+    consistent_assets = len(checkpoint_hashes) == 1 and len(mean_cache_hashes) == 1
+    passed = passed and consistent_assets
     audit = {
         "experiment": plan["name"],
         "scope": "engineering_smoke_only",
         "passed": passed,
+        "all_categories_same_checkpoint": len(checkpoint_hashes) == 1,
+        "all_categories_same_mean_token_cache": len(mean_cache_hashes) == 1,
         "categories": categories,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

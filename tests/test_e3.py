@@ -7,6 +7,8 @@ from neuro_roi_causal.e3 import (
     ROI_GROUPS,
     build_interaction_category,
     build_joint_category,
+    interaction_rows,
+    joint_result_rows,
     max_overlap,
 )
 from neuro_roi_causal.stats import causal_loss
@@ -83,3 +85,51 @@ def test_local_metric_directions_are_explicit():
     assert causal_loss("face_dino", 0.8, 0.6) == pytest.approx(0.2)
     assert causal_loss("background_clip", 0.8, 0.6) == pytest.approx(0.2)
     assert causal_loss("face_lpips", 0.2, 0.4) == pytest.approx(0.2)
+
+
+def synthetic_effects():
+    rows = []
+    for category_index, category in enumerate(ROI_GROUPS):
+        for roi_index, roi in enumerate(ROI_GROUPS):
+            for dataset_idx in range(4):
+                rows.append(
+                    {
+                        "image_category": category,
+                        "masked_roi": roi,
+                        "metric": "dino",
+                        "dataset_idx": dataset_idx,
+                        "excess_causal_loss": (
+                            0.2
+                            if category == roi
+                            else -0.01 * (category_index + roi_index + 1)
+                        ),
+                    }
+                )
+    return rows
+
+
+def test_e3a_formal_statistics_apply_one_bh_family():
+    rows = interaction_rows(
+        synthetic_effects(),
+        metrics=["dino"],
+        draws=200,
+        formal=True,
+        analysis_status="formal",
+    )
+    assert len(rows) == 3
+    assert all(row["num_matched_images"] == 4 for row in rows)
+    assert all(row["num_nonmatched_images"] == 8 for row in rows)
+    assert all(row["permutation_p"] is not None for row in rows)
+    assert all(row["bh_q_e3a"] is not None for row in rows)
+
+
+def test_e3b_formal_statistics_use_separate_bh_family():
+    rows = joint_result_rows(
+        synthetic_effects(),
+        draws=200,
+        formal=True,
+        analysis_status="formal",
+    )
+    assert len(rows) == 9
+    assert all(row["sign_flip_p"] is not None for row in rows)
+    assert all(row["bh_q_e3b"] is not None for row in rows)

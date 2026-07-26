@@ -19,6 +19,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mean-cache", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--gpus", default="2,3,4")
+    parser.add_argument(
+        "--run-label",
+        default="smoke",
+        help="Output label below the experiment directory.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -28,12 +33,18 @@ def main() -> None:
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     if plan["name"] not in {"E3_interaction", "E3_joint_redundancy"}:
         raise ValueError("This launcher only accepts a frozen E3 plan")
+    smoke_images = int(plan["execution"]["smoke_images_per_category"])
+    smoke_seeds = int(plan["execution"]["smoke_seeds"])
+    if smoke_images != 1 or smoke_seeds != 1:
+        raise ValueError("The engineering smoke must remain one image and one seed")
+    if not args.run_label or Path(args.run_label).name != args.run_label:
+        raise ValueError("--run-label must be one safe path component")
     gpus = [item.strip() for item in args.gpus.split(",") if item.strip()]
     if not gpus:
         raise ValueError("At least one GPU is required")
-    launch_dir = args.plan.parent / f"{plan['name']}_smoke_specs"
+    launch_dir = args.plan.parent / f"{plan['name']}_{args.run_label}_specs"
     launch_dir.mkdir(parents=True, exist_ok=True)
-    logs = args.project_root / "logs" / plan["name"] / "smoke"
+    logs = args.project_root / "logs" / plan["name"] / args.run_label
     logs.mkdir(parents=True, exist_ok=True)
     tasks = []
     seed = int(plan["seeds"][0])
@@ -54,10 +65,12 @@ def main() -> None:
             encoding="utf-8",
         )
         indices.write_text(
-            json.dumps(category_plan["dataset_indices"][:1], indent=2),
+            json.dumps(category_plan["dataset_indices"][:smoke_images], indent=2),
             encoding="utf-8",
         )
-        relative = Path(plan["name"]) / "smoke" / f"seed_{seed}" / category
+        relative = (
+            Path(plan["name"]) / args.run_label / f"seed_{seed}" / category
+        )
         run_dir = args.output_root / relative
         if run_dir.exists():
             summary = run_dir / "run_summary.json"
@@ -141,6 +154,7 @@ def main() -> None:
     summary = {
         "experiment": plan["name"],
         "mode": "engineering_smoke_only",
+        "run_label": args.run_label,
         "seed": seed,
         "tasks": len(tasks),
         "failures": failures,

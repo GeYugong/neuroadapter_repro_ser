@@ -1,0 +1,55 @@
+name: E3_interaction
+analysis_family: E3a_category_by_roi_interaction
+subject: 1
+checkpoint_step: 100000
+categories:
+  Face: 37
+  Body: 50
+  Scene: 50
+masked_rois:
+  - Face
+  - Body
+  - Scene
+mask_mode: mean
+equal_k: 4
+pure_control_overlap_threshold: 0.10
+matched_random_controls: 5
+seeds:
+  - 12345
+  - 23456
+  - 34567
+denoising_steps: 50
+noise_factor: 4.0
+condition_batch_size: 8
+statistical_unit: image
+seed_aggregation: mean_causal_loss_across_three_seeds_per_image
+primary_model: metric_loss ~ image_category * masked_roi
+primary_contrast: matched_image_category_minus_mean_nonmatched_categories
+multiplicity: benjamini_hochberg_across_3_rois_x_5_global_metrics
+global_metrics:
+  - pixel_corr
+  - ssim
+  - lpips
+  - clip
+  - dino
+local_metrics:
+  Face:
+    - face_lpips
+    - face_dino
+    - face_detection_success
+  Body:
+    - person_lpips
+    - person_dino
+    - person_region_consistency
+  Scene:
+    - background_dino
+    - background_clip
+    - scene_class_consistency
+execution:
+  smoke_images_per_category: 1
+  smoke_seeds: 1
+  pilot_images_per_category: 10
+  pilot_seeds: 1
+  formal_requires_all_frozen_images: true
+  formal_requires_all_seeds: true
+

@@ -303,6 +303,12 @@ def main() -> None:
                 "ddpm_noise_strategy": (
                     "one generator per condition, identical seed and sequence"
                 ),
+                "reused_condition_count": len(conditions),
+                "reused_condition_names": names,
+                "condition_batch_count": (
+                    len(conditions) + args.condition_batch_size - 1
+                )
+                // args.condition_batch_size,
             })
             for start in range(0, len(conditions), args.condition_batch_size):
                 chunk = conditions[start:start + args.condition_batch_size]
@@ -374,7 +380,7 @@ def main() -> None:
                 raise RuntimeError(
                     f"Determinism check failed for dataset index {dataset_idx}"
                 )
-    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "condition_batches_padded_to_fixed_size": True, "seed": args.seed, "repository_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPRO_ROOT, text=True).strip(), "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"), "gpu_name": torch.cuda.get_device_name(device) if device.type == "cuda" else None, "max_gpu_memory_bytes": int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0, "checkpoint": str(args.checkpoint), "checkpoint_sha256": checkpoint_sha256, "mean_token_cache": str(args.mean_token_path) if requires_mean else None, "mean_token_cache_sha256": mean_cache_sha256, "mean_token_cache_metadata": {key: mean_cache[key] for key in ("schema_version", "subject", "split", "num_train_samples", "checkpoint_step", "selected_parcel_idx_sha256", "intervention_stage")} if requires_mean else None, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
+    root_summary = {"run_name": args.run_name, "started_at": started_at, "finished_at": finished, "elapsed_sec": time.perf_counter() - started, "condition_spec": str(args.condition_spec), "conditions": conditions, "num_samples": len(indices), "dataset_indices": indices, "denoising_steps": args.denoising_steps, "noise_factor": args.noise_factor, "condition_batch_size": args.condition_batch_size, "condition_batches_padded_to_fixed_size": True, "shared_latent_noise_policy": "one initial latent and one diffusion-noise tensor per image reused across every condition", "seed": args.seed, "repository_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPRO_ROOT, text=True).strip(), "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"), "gpu_name": torch.cuda.get_device_name(device) if device.type == "cuda" else None, "max_gpu_memory_bytes": int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0, "checkpoint": str(args.checkpoint), "checkpoint_sha256": checkpoint_sha256, "mean_token_cache": str(args.mean_token_path) if requires_mean else None, "mean_token_cache_sha256": mean_cache_sha256, "mean_token_cache_metadata": {key: mean_cache[key] for key in ("schema_version", "subject", "split", "num_train_samples", "checkpoint_step", "selected_parcel_idx_sha256", "intervention_stage")} if requires_mean else None, "shared_diffusion_state": shared_state_audits, "determinism_checks": determinism_checks}
     (root / "run_summary.json").write_text(json.dumps(root_summary, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(root_summary, indent=2, ensure_ascii=False))
 

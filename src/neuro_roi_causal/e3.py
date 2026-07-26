@@ -253,7 +253,8 @@ def interaction_rows(
     *,
     metrics: Iterable[str],
     draws: int,
-    smoke: bool,
+    formal: bool,
+    analysis_status: str,
 ) -> list[dict[str, Any]]:
     rows = list(per_image_effects)
     output: list[dict[str, Any]] = []
@@ -290,12 +291,12 @@ def interaction_rows(
                 "num_matched_images": int(len(matched)),
                 "num_nonmatched_images": int(len(nonmatched)),
                 "matched_minus_nonmatched": effect,
-                "analysis_status": "engineering_smoke" if smoke else "formal",
+                "analysis_status": analysis_status,
                 "ci95": None,
                 "permutation_p": None,
                 "bh_q_e3a": None,
             }
-            if not smoke and len(matched) >= 2 and len(nonmatched) >= 2:
+            if formal and len(matched) >= 2 and len(nonmatched) >= 2:
                 rng = np.random.default_rng(31000 + roi_index * 100 + metric_index)
                 bootstrap = np.asarray(
                     [
@@ -325,4 +326,68 @@ def interaction_rows(
             valid, benjamini_hochberg([item["permutation_p"] for item in valid])
         ):
             item["bh_q_e3a"] = qvalue
+    return output
+
+
+def joint_result_rows(
+    per_image_effects: Iterable[dict[str, Any]],
+    *,
+    draws: int,
+    formal: bool,
+    analysis_status: str,
+) -> list[dict[str, Any]]:
+    rows = list(per_image_effects)
+    keys = sorted(
+        {
+            (row["image_category"], row["masked_roi"], row["metric"])
+            for row in rows
+        }
+    )
+    output: list[dict[str, Any]] = []
+    for key_index, (category, masked_roi, metric) in enumerate(keys):
+        values = np.asarray(
+            [
+                float(row["excess_causal_loss"])
+                for row in rows
+                if (
+                    row["image_category"],
+                    row["masked_roi"],
+                    row["metric"],
+                )
+                == (category, masked_roi, metric)
+            ],
+            dtype=np.float64,
+        )
+        item: dict[str, Any] = {
+            "image_category": category,
+            "masked_roi": masked_roi,
+            "metric": metric,
+            "num_images": int(len(values)),
+            "target_minus_pure_random": (
+                float(values.mean()) if len(values) else float("nan")
+            ),
+            "analysis_status": analysis_status,
+            "ci95": None,
+            "sign_flip_p": None,
+            "bh_q_e3b": None,
+        }
+        if formal and len(values) >= 2:
+            item["ci95"] = bootstrap_ci(
+                values,
+                41000 + key_index,
+                draws,
+            )
+            item["sign_flip_p"] = sign_flip_pvalue(
+                values,
+                42000 + key_index,
+                draws,
+            )
+        output.append(item)
+    valid = [item for item in output if item["sign_flip_p"] is not None]
+    if valid:
+        for item, qvalue in zip(
+            valid,
+            benjamini_hochberg([item["sign_flip_p"] for item in valid]),
+        ):
+            item["bh_q_e3b"] = qvalue
     return output

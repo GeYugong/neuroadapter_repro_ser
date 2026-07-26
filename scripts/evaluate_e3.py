@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPRO_ROOT / "scripts"))
 
 from evaluate_e2 import load_models, load_records
 from neuro_roi_causal.e2 import read_csv
-from neuro_roi_causal.e3 import interaction_rows
+from neuro_roi_causal.e3 import interaction_rows, joint_result_rows
 from neuro_roi_causal.local_metrics import (
     apply_region,
     crop_pair_by_box,
@@ -29,6 +29,7 @@ from neuro_roi_causal.local_metrics import (
     face_detector_backend,
     load_coco_person_annotations,
     person_mask,
+    region_pixel_consistency,
 )
 from neuro_roi_causal.metrics import (
     ContentAddressedCache,
@@ -72,7 +73,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--batch-size", type=int, default=24)
     parser.add_argument("--bootstrap-draws", type=int, default=10000)
-    parser.add_argument("--smoke", action="store_true")
+    parser.add_argument(
+        "--mode",
+        choices=("smoke", "pilot", "formal"),
+        default="smoke",
+    )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Deprecated alias for --mode smoke.",
+    )
     return parser.parse_args()
 
 
@@ -261,10 +271,7 @@ def aggregate_excess(
 def main() -> None:
     args = parse_args()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
-    if args.smoke is False:
-        raise RuntimeError(
-            "Formal E3 evaluation is intentionally locked; complete pilot approval first"
-        )
+    mode = "smoke" if args.smoke else args.mode
     for required in (
         args.manifest,
         args.coco_annotations / "instances_train2017.json",
@@ -286,13 +293,31 @@ def main() -> None:
     representation_jobs: list[tuple[int, str, Path, Path]] = []
     metadata_by_category: dict[str, dict[str, dict]] = {}
     seed_roots = sorted(path for path in args.run_root.glob("seed_*") if path.is_dir())
-    if len(seed_roots) != 1:
-        raise ValueError("Engineering smoke must contain exactly one seed directory")
+    observed_seeds = [int(path.name.removeprefix("seed_")) for path in seed_roots]
+    if mode == "smoke" and observed_seeds != [int(plan["seeds"][0])]:
+        raise ValueError("Engineering smoke must contain only the first frozen seed")
+    if mode == "pilot" and observed_seeds != [
+        int(seed)
+        for seed in plan["seeds"][: int(plan["execution"]["pilot_seeds"])]
+    ]:
+        raise ValueError("Pilot seed set does not match the frozen execution config")
+    if mode == "formal" and observed_seeds != [int(seed) for seed in plan["seeds"]]:
+        raise ValueError("Formal evaluation requires all frozen seeds")
     for category in ("Face", "Body", "Scene"):
         visual_records = None
         for seed_root in seed_roots:
             seed = int(seed_root.name.removeprefix("seed_"))
             records, metadata = load_records(seed_root / category)
+            observed_indices = sorted(records["no_mask"])
+            frozen_indices = plan["categories"][category]["dataset_indices"]
+            if mode == "smoke" and observed_indices != sorted(frozen_indices[:1]):
+                raise ValueError(f"{category} smoke indices differ from the plan")
+            if mode == "pilot" and observed_indices != sorted(
+                frozen_indices[: int(plan["execution"]["pilot_images_per_category"])]
+            ):
+                raise ValueError(f"{category} pilot indices differ from the plan")
+            if mode == "formal" and observed_indices != sorted(frozen_indices):
+                raise ValueError(f"{category} formal indices differ from the plan")
             metadata_by_category[category] = metadata
             visual_records = records
             for condition, condition_records in records.items():
@@ -337,6 +362,14 @@ def main() -> None:
                         mask, method = person_mask(coco[key], gt_image.size)
                         row["person_mask_method"] = method
                         keep = category == "Body"
+                        if keep:
+                            row["person_region_consistency"] = (
+                                region_pixel_consistency(
+                                    gt_image,
+                                    pred_image,
+                                    mask,
+                                )
+                            )
                         gt_local = apply_region(gt_image, mask, keep_mask=keep)
                         pred_local = apply_region(pred_image, mask, keep_mask=keep)
                         paths = save_pair(derived_root, stem, gt_local, pred_local)
@@ -357,7 +390,6 @@ def main() -> None:
         elif kind == "person":
             row["person_lpips"] = result["lpips"]
             row["person_dino"] = result["dino"]
-            row["person_region_consistency"] = result["dino"]
         else:
             row["background_dino"] = result["dino"]
             row["background_clip"] = result["clip"]
@@ -392,7 +424,12 @@ def main() -> None:
             excess,
             metrics=GLOBAL_METRICS,
             draws=args.bootstrap_draws,
-            smoke=True,
+            formal=mode == "formal",
+            analysis_status=(
+                "formal"
+                if mode == "formal"
+                else f"engineering_{mode}"
+            ),
         )
         write_csv(args.output_dir / "interaction_results.csv", results)
         effect_plot(
@@ -401,28 +438,16 @@ def main() -> None:
             "matched_minus_nonmatched",
         )
     else:
-        results = []
-        for key in sorted(
-            {(row["image_category"], row["masked_roi"], row["metric"]) for row in excess}
-        ):
-            values_for_key = [
-                float(row["excess_causal_loss"])
-                for row in excess
-                if (row["image_category"], row["masked_roi"], row["metric"]) == key
-            ]
-            results.append(
-                {
-                    "image_category": key[0],
-                    "masked_roi": key[1],
-                    "metric": key[2],
-                    "num_images": len(values_for_key),
-                    "target_minus_pure_random": float(np.mean(values_for_key)),
-                    "analysis_status": "engineering_smoke",
-                    "ci95": None,
-                    "sign_flip_p": None,
-                    "bh_q_e3b": None,
-                }
-            )
+        results = joint_result_rows(
+            excess,
+            draws=args.bootstrap_draws,
+            formal=mode == "formal",
+            analysis_status=(
+                "formal"
+                if mode == "formal"
+                else f"engineering_{mode}"
+            ),
+        )
         write_csv(args.output_dir / "joint_mask_results.csv", results)
         effect_plot(
             [row for row in results if row["metric"] == "dino"],
@@ -438,8 +463,8 @@ def main() -> None:
         )
     summary = {
         "experiment": plan["name"],
-        "scope": "engineering_smoke_only",
-        "formal_inference_performed": False,
+        "scope": mode,
+        "formal_inference_performed": mode == "formal",
         "num_rows": len(rows),
         "num_excess_rows": len(excess),
         "metric_models": models["metadata"],

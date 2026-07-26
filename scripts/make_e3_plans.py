@@ -10,6 +10,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import yaml
+
 REPRO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPRO_ROOT / "src"))
 
@@ -24,24 +26,115 @@ from neuro_roi_causal.mean_cache import file_sha256
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--interaction-config",
+        type=Path,
+        default=REPRO_ROOT / "configs" / "experiments" / "E3_interaction.yaml",
+    )
+    parser.add_argument(
+        "--joint-config",
+        type=Path,
+        default=REPRO_ROOT / "configs" / "experiments" / "E3_joint_redundancy.yaml",
+    )
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--mean-cache", type=Path, required=True)
     parser.add_argument("--source-e2-plan", type=Path)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--count", type=int, default=0, help="0 keeps all frozen E2 samples")
-    parser.add_argument("--equal-k", type=int, default=4)
-    parser.add_argument("--replicates", type=int, default=5)
-    parser.add_argument("--purity-threshold", type=float, default=0.10)
     parser.add_argument("--seed", type=int, default=20260726)
     return parser.parse_args()
 
 
+def load_config(path: Path, expected_name: str) -> dict:
+    if not path.is_file():
+        raise FileNotFoundError(f"Required E3 config is missing: {path}")
+    config = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(config, dict) or config.get("name") != expected_name:
+        raise ValueError(f"Expected config name {expected_name}: {path}")
+    required = {
+        "analysis_family",
+        "subject",
+        "checkpoint_step",
+        "categories",
+        "mask_mode",
+        "equal_k",
+        "pure_control_overlap_threshold",
+        "matched_random_controls",
+        "seeds",
+        "denoising_steps",
+        "noise_factor",
+        "condition_batch_size",
+        "statistical_unit",
+        "seed_aggregation",
+        "global_metrics",
+        "local_metrics",
+        "execution",
+    }
+    if expected_name == "E3_interaction":
+        required.update(
+            {
+                "masked_rois",
+                "primary_model",
+                "primary_contrast",
+                "multiplicity",
+            }
+        )
+    else:
+        required.update({"joint_masks", "primary_contrast", "multiplicity"})
+    missing = sorted(required - config.keys())
+    if missing:
+        raise ValueError(f"{path} is missing required fields: {missing}")
+    if config["mask_mode"] != "mean":
+        raise ValueError("E3 requires mean replacement")
+    if int(config["equal_k"]) != 4:
+        raise ValueError("E3 requires equal-k=4")
+    if float(config["pure_control_overlap_threshold"]) != 0.10:
+        raise ValueError("E3 requires pure-control overlap threshold 0.10")
+    if int(config["matched_random_controls"]) != 5:
+        raise ValueError("E3 requires five pure controls per condition")
+    if int(config["execution"]["smoke_images_per_category"]) != 1:
+        raise ValueError("E3 smoke requires one image per category")
+    if int(config["execution"]["smoke_seeds"]) != 1:
+        raise ValueError("E3 smoke requires one seed")
+    return config
+
+
+def assert_common_config(interaction: dict, joint: dict) -> None:
+    common_keys = (
+        "subject",
+        "checkpoint_step",
+        "categories",
+        "mask_mode",
+        "equal_k",
+        "pure_control_overlap_threshold",
+        "matched_random_controls",
+        "seeds",
+        "denoising_steps",
+        "noise_factor",
+        "condition_batch_size",
+        "statistical_unit",
+        "seed_aggregation",
+        "global_metrics",
+        "local_metrics",
+        "execution",
+    )
+    mismatched = [key for key in common_keys if interaction[key] != joint[key]]
+    if mismatched:
+        raise ValueError(f"E3 configs disagree on shared fields: {mismatched}")
+
+
 def main() -> None:
     args = parse_args()
+    interaction_config = load_config(args.interaction_config, "E3_interaction")
+    joint_config = load_config(args.joint_config, "E3_joint_redundancy")
+    assert_common_config(interaction_config, joint_config)
     inventory = read_csv(args.inventory)
     manifest = read_csv(args.manifest)
-    available = {"Face": 37, "Body": 50, "Scene": 50}
+    available = {
+        category: int(count)
+        for category, count in interaction_config["categories"].items()
+    }
     counts = (
         {category: args.count for category in ROI_GROUPS}
         if args.count > 0
@@ -50,20 +143,29 @@ def main() -> None:
     selected = select_manifest_indices(manifest, counts)
     common = {
         "schema_version": 1,
-        "subject": 1,
-        "checkpoint_step": 100000,
-        "mask_mode": "mean",
-        "equal_k": args.equal_k,
+        "subject": int(interaction_config["subject"]),
+        "checkpoint_step": int(interaction_config["checkpoint_step"]),
+        "mask_mode": interaction_config["mask_mode"],
+        "equal_k": int(interaction_config["equal_k"]),
         "pure_control_overlap_rule": (
-            f"max overlap with every target ROI group < {args.purity_threshold:.2f}"
+            "max overlap with every target ROI group "
+            f"< {float(interaction_config['pure_control_overlap_threshold']):.2f}"
         ),
-        "pure_control_overlap_threshold": args.purity_threshold,
-        "matched_random_controls": args.replicates,
-        "seeds": [12345, 23456, 34567],
-        "denoising_steps": 50,
-        "noise_factor": 4.0,
-        "condition_batch_size": 8,
-        "statistical_unit": "image after averaging three seeds",
+        "pure_control_overlap_threshold": float(
+            interaction_config["pure_control_overlap_threshold"]
+        ),
+        "matched_random_controls": int(
+            interaction_config["matched_random_controls"]
+        ),
+        "seeds": [int(seed) for seed in interaction_config["seeds"]],
+        "denoising_steps": int(interaction_config["denoising_steps"]),
+        "noise_factor": float(interaction_config["noise_factor"]),
+        "condition_batch_size": int(interaction_config["condition_batch_size"]),
+        "statistical_unit": interaction_config["statistical_unit"],
+        "seed_aggregation": interaction_config["seed_aggregation"],
+        "global_metrics": interaction_config["global_metrics"],
+        "local_metrics": interaction_config["local_metrics"],
+        "execution": interaction_config["execution"],
         "mean_token_cache": str(args.mean_cache.resolve()),
         "mean_token_cache_sha256": file_sha256(args.mean_cache),
         "inventory": str(args.inventory.resolve()),
@@ -80,13 +182,22 @@ def main() -> None:
         "E3_interaction": {
             **common,
             "name": "E3_interaction",
-            "analysis_family": "E3a_category_by_roi_interaction",
+            "analysis_family": interaction_config["analysis_family"],
+            "primary_model": interaction_config["primary_model"],
+            "primary_contrast": interaction_config["primary_contrast"],
+            "multiplicity": interaction_config["multiplicity"],
+            "config": str(args.interaction_config.resolve()),
+            "config_sha256": file_sha256(args.interaction_config),
             "categories": {},
         },
         "E3_joint_redundancy": {
             **common,
             "name": "E3_joint_redundancy",
-            "analysis_family": "E3b_joint_roi_redundancy",
+            "analysis_family": joint_config["analysis_family"],
+            "primary_contrast": joint_config["primary_contrast"],
+            "multiplicity": joint_config["multiplicity"],
+            "config": str(args.joint_config.resolve()),
+            "config_sha256": file_sha256(args.joint_config),
             "categories": {},
         },
     }
@@ -94,18 +205,20 @@ def main() -> None:
         interaction, interaction_audit = build_interaction_category(
             inventory,
             category,
-            k=args.equal_k,
-            replicates=args.replicates,
+            k=int(interaction_config["equal_k"]),
+            replicates=int(interaction_config["matched_random_controls"]),
             seed=args.seed + category_index * 10000,
-            purity_threshold=args.purity_threshold,
+            purity_threshold=float(
+                interaction_config["pure_control_overlap_threshold"]
+            ),
         )
         joint, joint_audit = build_joint_category(
             inventory,
             category,
-            k=args.equal_k,
-            replicates=args.replicates,
+            k=int(joint_config["equal_k"]),
+            replicates=int(joint_config["matched_random_controls"]),
             seed=args.seed + 100000 + category_index * 10000,
-            purity_threshold=args.purity_threshold,
+            purity_threshold=float(joint_config["pure_control_overlap_threshold"]),
         )
         plans["E3_interaction"]["categories"][category] = {
             "dataset_indices": selected[category],
@@ -193,13 +306,13 @@ def main() -> None:
                             item["max_distance"] for item in controls
                         ),
                         "passed": (
-                            len(controls) == args.replicates
+                            len(controls) == plan["matched_random_controls"]
                             and len({tuple(item["indices"]) for item in controls})
-                            == args.replicates
+                            == plan["matched_random_controls"]
                             and all(
                                 len(item["indices"]) == design["target_count"]
                                 and item["max_target_group_overlap"]
-                                < args.purity_threshold
+                                < plan["pure_control_overlap_threshold"]
                                 for item in controls
                             )
                         ),

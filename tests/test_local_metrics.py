@@ -1,8 +1,14 @@
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
-from neuro_roi_causal.local_metrics import apply_region, crop_pair_by_box, person_mask
+from neuro_roi_causal.local_metrics import (
+    apply_region,
+    crop_pair_by_box,
+    person_mask,
+    region_pixel_consistency,
+)
 
 
 def test_person_polygon_mask_and_regions(tmp_path: Path):
@@ -29,3 +35,17 @@ def test_face_crop_uses_same_ground_truth_box():
     gt_crop, pred_crop = crop_pair_by_box(gt, pred, (2, 3, 5, 6))
     assert gt_crop.size == (5, 6)
     assert pred_crop.size == (10, 12)
+
+
+def test_region_consistency_is_independent_and_masked():
+    gt = Image.new("RGB", (10, 10), "black")
+    pred = Image.new("RGB", (10, 10), "white")
+    for x in range(2, 8):
+        for y in range(2, 8):
+            gt.putpixel((x, y), (x * 20, y * 20, 50))
+            pred.putpixel((x, y), (x * 20, y * 20, 50))
+    mask = Image.new("L", (10, 10), 0)
+    for x in range(2, 8):
+        for y in range(2, 8):
+            mask.putpixel((x, y), 255)
+    assert region_pixel_consistency(gt, pred, mask, size=10) == pytest.approx(1.0)
