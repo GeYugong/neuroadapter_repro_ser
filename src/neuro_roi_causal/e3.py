@@ -391,3 +391,57 @@ def joint_result_rows(
         ):
             item["bh_q_e3b"] = qvalue
     return output
+
+
+def descriptive_distribution_rows(
+    per_image_effects: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    rows = list(per_image_effects)
+    keys = sorted(
+        {
+            (row["image_category"], row["masked_roi"], row["metric"])
+            for row in rows
+        }
+    )
+    output = []
+    for category, masked_roi, metric in keys:
+        values = np.asarray(
+            [
+                float(row["excess_causal_loss"])
+                for row in rows
+                if (
+                    row["image_category"],
+                    row["masked_roi"],
+                    row["metric"],
+                )
+                == (category, masked_roi, metric)
+            ],
+            dtype=np.float64,
+        )
+        if not len(values) or not np.isfinite(values).all():
+            raise ValueError(
+                f"Invalid descriptive distribution: "
+                f"{category}/{masked_roi}/{metric}"
+            )
+        output.append(
+            {
+                "image_category": category,
+                "masked_roi": masked_roi,
+                "metric": metric,
+                "num_images": int(len(values)),
+                "mean": float(values.mean()),
+                "std": (
+                    float(values.std(ddof=1))
+                    if len(values) > 1
+                    else 0.0
+                ),
+                "min": float(values.min()),
+                "q25": float(np.quantile(values, 0.25)),
+                "median": float(np.median(values)),
+                "q75": float(np.quantile(values, 0.75)),
+                "max": float(values.max()),
+                "positive_fraction": float(np.mean(values > 0)),
+                "analysis_status": "descriptive_only",
+            }
+        )
+    return output

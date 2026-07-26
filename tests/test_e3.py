@@ -4,6 +4,7 @@ import pytest
 
 from neuro_roi_causal.e2 import read_csv
 from neuro_roi_causal.e3 import (
+    descriptive_distribution_rows,
     ROI_GROUPS,
     build_interaction_category,
     build_joint_category,
@@ -133,3 +134,12 @@ def test_e3b_formal_statistics_use_separate_bh_family():
     assert len(rows) == 9
     assert all(row["sign_flip_p"] is not None for row in rows)
     assert all(row["bh_q_e3b"] is not None for row in rows)
+
+
+def test_descriptive_distribution_rows_have_no_inference_fields():
+    rows = descriptive_distribution_rows(synthetic_effects())
+    assert len(rows) == 9
+    assert all(row["num_images"] == 4 for row in rows)
+    assert all(row["analysis_status"] == "descriptive_only" for row in rows)
+    assert all(0.0 <= row["positive_fraction"] <= 1.0 for row in rows)
+    assert all("sign_flip_p" not in row for row in rows)

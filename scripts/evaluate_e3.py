@@ -22,7 +22,11 @@ sys.path.insert(0, str(REPRO_ROOT / "scripts"))
 
 from evaluate_e2 import load_models, load_records
 from neuro_roi_causal.e2 import read_csv
-from neuro_roi_causal.e3 import interaction_rows, joint_result_rows
+from neuro_roi_causal.e3 import (
+    descriptive_distribution_rows,
+    interaction_rows,
+    joint_result_rows,
+)
 from neuro_roi_causal.local_metrics import (
     HAAR_MIN_NEIGHBORS,
     HAAR_MIN_SIZE,
@@ -157,17 +161,25 @@ def visual_grid(
         "no mask",
         *[f"mask {metadata[name]['masked_roi']}" for name in targets],
     ]
-    dataset_idx = next(iter(records["no_mask"]))
+    dataset_indices = list(records["no_mask"])
     cell, header = 200, 40
-    canvas = Image.new("RGB", (cell * (len(names) + 1), header + cell), "white")
+    canvas = Image.new(
+        "RGB",
+        (cell * (len(names) + 1), header + cell * len(dataset_indices)),
+        "white",
+    )
     draw = ImageDraw.Draw(canvas)
     for column, name in enumerate(display_names):
         draw.text((column * cell + 4, 10), name, fill="black")
-    gt = Image.open(records["no_mask"][dataset_idx]["gt"]).convert("RGB")
-    canvas.paste(gt.resize((cell, cell)), (0, header))
-    for column, name in enumerate(names, start=1):
-        pred = Image.open(records[name][dataset_idx]["pred"]).convert("RGB")
-        canvas.paste(pred.resize((cell, cell)), (column * cell, header))
+    for row_index, dataset_idx in enumerate(dataset_indices):
+        top = header + row_index * cell
+        gt = Image.open(records["no_mask"][dataset_idx]["gt"]).convert("RGB")
+        canvas.paste(gt.resize((cell, cell)), (0, top))
+        draw.rectangle((0, top, 78, top + 18), fill="white")
+        draw.text((4, top + 3), f"idx {dataset_idx}", fill="black")
+        for column, name in enumerate(names, start=1):
+            pred = Image.open(records[name][dataset_idx]["pred"]).convert("RGB")
+            canvas.paste(pred.resize((cell, cell)), (column * cell, top))
     output.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(output)
 
@@ -196,6 +208,36 @@ def effect_plot(rows: list[dict], output: Path, value_column: str) -> None:
     axis.set_xlabel("Engineering-smoke effect estimate (no CI)")
     axis.set_title("Descriptive smoke effects; not formal inference")
     axis.invert_yaxis()
+    figure.tight_layout()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=160)
+    plt.close(figure)
+
+
+def distribution_plot(rows: list[dict], output: Path) -> None:
+    selected = [row for row in rows if row["metric"] == "dino"]
+    groups = sorted(
+        {
+            (row["image_category"], row["masked_roi"])
+            for row in selected
+        }
+    )
+    values = [
+        [
+            float(row["excess_causal_loss"])
+            for row in selected
+            if (row["image_category"], row["masked_roi"]) == group
+        ]
+        for group in groups
+    ]
+    labels = [f"{category} / {roi}" for category, roi in groups]
+    figure, axis = plt.subplots(
+        figsize=(10, max(4.0, 0.38 * len(groups)))
+    )
+    axis.axvline(0.0, color="black", linewidth=0.8)
+    axis.boxplot(values, vert=False, labels=labels, showmeans=True)
+    axis.set_xlabel("Pilot excess causal loss (DINO)")
+    axis.set_title("Pilot effect distributions; descriptive only")
     figure.tight_layout()
     output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output, dpi=160)
@@ -504,6 +546,14 @@ def main() -> None:
     write_csv(args.output_dir / "local_metric_results.csv", local_rows)
     excess = aggregate_excess(rows, metadata_by_category)
     write_csv(args.output_dir / "per_image_excess_effects.csv", excess)
+    write_csv(
+        args.output_dir / "effect_distribution_summary.csv",
+        descriptive_distribution_rows(excess),
+    )
+    distribution_plot(
+        excess,
+        args.output_dir / "figures" / "effect_distribution_plot.png",
+    )
     if plan["name"] == "E3_interaction":
         results = interaction_rows(
             excess,
